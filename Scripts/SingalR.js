@@ -1,12 +1,17 @@
 ﻿(function () {
-    $.connection.hub.start()
+    var room = $.connection.room;
+    $.connection.hub.start() // connection to SignalR, not to any specific hub
         .done(function () {
-            console.log("It Worked");
-            $.connection.room.server.announce("howdy");
+            writeToPage("Connection suceeded.");
+            room.server.announce("howdy");
         })
-        .fail(function () { alert("fail"); });
+        .fail(function () { writeToPage("Connection to SignalR failed."); });
 
-    $.connection.room.client.announce = function (message) {
-        $("#chatLog").append(message + "<br />");
+        room.client.announce = function (message) {
+        writeToPage(message);
     };
+
+    var writeToPage = function (message) {
+        $("#chatLog").append(message + "<br />");
+    }
 })();
