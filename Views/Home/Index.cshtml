@@ -1,0 +1,35 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@section scripts{
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/js"></script>
+    <script src="~/Scripts/SingalR.js"></script>
+}
+
+<div class="jumbotron">
+    <h1>NiobiumFire Chat App</h1>
+    <p class="lead">ASP.NET chat app.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <h2>Create Room</h2>
+        <p>
+            Text1.
+        </p>
+        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+    </div>
+    <div class="col-md-4">
+        <h2>Join Room</h2>
+        <p>Text 2.</p>
+        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+    </div>
+    <div class="col-md-4">
+        <h2>Col 3</h2>
+        <p>Text 3.</p>
+        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+    </div>
+</div>
+<p id="chatLog"></p>
