@@ -25,6 +25,8 @@ namespace ChatWebApp
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+                SlidingExpiration = true,
+                ExpireTimeSpan = TimeSpan.FromMinutes(15),
                 LoginPath = new PathString("/Account/Login"),
                 Provider = new CookieAuthenticationProvider
                 {

@@ -1,0 +1,505 @@
+﻿
+@{
+    //ViewBag.Title = "Room";
+}
+
+@section scripts{
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/js"></script>
+    <script src="~/Scripts/SingalR.js"></script>
+    <script>
+        //$(document).ready(function () {
+        //    a = $(document).width();
+        //    //alert(a);
+        //    a = document.getElementById("user-card-board").clientWidth;
+        //    //alert(a);
+        //    w = (70 / a) * 100;
+        //    //alert(w);
+        //    g = (90 - (8 * w)) / 7;
+        //    //alert(g);
+        //    //document.getElementById("card0").style.left = String(5 + pw / 2).concat("%");
+        //    //document.getElementById("card7").style.right = String(5 + pw / 2).concat("%");
+        //    document.getElementById("card0").style.left = '5%';
+        //    document.getElementById("card0").style.top = '5%';
+        //    document.getElementById("card7").style.right = '5%';
+        //    document.getElementById("card7").style.top = '5%';
+        //    for (i = 1; i < 7; i++) {
+        //        left = document.getElementById("card".concat(String(i - 1))).style.left;
+        //        //alert(String(left));
+        //        //alert(parseInt(String(left).substring(0, left.length-1))+w+g);
+        //        document.getElementById("card".concat(String(i))).style.left = String(parseFloat(String(left).substring(0, left.length - 1)) + w + g).concat("%");
+        //        document.getElementById("card".concat(String(i))).style.top = "5%";
+        //        //alert(String(document.getElementById("card".concat(String(i))).style.left));
+        //    }
+        //});
+
+        //$(document).ready(function ()
+        //{
+        //    document.getElementById("suit0").onclick = nominateSuit;
+        //});
+
+        //$(document).ready(function () {
+        //    $('#suit-modal').modal('show');
+        //});
+    </script>
+}
+
+
+<h1>@ViewBag.Title</h1>
+
+<!-- Team Selector -->
+
+<div class="d-flex flex-column bg-info rounded p-1">
+    <div class="btn-group d-flex flex-grow-1 justify-content-center align-items-center px-sm-5">
+        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="wradio" style="font-size:10px">
+                West
+            </button>
+            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="wBotBadge" hidden>
+                <i class="bi bi-robot"></i>
+            </span>
+            <ul class="dropdown-menu border-info">
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)">Occupy Seat</a></li>
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)">Assign to Bot</a></li>
+            </ul>
+        </div>
+
+        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="nradio" style="font-size:10px">
+                North
+            </button>
+            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index:1;top: 70%;font-size:18px; color:black" id="nBotBadge" hidden>
+                <i class="bi bi-robot"></i>
+            </span>
+            <ul class="dropdown-menu border-info">
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)">Occupy Seat</a></li>
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)">Assign to Bot</a></li>
+            </ul>
+        </div>
+
+        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="sradio" style="font-size:10px">
+                South
+            </button>
+            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="sBotBadge" hidden>
+                <i class="bi bi-robot"></i>
+            </span>
+            <ul class="dropdown-menu border-info">
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)">Occupy Seat</a></li>
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)">Assign to Bot</a></li>
+            </ul>
+        </div>
+
+        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="eradio" style="font-size:10px">
+                East
+            </button>
+            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="eBotBadge" hidden>
+                <i class="bi bi-robot"></i>
+            </span>
+            <ul class="dropdown-menu border-info">
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(2)">Occupy Seat</a></li>
+                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(6)">Assign to Bot</a></li>
+            </ul>
+        </div>
+
+        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+            <button class="btn btn-primary active" type="button" id="xradio" style="font-size:10px" onclick="requestSeatBooking(8)">
+                Spectator
+            </button>
+        </div>
+    </div>
+
+    <div class="d-flex m-0 p-0 py-2 mt-2 justify-content-between align-items-center px-sm-5">
+        <input class="btn btn-sm btn-dark px-2" type="button" id="dealBtn" value="Deal" disabled />
+        <input class="btn btn-sm btn-dark px-1 m-0" type="button" id="newGameBtn" value="New Game" disabled />
+        <button class="btn btn-sm btn-dark px-3 position-relative" type="button" id="chatbtn" value="" data-bs-toggle="offcanvas" data-bs-target="#lobby">
+            ···
+            <span class="position-absolute badge bg-danger p-1" style="top:-20%;right:-5%" id="chatLogBadge" hidden>
+                <i class="bi bi-envelope-paper-fill"></i>
+            </span>
+        </button>
+    </div>
+</div>
+
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="lobby">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Chat</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body pt-0">
+
+        <div class="accordion accordian-flush mt-1" id="roomAccordion">
+
+            <!-- User List -->
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" style="outline: none">
+                    <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#connectedUsersAccordian">
+                        Connected Users
+                    </button>
+                </h2>
+                <div class="accordion-collapse collapse show bg-info bg-opacity-75" id="connectedUsersAccordian" data-bs-parent="#accordionExample">
+                    <div class="accordion-body p-0">
+                        <div class="p-2" id=userLists>
+                            <p class="small" id="userList"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Controls and Log -->
+
+            <div class="accordion-item bg-info bg-opacity-75 ">
+                <h2 class="accordion-header">
+                    <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#chatLogAccordian" id="chatLogBtn">
+                        Chat Log
+                    </button>
+                </h2>
+                <div class="accordion-collapse collapse show" id="chatLogAccordian" data-bs-parent="#accordionExample">
+                    <div class="accordion-body p-0">
+                        <div class="d-flex flex-row justify-content-around align-items-center" style="min-width:0">
+                            <input class="form-control m-1" type="text" style="max-width: 1000px" id="messageToSend" placeholder="Type something..." />
+                            <input class="btn btn-primary m-1" type="button" value="Send" id="sendmessage" />
+                        </div>
+                        <textarea readonly class="bg-transparent border-0 pb-2 ps-3" style="font-size: 12px; resize: none; min-height: 100px; height: 100%; min-width:100%; outline: none" id="chatLog"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Score History -->
+
+            <div class="accordion-item bg-info bg-opacity-75 ">
+                <h2 class="accordion-header">
+                    <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#scoreHistoryAccordian">
+                        Game Score History
+                    </button>
+                </h2>
+                <div class="accordion-collapse collapse show" id="scoreHistoryAccordian">
+                    <div class="accordion-body p-0 px-2">
+                        <table class="table table-sm table-striped table-responsive score-history" id="scoreTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Round</th>
+                                    <th scope="col">N/S</th>
+                                    <th scope="col">E/W</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Total</th>
+                                    <td>0</td>
+                                    <td>0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Team Selector Error Modal -->
+
+<div class="modal modal-sm" id="seat-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!--<div class="modal-header">
+                <h5 class="modal-title">Seat is occupied</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>-->
+            <div class="modal-body pb-0">
+                <p id="seat-modal-body"></p>
+            </div>
+            <div class="modal-footer p-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card Table -->
+
+<div class="container-fluid rounded mt-2">
+    <div class="row tableboard rounded justify-content-center position-relative">
+
+        <!-- Score Totals -->
+        <div class="d-flex justify-content-center align-items-center score-summary">
+            <table class="table table-sm m-0" id="scoreTotals" style="width: auto;  border-style:hidden">
+                <thead>
+                    <tr>
+                        <th class="py-0 px-2" style="text-align:center;" scope="col">N/S</th>
+                        <th class="py-0 px-2" style="text-align:center" scope="col">E/W</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="py-0" style="text-align: center;font-weight:400">0</td>
+                        <td class="py-0" style="text-align:center">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Selected Suit Indicator -->
+        <div class="d-flex selected-suit p-0 m-0 justify-content-center align-items-center" style="width:auto;">
+            <i class="bi bi-arrows-move" style="font-size: 25px; color: dimgrey;" id="wnescallindicator"></i>
+            <div class="position-relative">
+                <i class="bi bi-suit-spade-fill" style="font-size: 25px; color: dimgrey;" id="selectedsuit"></i>
+                <span class="position-absolute" style="top: 40%; left: 60%; font-size:20px;font-weight:500;" id="selectedmultiplier"></span>
+            </div>
+        </div>
+        <div class="d-flex justify-content-center my-3 position-relative">
+            <!-- Flex Column 1 -->
+            <div class="d-flex flex-column justify-content-center position-relative">
+
+                <!-- West -->
+                <div class="d-flex position-relative align-items-center">
+                    <!-- Player Name Marker -->
+                    <div class="rotate270">
+                        <span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="wlabelbadge">
+                            <span class="small" style="font-weight:500" id="wlabel">West</span>
+                        </span>
+                    </div>
+                    <!-- Emote -->
+                    <div class="emote bubble-w d-flex justify-content-center align-items-center position-absolute" style="left:15px; visibility:hidden" id="wbubble"></div>
+                    <!-- Winner Marker -->
+                    <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="0winnermarker" hidden>
+                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                    </span>
+                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard0">
+                </div>
+            </div>
+            <!-- Flex Column 2 -->
+            <div class="d-flex flex-column justify-content-center">
+                <!-- North -->
+                <div class="d-flex position-relative justify-content-center align-items-center">
+                    <!-- Player Name Marker -->
+                    <span class="badge rounded-pill position-absolute top-0 start-50 translate-middle px-3 py-0" style="background-color: black" id="nlabelbadge">
+                        <span class="small" style="font-weight:500" id="nlabel">North</span>
+                    </span>
+                    <!-- Emote -->
+                    <div class="emote bubble-n d-flex justify-content-center align-items-center position-absolute" style="top:15px; visibility: hidden" id="nbubble"></div>
+                    <!-- Winner Marker -->
+                    <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="1winnermarker" hidden>
+                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                    </span>
+                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard1">
+                </div>
+                <!-- South -->
+                <div class="d-flex position-relative justify-content-center align-items-center">
+                    <!-- Player Name Marker -->
+                    <span class="badge rounded-pill position-absolute top-100 start-50 translate-middle px-3 py-0" style="background-color: black" id="slabelbadge">
+                        <span class="small" style="font-weight:500" id="slabel">South</span>
+                    </span>
+                    <!-- Emote -->
+                    @*<div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="top: 70%; left: 55px; visibility: hidden" id="sbubble"></div>*@
+                    <div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="bottom: 15px; visibility: hidden" id="sbubble"></div>
+                    <!-- Winner Marker -->
+                    <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="3winnermarker" hidden>
+                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                    </span>
+                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
+
+                    <!-- Turn Indicator -->
+                    <span class="badge rounded-circle p-1 position-absolute top-0 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
+                        <i class="bi bi-suit-spade-fill" style="font-size: 2em; color: darkmagenta;" id="turnIndicator"></i>
+                    </span>
+                </div>
+            </div>
+            <!-- Flex Column 3 -->
+            <div class="d-flex flex-column justify-content-center position-relative">
+
+                <!-- East -->
+                <div class="d-flex position-relative align-items-center">
+                    <!-- Winner Marker -->
+                    <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="2winnermarker" hidden>
+                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                    </span>
+                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard2">
+                    <!-- Player Name Marker -->
+                    <div class="rotate90">
+                        <span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="elabelbadge">
+                            <span class="small" style="font-weight:500" id="elabel">East</span>
+                        </span>
+                    </div>
+                    <!-- Emote -->
+                    <div class="emote bubble-e d-flex justify-content-center align-items-center position-absolute" style="right: 15px; visibility: hidden" id="ebubble"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Maximise Suit Selector -->
+        <div class="d-flex suit-selector p-0 m-0 justify-content-center align-items-center" style="width: auto;">
+            <button class="suit-selector-btn px-1 position-relative" id="suit-selector">
+                Call
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Suit Selector Modal -->
+
+<div class="modal modal-sm" id="suit-modal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-1">
+                <h5 class="modal-title">Make a call</h5>
+                <i class="bi bi-dash-lg" style="cursor:pointer;" onclick="minimiseSuitModal()"></i>
+            </div>
+            <div class="modal-body py-1">
+                <div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center" style="min-width:0">
+                    <i class="btn m-0 p-0 bi bi-suit-club-fill suitsize" style="font-size: 2em; color: black; " id="suit1"></i>
+                    <i class="btn m-0 p-0 bi bi-suit-diamond-fill" style="font-size: 2em; color: red;" id="suit2"></i>
+                    <i class="btn m-0 p-0 bi bi-suit-heart-fill" style="font-size: 2em; color: red; " id="suit3"></i>
+                    <i class="btn m-0 p-0 bi bi-suit-spade-fill" style="font-size: 2em; color: black; " id="suit4"></i>
+                </div>
+                <div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center">
+                    <i class="btn m-0 p-0 bi bi-x-diamond" style="font-size: 2em; color: darkmagenta;" id="suit5"></i>
+                    <i class="btn m-0 p-0 bi bi-x-diamond-fill" style="font-size: 2em; color: darkmagenta;" id="suit6"></i>
+                    <i class="btn m-0 p-0" style="font-size: 2em; color: black;" id="suit7">x2</i>
+                    <i class="btn m-0 p-0" style="font-size: 2em; color: black;" id="suit8">x4</i>
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" id="suit0" class="btn btn-dark" onclick="nominateSuit(this);">Pass</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Extra Points Modal -->
+
+<div class="modal modal-sm" id="extras-modal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-1">
+                <h5 class="modal-title">Extra points</h5>
+            </div>
+            <div class="modal-body py-1">
+                <div class="d-flex flex-column m-0 p-0 justify-content-around align-items-center" id="extras" style="min-width:0">
+                </div>
+                <div id="tablecardimage-placeholder">
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-primary" onclick="closeExtrasModal()">Accept</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Round Summary Modal -->
+
+<div class="modal modal-sm" id="summary-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-1">
+                <h5 class="modal-title">Round summary</h5>
+            </div>
+            <div class="modal-body py-1">
+                <div class="d-flex flex-column m-0 p-0 justify-content-around align-items-center" style="min-width:0">
+                    <table class="table table-sm table-striped table-responsive">
+                        <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col">N/S</th>
+                                <th scope="col">E/W</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Belotes</th>
+                                <td id="summary-belot-NS">0</td>
+                                <td id="summary-belot-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Declaration</th>
+                                <td id="summary-dec-NS">0</td>
+                                <td id="summary-dec-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Tricks</th>
+                                <td id="summary-tr-NS">0</td>
+                                <td id="summary-tr-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Sum</th>
+                                <td id="summary-sum-NS">0</td>
+                                <td id="summary-sum-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Game</th>
+                                <td id="summary-game-NS">0</td>
+                                <td id="summary-game-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Total</th>
+                                <td id="summary-total-NS">0</td>
+                                <td id="summary-total-EW">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Card Board -->
+<!--<div class="container p-0 rounded mt-2 bg-success bg-opacity-50">-->
+<!--<div class="d-flex flex-row justify-content-between p-0 bg-success bg-opacity-50 rounded">-->
+<!--<div class="bg-success bg-opacity-50 rounded d-flex justify-content-center mt-2" style="height:110px" id="user-card-board">
+    <div class="container position-relative">
+        <img class="position-absolute" src="~/Images/Cards/c1-06.png" id="card0" style="height: 100px; width:70px">
+        <img class="position-absolute" src="~/Images/Cards/c1-07.png" id="card1" style="height: 100px; width:70px">
+        <img class="position-absolute" src="~/Images/Cards/c1-08.png" id="card2" style="height: 100px; width:70px">
+        <img class="position-absolute" src="~/Images/Cards/c1-09.png" id="card3" style="height: 100px; width:70px">
+        <img class="position-absolute" src="~/Images/Cards/c2-06.png" id="card4" style="height: 100px; width:70px">
+        <img class="position-absolute" src="~/Images/Cards/c2-07.png" id="card5" style="height: 100px; width:70px">
+        <img class="position-absolute" src="~/Images/Cards/c2-08.png" id="card6" style="height: 100px; width:70px">
+        <img class="position-absolute" src="~/Images/Cards/c2-09.png" id="card7" style="height: 100px; width:70px">
+    </div>
+</div>-->
+<!-- <div class="cont small mt-2">
+    <img class="box cardleft" src="~/Images/Cards/c1-06.png" id="card0" style="height: 100px; width:70px">
+    <img class="box cardleft" src="~/Images/Cards/c1-07.png" id="card1" style="height: 100px; width:70px">
+    <img class="box cardleft" src="~/Images/Cards/c1-08.png" id="card2" style="height: 100px; width:70px">
+    <img class="box cardleft" src="~/Images/Cards/c1-09.png" id="card3" style="height: 100px; width:70px">
+    <img class="box cardright" src="~/Images/Cards/c2-06.png" id="card4" style="height: 100px; width:70px">
+    <img class="box cardright" src="~/Images/Cards/c2-07.png" id="card5" style="height: 100px; width:70px">
+    <img class="box cardright" src="~/Images/Cards/c2-08.png" id="card6" style="height: 100px; width:70px">
+    <img class="box cardright" src="~/Images/Cards/c2-09.png" id="card7" style="height: 100px; width:70px">
+</div>-->
+<div class="cont small mt-2">
+    <div class="d-flex flex-column cardboard rounded" id="cardboard">
+        <div class="cardrow">
+            <img class="belot-card box2 cardleft cardtop" src="~/Images/Cards/c4-10.png" id="card0" style="height: 100px; width:70px">
+            <img class="belot-card box2 cardleft cardtop" src="~/Images/Cards/c3-10.png" id="card1" style="height: 100px; width:70px">
+            <img class="belot-card box2 cardright cardtop" src="~/Images/Cards/c2-10.png" id="card2" style="height: 100px; width:70px">
+            <img class="belot-card box2 cardright cardtop" src="~/Images/Cards/c1-10.png" id="card3" style="height: 100px; width:70px">
+        </div>
+
+        <div class="cardrow cardrow2">
+            <img class="belot-card box2 cardleft cardbtm" src="~/Images/Cards/c4-13.png" id="card4">
+            <img class="belot-card box2 cardleft cardbtm" src="~/Images/Cards/c3-13.png" id="card5">
+            <img class="belot-card box2 cardright cardbtm" src="~/Images/Cards/c2-13.png" id="card6">
+            <img class="belot-card box2 cardright cardbtm" src="~/Images/Cards/c1-13.png" id="card7">
+        </div>
+    </div>
+</div>
+
+
+
+
+<div id="footer">
+</div>
+
+
+@Html.AntiForgeryToken()

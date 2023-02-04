@@ -8,8 +8,8 @@ namespace ChatWebApp
     {
         public void Configuration(IAppBuilder app)
         {
-            app.MapSignalR();
             ConfigureAuth(app);
+            app.MapSignalR();
         }
     }
 }
