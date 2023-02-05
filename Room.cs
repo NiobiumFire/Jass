@@ -21,27 +21,136 @@ namespace ChatWebApp
         public static ConcurrentDictionary<int, string> seatPositions = new ConcurrentDictionary<int, string>();
         public static List<string> deck;
         public static List<string>[] hand;
-        public static int numCardsIntoDeck;
+        public static int cardsDealt;
         public static int firstPlayer, turn;
-        public static int trick;
+        public static int numCardsPlayed;
         public static int roundSuit, trickSuit;
         public static List<int> suitCall;
         public static bool ewCalled;
         public static int multiplier;
         public static int ewRoundPoints, nsRoundPoints, ewTotal, nsTotal;
         public static bool ewWonATrick, nsWonATrick;
+        public static bool capot;
         public static int scoreTarget = 1501;
-        public static string[] cardPlayed;
+        public static string[] playedCards;
         public static int highestTrumpInTrick;
         public static List<Run>[] runs;
         public static List<Carre>[] carres;
         public static List<Belot>[] belots;
         public static string botGUID = "7eae0694-38c9-48c0-9016-40e7d9ab962c";
         public static int botDelay = 500;
+        public static bool waitDeal, waitCall, waitCard;
 
         public ChatRoom()
         {
 
+        }
+
+        // -------------------- Main --------------------
+
+        public void GameController()
+        {
+            while (((ewTotal < scoreTarget && nsTotal < scoreTarget) || ewTotal == nsTotal || capot) && !waitDeal && !waitCall & !waitCard)
+            {
+                RoundController();
+            }
+
+            if (!waitDeal && !waitCall & !waitCard) EndGame();
+        }
+
+        public void RoundController()
+        {
+            if (numCardsPlayed == 0 && hand[0].Count == 0)
+            {
+                if (GetDictionaryUsernameFromSeat(turn) != botGUID)
+                {
+                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).EnableDealBtn();
+                    waitDeal = true;
+                    return;
+                }
+                else
+                {
+                    Thread.Sleep(botDelay);
+                    Shuffle();
+                    turn = firstPlayer;
+                    Deal(5);
+                }
+            }
+
+            if (numCardsPlayed == 0)
+            {
+                while (!SuitDecided() && !waitCall)
+                {
+                    Clients.All.SetTurnIndicator(turn);
+                    CallController();
+                }
+            }
+
+            if (roundSuit != 0 && !waitCall)
+            {
+                if (numCardsPlayed == 0)
+                {
+                    turn = firstPlayer;
+                    Clients.All.SetTurnIndicator(turn);
+                    Deal(3);
+                    FindRuns();
+                    FindCarres();
+                    FindBelots();
+                }
+                while (numCardsPlayed < 32 & !waitCard)
+                {
+                    TrickController();
+                }
+                if (numCardsPlayed == 32)
+                {
+                    Clients.All.NewRound();
+                    FinalisePoints();
+                    NewRound();
+                }
+            }
+        }
+
+        public void CallController()
+        {
+            int[] validCalls = ValidCalls();
+            if (validCalls.Sum() == 0)
+            {
+                NominateSuit(0); // auto-pass
+                if (--turn == -1) turn = 3;
+            }
+            else if (GetDictionaryUsernameFromSeat(turn) != botGUID)
+            {
+                Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).ShowSuitModal(validCalls);
+                waitCall = true;
+            }
+            else // bot
+            {
+                NominateSuit(new AgentBasic().CallSuit(hand[turn], validCalls));
+                if (--turn == -1) turn = 3;
+            }
+        }
+
+        public void TrickController()
+        {
+            while (playedCards.Where(c => c != "c0-00").Count() < 4 && !waitCard)
+            {
+                if (hand[turn].Where(c => c != "c0-00").Count() == 1) // auto-play last card
+                {
+                    if (GetDictionaryUsernameFromSeat(turn) != botGUID) Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).PlayFinalCard();
+                    PlayCardRequest(hand[turn].Where(c => c != "c0-00").First()); // no extra declaration is possible on last card -> skip straight to PlayCardRequest
+                    continue;
+                }
+                int[] validCards = ValidCards();
+                if (GetDictionaryUsernameFromSeat(turn) != botGUID)
+                {
+                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).enableCards(validCards);
+                    waitCard = true;
+                }
+                else
+                {
+                    DeclareExtras(new AgentBasic().PlayCard(hand[turn], validCards, playedCards, turn, DetermineWinner(), roundSuit, trickSuit, ewCalled));
+                }
+            }
         }
 
         // -------------------- Reset --------------------
@@ -55,10 +164,9 @@ namespace ChatWebApp
                 SysAnnounce("Resetting for a new game.");
                 Random rnd = new Random();
                 firstPlayer = rnd.Next(4);
-                cardPlayed = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
                 ewTotal = 0;
                 nsTotal = 0;
-                Clients.All.NewGame();
+                Clients.All.NewGame(); // reset score table (offcanvas), reset score totals (card table), hide winner markers
                 NewRound();
             }
         }
@@ -83,27 +191,23 @@ namespace ChatWebApp
                 carres[i] = new List<Carre>();
                 belots[i] = new List<Belot>();
             }
-            numCardsIntoDeck = 0;
-            trick = 0;
+            playedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
+            cardsDealt = 0;
+            numCardsPlayed = 0;
             trickSuit = 0;
             highestTrumpInTrick = 0;
             roundSuit = 0; // 0 = pass, 1 = clubs ... 5 = no trumps, 6 = all trumps
             suitCall = new List<int>();
-            Clients.All.NewRound();
+            Clients.All.NewRound(); // reset table, reset board, disable cards, reset suit selection 
             ewRoundPoints = 0;
             nsRoundPoints = 0;
             multiplier = 1;
             ewWonATrick = false;
             nsWonATrick = false;
-            if (GetDictionaryUsernameFromSeat(turn) == botGUID)
-            {
-                Thread.Sleep(botDelay);
-                Shuffle();
-            }
-            else
-            {
-                Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).EnableDealBtn();
-            }
+            capot = false;
+            waitDeal = false;
+            waitCall = false;
+            waitCard = false;
         }
 
         public void EndGame()
@@ -130,6 +234,9 @@ namespace ChatWebApp
 
         public void Shuffle()
         {
+            bool isHuman = false;
+            if (GetDictionaryUsernameFromSeat(turn) != botGUID) isHuman = true;
+
             //var card = new List<string> { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13" }; // Full deck
             var card = new List<string> { "06", "07", "08", "09", "10", "11", "12", "13" }; // Belot deck
             var suit = new List<int> { 1, 2, 3, 4 };
@@ -149,25 +256,13 @@ namespace ChatWebApp
             //    "c1-08", "c2-08", "c3-08", "c4-08", "c1-09", "c2-09", "c3-09", "c4-09",
             //    "c1-10", "c2-10", "c3-10", "c4-10", "c1-11", "c1-12", "c1-13", "c4-11",
             //    "c1-12", "c2-12", "c3-12", "c4-12", "c1-06", "c2-06", "c3-06", "c4-06", };
-            turn = firstPlayer;
-            Deal(5);
-            Clients.All.SetTurnIndicator(turn);
 
-            if (GetDictionaryUsernameFromSeat(turn) == botGUID)
+            if (isHuman)
             {
-                NominateSuit(new AgentBasic().CallSuit(hand[turn], ValidCalls()));
-            }
-            else
-            {
-                int[] validCalls = ValidCalls();
-                if (validCalls.Sum() > 0)
-                {
-                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).ShowSuitModal(validCalls);
-                }
-                else
-                {
-                    NominateSuit(0);
-                }
+                turn = firstPlayer;
+                Deal(5);
+                waitDeal = false;
+                GameController();
             }
         }
 
@@ -212,7 +307,7 @@ namespace ChatWebApp
             {
                 for (int j = 0; j < numCards; j++)
                 {
-                    hand[turn].Add(deck[numCardsIntoDeck++]);
+                    hand[turn].Add(deck[cardsDealt++]);
                 }
                 hand[turn] = OrderCards(hand[turn], false);
                 if (GetDictionaryUsernameFromSeat(turn) != botGUID)
@@ -253,10 +348,13 @@ namespace ChatWebApp
 
         public void NominateSuit(int suit)
         {
+
+            bool isHuman = false;
+            if (GetDictionaryUsernameFromSeat(turn) != botGUID) isHuman = true;
+
             suitCall.Add(suit);
 
             string username = GetGameplayUsernameFromTurn();
-
 
             string message = username + " passed.";
             string[] seatPos = new string[] { "w", "n", "e", "s" };
@@ -285,74 +383,39 @@ namespace ChatWebApp
                 }
             }
 
-            if (--turn == -1) turn = 3;
-
             SysAnnounce(message);
 
-            int suitDecision = SuitDecided();
-            if (suitDecision == 0)
+            if (isHuman)
             {
-                Clients.All.SetTurnIndicator(turn);
-                if (GetDictionaryUsernameFromSeat(turn) == botGUID)
-                {
-                    NominateSuit(new AgentBasic().CallSuit(hand[turn], ValidCalls()));
-                }
-                else
-                {
-                    int[] validCalls = ValidCalls();
-                    if (validCalls.Sum() > 0)
-                    {
-                        Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).ShowSuitModal(validCalls);
-                    }
-                    else
-                    {
-                        NominateSuit(0);
-                    }
-                }
-            }
-            else if (suitDecision == 1)
-            {
-                NewRound();
-            }
-            else
-            {
-                turn = firstPlayer;
-                Deal(3);
-                FindRuns();
-                FindCarres();
-                FindBelots();
-                Clients.All.SetTurnIndicator(turn);
-                if (GetDictionaryUsernameFromSeat(firstPlayer) == botGUID)
-                {
-                    DeclareExtras(new AgentBasic().PlayCard(hand[firstPlayer], ValidCards(), cardPlayed, turn, DetermineWinner(), roundSuit, trickSuit, ewCalled));
-                }
-                else
-                {
-                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(firstPlayer))).enableCards(ValidCards());
-                }
+                if (--turn == -1) turn = 3;
+                waitCall = false;
+                GameController();
             }
         }
-        public int SuitDecided() // 0 = more calls needed, 1 = everyone passed, 2 = a suit was chosen
+
+        public bool SuitDecided()
         {
             if (suitCall.Count > 3)
             {
-                var temp = suitCall.GetRange(suitCall.Count - 3, 3);
-
                 if (string.Join("", suitCall.GetRange(suitCall.Count - 3, 3).ToArray()) == "000")
                 {
                     if (suitCall[suitCall.Count - 4] == 0)
                     {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            hand[i] = new List<string>();
+                        }
                         SysAnnounce("No suit chosen.");
-                        return 1;
+                        NewRound();
                     }
                     else
                     {
                         SysAnnounce("The round will be played in " + GetSuitNameFromNumber(roundSuit) + ".");
-                        return 2;
                     }
+                    return true;
                 }
             }
-            return 0;
+            return false;
         }
 
         // -------------------- Card Validation --------------------
@@ -471,8 +534,6 @@ namespace ChatWebApp
         public void DeclareExtras(string tableCard)
         {
             string username = GetDictionaryUsernameFromSeat(turn);
-            Clients.All.SetTableCard(turn, tableCard);
-            Thread.Sleep(botDelay);
 
             if (roundSuit != 5)
             {
@@ -492,7 +553,7 @@ namespace ChatWebApp
                     }
                 }
 
-                if (trick < 4)
+                if (numCardsPlayed < 4)
                 {
 
                     if (runs[turn].Count > 0)
@@ -521,7 +582,7 @@ namespace ChatWebApp
                     {
                         Clients.Caller.Extras(new JavaScriptSerializer().Serialize(extras), tableCard, FindRunCarreOverlap(extras));
                     }
-                    // ExtrasDeclared > PlayCardRequest will be called by the modal instead of by this CheckPlayInterrupt function
+                    // ExtrasDeclared > PlayCardRequest will be called by the modal instead of by this function
                 }
                 else
                 {
@@ -572,25 +633,31 @@ namespace ChatWebApp
 
         public void PlayCardRequest(string tableCard)
         {
-            cardPlayed[turn] = tableCard;
+
+            bool isHuman = false;
+            if (GetDictionaryUsernameFromSeat(turn) != botGUID) isHuman = true;
+
+            playedCards[turn] = tableCard;
+            Clients.All.SetTableCard(turn, tableCard);
+            Thread.Sleep(botDelay);
 
             for (int i = 0; i < hand[turn].Count; i++)
             {
-                if (hand[turn][i] == cardPlayed[turn])
+                if (hand[turn][i] == playedCards[turn])
                 {
                     hand[turn][i] = "c0-00";
                     break;
                 }
             }
 
-            trick++;
+            numCardsPlayed++;
 
             if (trickSuit == 0) trickSuit = Int32.Parse(tableCard.Substring(1, 1)); // first card of a trick determines suit
 
-            int trumpstrength = TrumpStrength(cardPlayed[turn]);
+            int trumpstrength = TrumpStrength(playedCards[turn]);
             if (highestTrumpInTrick < trumpstrength) highestTrumpInTrick = trumpstrength;
 
-            if (trick % 4 == 0) // trick end
+            if (numCardsPlayed % 4 == 0) // trick end
             {
                 int winner = DetermineWinner();
                 if (winner == 0 || winner == 2)
@@ -611,41 +678,25 @@ namespace ChatWebApp
                     Clients.All.ShowWinner(winner);
                 }
 
-                Clients.All.NewTrick(); // reset table
-                turn = winner; // redundant at the end of the round
+                if (numCardsPlayed < 32)
+                {
+                    Clients.All.ResetTable();
+                    turn = winner;
+                    playedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
+                }
                 highestTrumpInTrick = 0;
                 trickSuit = 0;
-                cardPlayed = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
             }
             else
             {
                 if (--turn == -1) turn = 3;
             }
 
-            if (trick == 32) // round end
+            if (numCardsPlayed < 32) Clients.All.SetTurnIndicator(turn);
+            if (isHuman && numCardsPlayed < 29) // on the last trick (cards 29, 30, 31, 32), cards are auto-played and the end of this method will return to TrickController
             {
-
-                bool capot = FinalisePoints();
-                if ((ewTotal < scoreTarget && nsTotal < scoreTarget) || ewTotal == nsTotal || capot)
-                {
-                    NewRound();
-                }
-                else
-                {
-                    EndGame();
-                }
-            }
-            else
-            {
-                Clients.All.SetTurnIndicator(turn);
-                if (GetDictionaryUsernameFromSeat(turn) == botGUID)
-                {
-                    DeclareExtras(new AgentBasic().PlayCard(hand[turn], ValidCards(), cardPlayed, turn, DetermineWinner(), roundSuit,trickSuit, ewCalled));
-                }
-                else
-                {
-                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).enableCards(ValidCards());
-                }
+                waitCard = false;
+                GameController();
             }
         }
 
@@ -775,7 +826,7 @@ namespace ChatWebApp
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    int value = cp.DetermineCardPower(cardPlayed[i], roundSuit, trickSuit);
+                    int value = cp.DetermineCardPower(playedCards[i], roundSuit, trickSuit);
                     if (value > bestValue)
                     {
                         bestValue = value;
@@ -795,8 +846,8 @@ namespace ChatWebApp
             for (int i = 0; i < 4; i++)
             {
 
-                int suit = Int32.Parse(cardPlayed[i].Substring(1, 1));
-                int card = Int32.Parse(cardPlayed[i].Substring(3, 2)) - 6;
+                int suit = Int32.Parse(playedCards[i].Substring(1, 1));
+                int card = Int32.Parse(playedCards[i].Substring(3, 2)) - 6;
                 if (roundSuit == 6 || roundSuit == suit)
                 {
                     points += trump[card];
@@ -806,14 +857,13 @@ namespace ChatWebApp
                     points += nontrump[card];
                 }
             }
-            if (trick == 32) points += 10;
+            if (numCardsPlayed == 32) points += 10;
 
             return points;
         }
 
-        public bool FinalisePoints()
+        public void FinalisePoints()
         {
-            bool capot = false;
             int[] TrickPoints = new int[] { ewRoundPoints, nsRoundPoints };
             int[] DeclarationPoints = new int[] { 0, 0 };
             int[] BelotPoints = new int[] { 0, 0 };
@@ -958,7 +1008,6 @@ namespace ChatWebApp
             Clients.All.ShowRoundSummary(TrickPoints, DeclarationPoints, BelotPoints, Result, ewRoundPoints, nsRoundPoints);
             Thread.Sleep(6000);
             Clients.All.HideRoundSummary();
-            return capot;
         }
 
         // -------------------- Seat Management --------------------

@@ -31,6 +31,13 @@
         room.server.declareExtras(card);
     };
 
+    room.client.playFinalCard = function () {
+        disableCards();
+        for (i = 0; i < 7; i++) {
+            document.getElementById("card".concat(String(i))).hidden = true;
+        }
+    };
+
     disableCards = function () {
         for (i = 0; i < 8; i++) {
             document.getElementById("card".concat(String(i))).onclick = "";
@@ -127,14 +134,10 @@
 
     $("#newGameBtn").on("click", function () {
         room.client.disableNewGame();
-        room.server.newGame();
+        room.server.newGame().done(function () { room.server.gameController() });
     });
 
     room.client.newGame = function () {
-        //resetTable();
-        //resetBoard();
-        //disableCards();
-        //resetSuitSelection();
 
         var table = document.getElementById("scoreTable");
         while (table.rows.length > 2) {
@@ -209,7 +212,7 @@
 
     };
 
-    room.client.newTrick = function () {
+    room.client.resetTable = function () {
         resetTable();
     };
 
