@@ -10,20 +10,23 @@ using System.Web.Script.Serialization;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Concurrent;
+using Serilog;
 
 namespace ChatWebApp
 {
     [HubName("room")] // Attribute -> client-side name for the class may differ from server-side name
     public class ChatRoom : Hub
     {
-        public static List<string> connectedUsers = new List<string>();
-        public static ConcurrentDictionary<string, string> connectionIDs = new ConcurrentDictionary<string, string>();
-        public static ConcurrentDictionary<int, string> seatPositions = new ConcurrentDictionary<int, string>();
+        //public static ConcurrentDictionary<string, string> connectionIDs = new ConcurrentDictionary<string, string>();
+        //public static ConcurrentDictionary<int, string> seatPositions = new ConcurrentDictionary<int, string>();
+        public static List<Spectator> spectators = new List<Spectator>();
+        public static Player[] players = { new Player(), new Player(), new Player(), new Player() };
         public static List<string> deck;
-        public static List<string>[] hand;
+        public static List<string>[] hand = { new List<string>(), new List<string>(), new List<string>(), new List<string>() };
+        public static bool newRound = true;
         public static int cardsDealt;
         public static int firstPlayer, turn;
-        public static int numCardsPlayed;
+        public static int numCardsPlayed = 0;
         public static int roundSuit, trickSuit;
         public static List<int> suitCall;
         public static bool ewCalled;
@@ -41,18 +44,23 @@ namespace ChatWebApp
         public static int botDelay = 500;
         public static bool waitDeal, waitCall, waitCard;
 
+        public static string logPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/BelotServerLog-.txt");
+        public static Serilog.Core.Logger log = new LoggerConfiguration().WriteTo.File(logPath, rollingInterval: RollingInterval.Day).CreateLogger();
+
+        //public static logPath
+
         public ChatRoom()
         {
-
+            //log.Information("Creating new Chat Room");
         }
 
         // -------------------- Main --------------------
 
-        public void GameController()
+        public async Task GameController()
         {
             while (((ewTotal < scoreTarget && nsTotal < scoreTarget) || ewTotal == nsTotal || capot) && !waitDeal && !waitCall & !waitCard)
             {
-                RoundController();
+                await Task.Run(() => RoundController());
             }
 
             if (!waitDeal && !waitCall & !waitCard) EndGame();
@@ -60,11 +68,13 @@ namespace ChatWebApp
 
         public void RoundController()
         {
-            if (numCardsPlayed == 0 && hand[0].Count == 0)
+            if (newRound)
             {
-                if (GetDictionaryUsernameFromSeat(turn) != botGUID)
+                newRound = false;
+                NewRound();
+                if (players[turn].IsHuman)
                 {
-                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).EnableDealBtn();
+                    Clients.Client(players[turn].ConnectionId).EnableDealBtn();
                     waitDeal = true;
                     return;
                 }
@@ -105,7 +115,7 @@ namespace ChatWebApp
                 {
                     Clients.All.NewRound();
                     FinalisePoints();
-                    NewRound();
+                    newRound = true;
                 }
             }
         }
@@ -118,9 +128,9 @@ namespace ChatWebApp
                 NominateSuit(0); // auto-pass
                 if (--turn == -1) turn = 3;
             }
-            else if (GetDictionaryUsernameFromSeat(turn) != botGUID)
+            else if (players[turn].IsHuman)
             {
-                Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).ShowSuitModal(validCalls);
+                Clients.Client(players[turn].ConnectionId).ShowSuitModal(validCalls);
                 waitCall = true;
             }
             else // bot
@@ -136,14 +146,14 @@ namespace ChatWebApp
             {
                 if (hand[turn].Where(c => c != "c0-00").Count() == 1) // auto-play last card
                 {
-                    if (GetDictionaryUsernameFromSeat(turn) != botGUID) Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).PlayFinalCard();
+                    if (players[turn].IsHuman) Clients.Client(players[turn].ConnectionId).PlayFinalCard();
                     PlayCardRequest(hand[turn].Where(c => c != "c0-00").First()); // no extra declaration is possible on last card -> skip straight to PlayCardRequest
                     continue;
                 }
                 int[] validCards = ValidCards();
-                if (GetDictionaryUsernameFromSeat(turn) != botGUID)
+                if (players[turn].IsHuman)
                 {
-                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).enableCards(validCards);
+                    Clients.Client(players[turn].ConnectionId).enableCards(validCards);
                     waitCard = true;
                 }
                 else
@@ -157,18 +167,19 @@ namespace ChatWebApp
 
         public void NewGame()
         {
-            if (seatPositions.Count == 4)
-            {
-                Clients.All.CloseModalsAndButtons();
-                Clients.All.DisableRadios();
-                SysAnnounce("Resetting for a new game.");
-                Random rnd = new Random();
-                firstPlayer = rnd.Next(4);
-                ewTotal = 0;
-                nsTotal = 0;
-                Clients.All.NewGame(); // reset score table (offcanvas), reset score totals (card table), hide winner markers
-                NewRound();
-            }
+            Clients.All.DisableNewGame();
+            Clients.All.CloseModalsAndButtons();
+            Clients.All.DisableRadios();
+            log.Information("Resetting for a new game.");
+            Random rnd = new Random();
+            firstPlayer = rnd.Next(4);
+            waitDeal = false;
+            waitCall = false;
+            waitCard = false;
+            newRound = true;
+            ewTotal = 1499;
+            nsTotal = 1499;
+            Clients.All.NewGame(); // reset score table (offcanvas), reset score totals (card table), hide winner markers
         }
 
         public void NewRound() // set new first player
@@ -205,13 +216,14 @@ namespace ChatWebApp
             ewWonATrick = false;
             nsWonATrick = false;
             capot = false;
-            waitDeal = false;
-            waitCall = false;
-            waitCard = false;
         }
 
         public void EndGame()
         {
+            string winner = "N/S";
+            if (ewTotal > nsTotal) winner = "E/W";
+            SysAnnounce(winner + " win the game: " + ewTotal + " to " + nsTotal + ".");
+
             Clients.All.SetDealerMarker(4);
             Clients.All.NewRound();
             Clients.All.SetTurnIndicator(4);
@@ -234,9 +246,6 @@ namespace ChatWebApp
 
         public void Shuffle()
         {
-            bool isHuman = false;
-            if (GetDictionaryUsernameFromSeat(turn) != botGUID) isHuman = true;
-
             //var card = new List<string> { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13" }; // Full deck
             var card = new List<string> { "06", "07", "08", "09", "10", "11", "12", "13" }; // Belot deck
             var suit = new List<int> { 1, 2, 3, 4 };
@@ -252,12 +261,18 @@ namespace ChatWebApp
                     deck.Add("c" + suit[j] + "-" + card[i]);
                 }
             }
-            //deck = new List<string> {"c1-06", "c1-07", "c1-08", "c1-09", "c2-10", "c2-07", "c3-07", "c4-07",
-            //    "c1-08", "c2-08", "c3-08", "c4-08", "c1-09", "c2-09", "c3-09", "c4-09",
-            //    "c1-10", "c2-10", "c3-10", "c4-10", "c1-11", "c1-12", "c1-13", "c4-11",
-            //    "c1-12", "c2-12", "c3-12", "c4-12", "c1-06", "c2-06", "c3-06", "c4-06", };
+            //deck = new List<string> {"c1-08", "c1-09", "c1-10", "c1-11", "c1-13",
+            //    "c2-07", "c3-07", "c4-07", "c1-08", "c2-08",
+            //    "c3-08", "c4-08", "c1-09", "c2-09", "c3-09",
+            //    "c4-09", "c1-10", "c2-10", "c3-09", "c4-06",
+            //    "c2-13", "c3-13", "c4-13",
+            //    "c4-11", "c1-12", "c2-12",
+            //    "c3-12", "c4-12", "c1-06",
+            //    "c2-06", "c3-06", "c4-06" };
 
-            if (isHuman)
+            log.Information("Shuffled deck: " + String.Join(",", deck));
+
+            if (players[turn].IsHuman)
             {
                 turn = firstPlayer;
                 Deal(5);
@@ -310,9 +325,10 @@ namespace ChatWebApp
                     hand[turn].Add(deck[cardsDealt++]);
                 }
                 hand[turn] = OrderCards(hand[turn], false);
-                if (GetDictionaryUsernameFromSeat(turn) != botGUID)
+                log.Information(GetDisplayName(turn) + " is dealt: " + String.Join(",", hand[turn]) + ".");
+                if (players[turn].IsHuman)
                 {
-                    Clients.Client(GetConnectionIDFromUsername(GetDictionaryUsernameFromSeat(turn))).Deal(new JavaScriptSerializer().Serialize(hand[turn]));
+                    Clients.Client(players[turn].ConnectionId).Deal(new JavaScriptSerializer().Serialize(hand[turn]));
                 }
                 if (--turn == -1) turn = 3;
             }
@@ -348,18 +364,12 @@ namespace ChatWebApp
 
         public void NominateSuit(int suit)
         {
-
-            bool isHuman = false;
-            if (GetDictionaryUsernameFromSeat(turn) != botGUID) isHuman = true;
-
             suitCall.Add(suit);
 
-            string username = GetGameplayUsernameFromTurn();
+            string username = GetDisplayName(turn);
 
             string message = username + " passed.";
-            string[] seatPos = new string[] { "w", "n", "e", "s" };
-            Clients.All.EmoteSuit(suit, seatPos[turn]);
-            Emote(seatPos[turn], 1200);
+
             if (suit > 0)
             {
                 ewCalled = turn == 0 || turn == 2;
@@ -384,8 +394,11 @@ namespace ChatWebApp
             }
 
             SysAnnounce(message);
+            string[] seatPos = new string[] { "w", "n", "e", "s" };
+            Clients.All.EmoteSuit(suit, seatPos[turn]);
+            Emote(seatPos[turn], 1200);
 
-            if (isHuman)
+            if (players[turn].IsHuman)
             {
                 if (--turn == -1) turn = 3;
                 waitCall = false;
@@ -406,7 +419,7 @@ namespace ChatWebApp
                             hand[i] = new List<string>();
                         }
                         SysAnnounce("No suit chosen.");
-                        NewRound();
+                        newRound = true;
                     }
                     else
                     {
@@ -533,11 +546,10 @@ namespace ChatWebApp
 
         public void DeclareExtras(string tableCard)
         {
-            string username = GetDictionaryUsernameFromSeat(turn);
-
             if (roundSuit != 5)
             {
                 List<string> extras = new List<string>();
+                List<bool> finalOverlaps = new List<bool>();
 
                 int rank = Int32.Parse(tableCard.Substring(3, 2));
                 if (rank == 11 || rank == 12)
@@ -549,38 +561,45 @@ namespace ChatWebApp
                         if ((suit == trickSuit || trickSuit == 0))
                         {
                             extras.Add("Belot: " + GetSuitNameFromNumber(suit));
+                            finalOverlaps.Add(false);
                         }
                     }
                 }
 
                 if (numCardsPlayed < 4)
                 {
+                    bool[] overlaps = new bool[runs[turn].Count];
 
-                    if (runs[turn].Count > 0)
+                    // find overlaps and truncate runs accordingly
+                    // overlap only occurs if player has at least 1 run and exactly 1 Carre. Runs cannot overlap each other. With 2 Carres, there are no Runs and there is no overlap
+
+                    if (carres[turn].Count == 1 && runs[turn].Count() > 0) overlaps = FindRunCarreOverlap();
+
+                    for (int i = 0; i < runs[turn].Count; i++)
                     {
-                        foreach (Run extra in runs[turn])
-                        {
-                            extras.Add(GetRunNameFromLength(extra.Length) + ": " + GetSuitNameFromNumber(extra.Suit) + " " + GetCardRankFromNumber(extra.Strength - extra.Length + 1) + "→" + GetCardRankFromNumber(extra.Strength));
-                        }
+                        extras.Add(GetRunNameFromLength(runs[turn][i].Length) + ": " + GetSuitNameFromNumber(runs[turn][i].Suit) + " " + GetCardRankFromNumber(runs[turn][i].Strength - runs[turn][i].Length + 1) + "→" + GetCardRankFromNumber(runs[turn][i].Strength));
+                        finalOverlaps.Add(overlaps[i]);
                     }
-                    if (carres[turn].Count > 0)
+                    for (int i = 0; i < carres[turn].Count; i++)
                     {
-                        foreach (Carre extra in carres[turn])
-                        {
-                            extras.Add("Carre: " + GetCardRankFromNumber(extra.Rank));
-                        }
+                        extras.Add("Carre: " + GetCardRankFromNumber(carres[turn][i].Rank));
+                        finalOverlaps.Add(false);
                     }
                 }
 
                 if (extras.Count > 0)
                 {
-                    if (username == botGUID)
+                    if (players[turn].IsHuman)
                     {
-                        ExtrasDeclared(tableCard, extras.ToArray());
+                        Clients.Caller.Extras(new JavaScriptSerializer().Serialize(extras), tableCard, new JavaScriptSerializer().Serialize(finalOverlaps));
                     }
                     else
                     {
-                        Clients.Caller.Extras(new JavaScriptSerializer().Serialize(extras), tableCard, FindRunCarreOverlap(extras));
+                        for (int i = 0; i < extras.Count; i++)
+                        {
+                            if (finalOverlaps[i]) extras.RemoveAt(i);
+                        }
+                        ExtrasDeclared(tableCard, extras.ToArray());
                     }
                     // ExtrasDeclared > PlayCardRequest will be called by the modal instead of by this function
                 }
@@ -593,7 +612,6 @@ namespace ChatWebApp
             {
                 PlayCardRequest(tableCard);
             }
-
         }
 
         public void ExtrasDeclared(string tableCard, string[] declared)
@@ -606,20 +624,20 @@ namespace ChatWebApp
                 {
                     string suit = declaration.Split(new[] { ": " }, StringSplitOptions.None)[1];
                     belots[turn].Where(s => s.Suit == GetSuitNumberFromName(suit)).First().Declared = true;
-                    SysAnnounce(GetGameplayUsernameFromTurn() + " called a Belot in " + suit + ".");
+                    SysAnnounce(GetDisplayName(turn) + " called a Belot in " + suit + ".");
                 }
                 else if (declaration.Substring(0, 5) == "Carre")
                 {
                     string rank = declaration.Split(new[] { ": " }, StringSplitOptions.None)[1];
                     carres[turn].Where(r => r.Rank == GetRankFromChar(rank)).First().Declared = true;
-                    SysAnnounce(GetGameplayUsernameFromTurn() + " called a Carre.");
+                    SysAnnounce(GetDisplayName(turn) + " called a Carre.");
                 }
                 else
                 {
                     string[] run = declaration.Split(new[] { ": ", " ", "→" }, StringSplitOptions.None);
                     int str = GetRankFromChar(run[3]);
                     runs[turn].Where(s => s.Suit == GetSuitNumberFromName(run[1])).Where(s => s.Strength == str).First().Declared = true;
-                    SysAnnounce(GetGameplayUsernameFromTurn() + " called a " + run[0] + ".");
+                    SysAnnounce(GetDisplayName(turn) + " called a " + run[0] + ".");
                 }
             }
             if (declaredExtraList.Count > 0)
@@ -634,10 +652,10 @@ namespace ChatWebApp
         public void PlayCardRequest(string tableCard)
         {
 
-            bool isHuman = false;
-            if (GetDictionaryUsernameFromSeat(turn) != botGUID) isHuman = true;
+            bool isHuman = players[turn].IsHuman;
 
             playedCards[turn] = tableCard;
+            log.Information(GetDisplayName(turn) + " plays " + tableCard + ".");
             Clients.All.SetTableCard(turn, tableCard);
             Thread.Sleep(botDelay);
 
@@ -660,6 +678,7 @@ namespace ChatWebApp
             if (numCardsPlayed % 4 == 0) // trick end
             {
                 int winner = DetermineWinner();
+                int pointsBefore = ewRoundPoints + nsRoundPoints;
                 if (winner == 0 || winner == 2)
                 {
                     ewRoundPoints += CalculateRoundPoints();
@@ -670,7 +689,7 @@ namespace ChatWebApp
                     nsRoundPoints += CalculateRoundPoints();
                     nsWonATrick = true;
                 }
-
+                log.Information(GetDisplayName(winner) + " wins trick " + numCardsPlayed / 4 + ", worth " + (ewRoundPoints + nsRoundPoints - pointsBefore) + " points.");
                 Clients.All.ShowWinner(winner);
                 for (int i = 0; i < 5; i++)
                 {
@@ -762,33 +781,56 @@ namespace ChatWebApp
             }
         }
 
-        public bool[] FindRunCarreOverlap(List<string> extras)
+        public bool[] FindRunCarreOverlap() // reduce overlapping runs where this still rewards points, and return invalidated runs
         {
-            bool[] overlaps = new bool[extras.Count];
-            int runCount = 0;
-            // Only occurs if player has Carre(s), as runs cannot overlap
-            if (carres[turn].Count == 1) // if there are 2 carres, there are no runs and there is no overlap
+            bool[] overlaps = new bool[runs[turn].Count];
+
+            for (int i = 0; i < runs[turn].Count; i++)
             {
-                for (int i = 0; i < extras.Count; i++)
+                int upper = runs[turn][i].Strength;
+                int lower = upper - runs[turn][i].Length + 1;
+                if (carres[turn][0].Rank >= lower && carres[turn][0].Rank <= upper)
                 {
-                    if (extras[i].Split(new[] { ": " }, StringSplitOptions.None)[0] != "Carre" && extras[i].Split(new[] { ": " }, StringSplitOptions.None)[0] != "Belot")
+                    if (runs[turn][i].Length == 3)
                     {
-                        int upper = runs[turn][runCount].Strength;
-                        int lower = upper - runs[turn][runCount].Length + 1;
-                        if (carres[turn][0].Rank >= lower && carres[turn][0].Rank <= upper)
+                        overlaps[i] = true;
+                    }
+                    else // try truncate run
+                    {
+                        bool first = carres[turn][0].Rank == lower;
+                        bool second = carres[turn][0].Rank == lower + 1;
+                        bool secondLast = carres[turn][0].Rank == upper - 1;
+                        bool last = carres[turn][0].Rank == upper;
+                        if ((first || last) && runs[turn][i].Length > 3) // Quarte becomes Tierce, Quint becomes Quarte
+                        {
+                            runs[turn][i].Length -= 1;
+                            // if first, strength remains the same, reducing length by 1 is sufficient
+                            if (last) runs[turn][i].Strength -= 1;
+                            overlaps[i] = false;
+                        }
+                        else if (second || secondLast)
+                        {
+                            if (runs[turn][i].Length == 4) // Quarte invalidated
+                            {
+                                overlaps[i] = true;
+                            }
+                            else // Quint becomes Tierce
+                            {
+                                runs[turn][i].Length -= 2;
+                                // if second, strength remains the same, reducing length by 2 is sufficient
+                                if (secondLast) runs[turn][i].Strength -= 2;
+                                overlaps[i] = false;
+                            }
+                        }
+                        else // Run is a Quint, and Carre is in the middle, therefore no truncation is possible
                         {
                             overlaps[i] = true;
                         }
-                        else
-                        {
-                            overlaps[i] = false;
-                        }
-                        runCount++;
                     }
-                    else
-                    {
-                        overlaps[i] = false;
-                    }
+                }
+                else // carre rank does not lie within the run
+                {
+                    overlaps[i] = false;
                 }
             }
             return overlaps;
@@ -817,7 +859,7 @@ namespace ChatWebApp
 
         public int DetermineWinner()
         {
-            int winner = 0;
+            int winner = turn;
             int bestValue = 0;
 
             CardPower cp = new CardPower();
@@ -826,11 +868,14 @@ namespace ChatWebApp
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    int value = cp.DetermineCardPower(playedCards[i], roundSuit, trickSuit);
-                    if (value > bestValue)
+                    if (playedCards[i] != "c0-00")
                     {
-                        bestValue = value;
-                        winner = i;
+                        int value = cp.DetermineCardPower(playedCards[i], roundSuit, trickSuit);
+                        if (value > bestValue)
+                        {
+                            bestValue = value;
+                            winner = i;
+                        }
                     }
                 }
             }
@@ -867,14 +912,12 @@ namespace ChatWebApp
             int[] TrickPoints = new int[] { ewRoundPoints, nsRoundPoints };
             int[] DeclarationPoints = new int[] { 0, 0 };
             int[] BelotPoints = new int[] { 0, 0 };
-            string[] Result;
+            string[] Result = new string[] { "", "Success" };
+            string[] message = { "N/S", "call", "succeeded" };
             if (ewCalled)
             {
                 Result = new string[] { "Success", "" };
-            }
-            else
-            {
-                Result = new string[] { "", "Success" };
+                message[0] = "E/W";
             }
 
             if (roundSuit == 5) // no trumps points are always doubled
@@ -903,7 +946,7 @@ namespace ChatWebApp
                     }
                     if (MaxComparer[0] == MaxComparer[1])
                     {
-                        //SysAnnounce("The extras were tied. No extra points awarded.");
+                        log.Information("The Runs were tied. No extra points awarded for Runs.");
                     }
                     else if (MaxComparer[0] > MaxComparer[1])
                     {
@@ -964,12 +1007,14 @@ namespace ChatWebApp
             {
                 nsRoundPoints += 90;
                 Result[1] = "Capot";
+                message[3] += ", Capot";
                 capot = true;
             }
             else if (!nsWonATrick)
             {
                 ewRoundPoints += 90;
                 Result[0] = "Capot";
+                message[3] += ", Capot";
                 capot = true;
             }
 
@@ -978,12 +1023,18 @@ namespace ChatWebApp
                 nsRoundPoints += ewRoundPoints;
                 ewRoundPoints = 0;
                 Result[0] = "Inside";
+                message[2] = "failed";
+                if (capot) message[2] += ", Capot";
+                message[2] += ", Inside";
             }
             else if (!ewCalled && nsRoundPoints <= ewRoundPoints)
             {
                 ewRoundPoints += nsRoundPoints;
                 nsRoundPoints = 0;
                 Result[1] = "Inside";
+                message[2] = "failed";
+                if (capot) message[2] += ", Capot";
+                message[2] += ", Inside";
             }
 
             if (multiplier > 1) // double and redouble
@@ -1003,6 +1054,8 @@ namespace ChatWebApp
             }
             ewTotal += ewRoundPoints;
             nsTotal += nsRoundPoints;
+            SysAnnounce(String.Join(" ", message) + ".");
+            log.Information("E/W win {0} points. N/S win {1} points.", ewRoundPoints, nsRoundPoints);
             Clients.All.AppendScoreTable(ewRoundPoints, nsRoundPoints);
             Clients.All.UpdateScoreTotals(ewTotal, nsTotal);
             Clients.All.ShowRoundSummary(TrickPoints, DeclarationPoints, BelotPoints, Result, ewRoundPoints, nsRoundPoints);
@@ -1016,52 +1069,65 @@ namespace ChatWebApp
         {
             string[] seat = { "West", "North", "East", "South" };
 
+            string requestor = GetCallerUsername();
+
             if (position == 8) // vacate to Spectator
             {
-                UnbookSeat();
-                Clients.Caller.SetRadio("x");
+                if (spectators.Where(s => s.Username == requestor).Count() == 0)
+                {
+                    UnbookSeat();
+                    spectators.Add(new Spectator(requestor, Context.ConnectionId));
+                    UpdateConnectedUsers();
+                    Clients.Caller.SetRadio("x");
+                }
                 return;
             }
 
-            string requestor = GetCallerUsername();
             string occupier;
             if (position > 3)
             {
-                occupier = GetDictionaryUsernameFromSeat(position - 4);
+                occupier = players[position - 4].Username;
             }
             else
             {
-                occupier = GetDictionaryUsernameFromSeat(position);
+                occupier = players[position].Username;
             }
+
 
             if ((occupier == "" || occupier == botGUID) && position < 4) // empty seat or bot-occupied requested by human
             {
                 UnbookSeat();
-                seatPositions.TryRemove(position, out _);
-                seatPositions.TryAdd(position, requestor);
+                if (spectators.Where(s => s.Username == requestor).Count() == 1) spectators.Remove(spectators.Where(s => s.Username == requestor).First());
+                players[position] = new Player(requestor, Context.ConnectionId, true);
+                UpdateConnectedUsers();
                 Clients.All.SeatBooked(position, requestor);
                 Clients.All.SetBotBadge(seat[position], false);
                 Clients.Caller.SetRadio(seat[position]);
-                SysAnnounce(requestor + " occupied the " + seat[position] + " seat.");
+                log.Information(requestor + " occupied the " + seat[position] + " seat.");
             }
             else if (occupier == "" && position > 3) // empty seat requested by bot
             {
                 position -= 4;
-                seatPositions.TryAdd(position, botGUID);
-                Clients.All.SeatBooked(position, GetBotName(position));
+                string botName = GetBotName(position);
+                players[position] = new Player(botGUID, "", false);
+                UpdateConnectedUsers();
+                Clients.All.SeatBooked(position, botName);
                 Clients.All.SetBotBadge(seat[position], true);
-                SysAnnounce(GetBotName(position) + " occupied the " + seat[position] + " seat.");
+                log.Information(botName + " occupied the " + seat[position] + " seat.");
             }
             // if bot occupied seat requested by bot -> do nothing
             else if (occupier == requestor && position > 3) // human assigns bot to his own occupied seat
             {
                 position -= 4;
+                string botName = GetBotName(position);
                 UnbookSeat();
-                seatPositions.TryAdd(position, botGUID);
-                Clients.All.SeatBooked(position, GetBotName(position));
+                spectators.Add(new Spectator(requestor, Context.ConnectionId));
+                players[position] = new Player(botGUID, "", false);
+                UpdateConnectedUsers();
+                Clients.All.SeatBooked(position, botName);
                 Clients.Caller.SetRadio("x");
                 Clients.All.SetBotBadge(seat[position], true);
-                SysAnnounce(GetBotName(position) + " occupied the " + seat[position] + " seat.");
+                log.Information(botName + " occupied the " + seat[position] + " seat.");
             }
             // if human tries to occupy his own seat, do nothing
             else if (occupier != "" && occupier != botGUID && occupier != requestor) // human-occupied seat is requested by another human or by a bot on behalf of another human
@@ -1069,24 +1135,23 @@ namespace ChatWebApp
                 Clients.Caller.SeatAlreadyBooked(occupier);
             }
 
-            if (seatPositions.Count() == 4) Clients.All.EnableNewGame();
+            if (players.Where(s => s.Username != "").Count() == 4) Clients.All.EnableNewGame();
         }
 
         public void UnbookSeat()
         {
             string username = GetCallerUsername();
-            int position = GetSeatFromUsername(username);
 
-            if (position < 4)
+            if (spectators.Where(s => s.Username == username).Count() == 0)
             {
-                if (_ = seatPositions.TryRemove(position, out _))
-                {
-                    Clients.All.SeatUnbooked(position, username);
-                    string[] seat = { "West", "North", "East", "South" };
-                    SysAnnounce(username + " vacated the " + seat[position] + " seat.");
-
-                }
                 Clients.All.DisableNewGame();
+                int position = Array.IndexOf(players, players.Where(p => p.Username == username).First());
+                players[position] = new Player();
+                UpdateConnectedUsers();
+
+                Clients.All.SeatUnbooked(position, username);
+                string[] seat = { "West", "North", "East", "South" };
+                log.Information(username + " vacated the " + seat[position] + " seat.");
             }
         }
 
@@ -1106,6 +1171,7 @@ namespace ChatWebApp
 
         public void SysAnnounce(string message)
         {
+            log.Information(message);
             Clients.All.Announce(GetServerDateTime() + " >> " + message);
         }
 
@@ -1170,89 +1236,69 @@ namespace ChatWebApp
             return "Robot " + seat[pos];
         }
 
-        public int GetSeatFromUsername(string username)
+        public string GetDisplayName(int pos)
         {
-            for (int i = 0; i < 4; i++)
+            if (players[pos].IsHuman)
             {
-                seatPositions.TryGetValue(i, out string occupier);
-                if (username == occupier)
-                {
-                    return i;
-                }
+                return players[pos].Username;
             }
-
-            return 4; // if the user has not booked a seat, return Spectator
-        }
-        public string GetDictionaryUsernameFromSeat(int seat)
-        {
-            if (seatPositions.TryGetValue(seat, out string username))
+            else
             {
-                return username;
+                return GetBotName(pos);
             }
-            //Console.WriteLine("Failed to get username from seat number");
-            return "";
-        }
-        public string GetGameplayUsernameFromTurn()
-        {
-            string username = GetDictionaryUsernameFromSeat(turn);
-            if (username == botGUID)
-            {
-                username = GetBotName(turn);
-            }
-            return username;
-        }
-
-        public string GetConnectionIDFromUsername(string username)
-        {
-            if (connectionIDs.TryGetValue(username, out string connectionID))
-            {
-                return connectionID;
-            }
-            //Console.WriteLine("Failed to get connection ID from username");
-            return "";
         }
 
         // -------------------- Connection --------------------
+
+        public void UpdateConnectedUsers()
+        {
+            string[] playerNames = players.Select(s => s.Username).Where(s => s != "").Where(s => s != botGUID).ToArray();
+            Array.Sort(playerNames);
+            string[] specNames = spectators.Select(s => s.Username).ToArray();
+            Array.Sort(specNames);
+            Clients.All.ConnectedUsers(playerNames, specNames);
+        }
 
         public void LoadContext(string connectionID)
         {
             for (int i = 0; i < 4; i++)
             {
-                seatPositions.TryGetValue(i, out string occupier);
-                if (occupier == botGUID)
+                if (players[i].IsHuman)
+                {
+                    Clients.Caller.SeatBooked(i, players[i].Username);
+
+                }
+                else if (players[i].Username == botGUID)
                 {
                     string[] seat = { "West", "North", "East", "South" };
                     Clients.Caller.SeatBooked(i, GetBotName(i));
                     Clients.Caller.SetBotBadge(seat[i], true);
                 }
-                else if (occupier != null)
-                {
-                    Clients.Caller.SeatBooked(i, occupier);
-                }
             }
 
-            if (seatPositions.Count() == 4) Clients.Caller.EnableNewGame();
+            if (players.Where(s => s.Username != "").Count() == 4) Clients.Caller.EnableNewGame();
         }
 
         public override Task OnConnected()
         {
             string username = GetCallerUsername();
-            connectedUsers.Add(username);
-            connectionIDs.TryAdd(username, Context.ConnectionId);
-            connectedUsers.Sort();
+            if (players.Where(p => p.Username == username).Count() == 0) spectators.Add(new Spectator(username, Context.ConnectionId));
+            UpdateConnectedUsers();
+
             SysAnnounce(username + " connected.");
-            Clients.All.connectedUsers(new JavaScriptSerializer().Serialize(connectedUsers));
+
             LoadContext(Context.ConnectionId);
             return base.OnConnected();
         }
         public override Task OnDisconnected(bool stopCalled = true)
         {
             string username = GetCallerUsername();
-            connectedUsers.Remove(username);
-            _ = connectionIDs.TryRemove(username, out _);
+            if (spectators.Where(p => p.Username == username).Count() == 1) spectators.Remove(spectators.Where(s => s.Username == username).First());
+            UpdateConnectedUsers();
+
             UnbookSeat();
             SysAnnounce(username + " disconnected.");
-            Clients.All.connectedUsers((new JavaScriptSerializer()).Serialize(connectedUsers));
+            //Clients.All.connectedUsers((new JavaScriptSerializer()).Serialize(connectedUsers));
 
             return base.OnDisconnected(stopCalled);
         }

@@ -14,11 +14,13 @@
             //writeToPage("Connection to SignalR failed.");
         });
 
-    room.client.connectedUsers = function (list) {
-        var users = JSON.parse(list);
+    room.client.connectedUsers = function (players, spectators) {
         document.getElementById("userList").innerHTML = "";
-        for (i = 0; i < users.length; i++) {
-            $("#userList").append("&#x25BB " + users[i] + "<br />");
+        for (i = 0; i < players.length; i++) {
+            $("#userList").append("&#x25AA " + players[i] + "<br />");
+        };
+        for (i = 0; i < spectators.length; i++) {
+            $("#userList").append("&#x25AB " + spectators[i] + "<br />");
         };
     };
 
@@ -53,7 +55,8 @@
     };
 
     room.client.setTableCard = function (tableCardPosition, tableCard) {
-        document.getElementById("tablecard".concat(tableCardPosition)).src = document.URL.substring(0, document.URL.length - 11).concat("Images/Cards/").concat(tableCard).concat(".png");
+        var path = document.URL.substring(0, document.URL.indexOf("Room"));
+        document.getElementById("tablecard".concat(tableCardPosition)).src = path.concat("Images/Cards/", tableCard, ".png");
     };
 
     // -------------------- Turn Indicator --------------------
@@ -113,8 +116,9 @@
 
     resetTable = function () {
         //alert(document.URL);
+        path = document.URL.substring(0, document.URL.indexOf("Room")).concat("Images/Cards/c0-00.png");
         for (i = 0; i < 4; i++) {
-            document.getElementById("tablecard".concat(String(i))).src = document.URL.substring(0, document.URL.length - 11).concat("Images/Cards/c0-00.png");
+            document.getElementById("tablecard".concat(String(i))).src = path;
         }
     };
 
@@ -133,7 +137,6 @@
     };
 
     $("#newGameBtn").on("click", function () {
-        room.client.disableNewGame();
         room.server.newGame().done(function () { room.server.gameController() });
     });
 
@@ -270,8 +273,9 @@
     room.client.deal = function (cards) {
         // show hand card images
         var card = JSON.parse(cards);
+        var path = document.URL.substring(0, document.URL.indexOf("Room"));
         for (i = 0; i < card.length; i++) {
-            document.getElementById("card".concat(String(i))).src = document.URL.substring(0, document.URL.length - 11).concat("Images/Cards/").concat(card[i], ".png");
+            document.getElementById("card".concat(String(i))).src = path.concat("Images/Cards/", card[i], ".png");
             document.getElementById("card".concat(String(i))).hidden = false;
         };
     };
@@ -280,6 +284,7 @@
 
     room.client.extras = function (extras, tableCard, overlaps) {
         extras = JSON.parse(extras);
+        overlaps = JSON.parse(overlaps);
         for (i = 0; i < extras.length; i++) {
             const dv = document.createElement('div');
             dv.id = "extra-items".concat(i);
@@ -571,6 +576,13 @@
     room.client.setBotBadge = function (pos, isBot) {
         document.getElementById(pos.charAt(0).toLocaleLowerCase().concat("BotBadge")).hidden = !isBot;
     };
+
+    moveWest = function () {
+        const w = document.getElementById("west");
+        w.style.top = 0;
+        w.style.left = 0;
+    };
+
 
     // -------------------- Chat Log --------------------
 

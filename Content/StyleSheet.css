@@ -1,29 +1,24 @@
-﻿:root {
-    --card-height: 110px;
-    --card-width: 70px;
-}
-
-.rfs {
-    font-size: 12px;
-}
-
-suitsize {
-    font-size: 200px;
-    height: 40px;
-    width: 40px;
-}
-
-@media only screen and (min-width: 600px) {
-    .rfs {
-        font-size: 20px;
-    }
-
-    suitsize {
-        font-size: 200px;
-        height: 40px;
-        width: 40px;
+﻿@media only screen and (max-width: 767px) {
+    :root {
+        --card-height: 100px;
+        --card-width: 70px;
     }
 }
+
+@media only screen and (min-width: 768px) {
+    :root {
+        --card-height: 150px;
+        --card-width: 105px;
+    }
+}
+
+.suitsize {
+    font-size: 2em !important;
+}
+
+/*768, 992, 1200*/
+
+
 
 body {
     padding-top: 70px;
@@ -156,7 +151,8 @@ td:first-child {
 }
 
 .cardrow2 {
-    margin-top: -55px;
+    margin-top: calc(-0.5*var(--card-height));
+    /*55px;*/
 }
 
 .cont .cardleft {
@@ -204,8 +200,8 @@ td:first-child {
     font-weight: 700;
     z-index: 1;
     line-height: 105%;
-    text-align:center;
-    text-transform:uppercase;
+    text-align: center;
+    text-transform: uppercase;
     /*#e5e668;
     #ff6a00;*/
 }
@@ -284,7 +280,7 @@ td:first-child {
     }
 
 .belot-card {
-    height: 100px;
+    height: var(--card-height);
     width: var(--card-width);
 }
 
@@ -362,11 +358,11 @@ td:first-child {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    border:none;
+    border: none;
     background: #dc3545;
-    color:white;
+    color: white;
     font-size: 0.9em;
-    font-weight:500;
+    font-weight: 500;
     visibility: hidden;
     overflow: hidden;
 }
@@ -395,4 +391,8 @@ td:first-child {
     to {
         transform: translateX(55px) rotate(30deg);
     }
+}
+
+.west {
+    transition: all 0.5s ease-in-out;
 }

@@ -5,6 +5,38 @@ using System.Web;
 
 namespace ChatWebApp
 {
+    public class Spectator // don't technically need a connection Id because nothing is pushed to spectators exclusively, but it may be needed for Groups when multiple different rooms are implemented
+    {
+        public string Username { get; set; }
+        public string ConnectionId { get; set; }
+        public Spectator(string username, string connectionId)
+        {
+            Username = username;
+            ConnectionId = connectionId;
+        }
+    }
+
+    public class Player
+    {
+        public string Username { get; set; }
+        public string ConnectionId { get; set; }
+        public bool IsHuman { get; set; }
+
+        public Player()
+        {
+            Username = "";
+            ConnectionId = "";
+            IsHuman = false;
+        }
+
+        public Player(string username, string connectionId, bool isHuman)
+        {
+            Username = username;
+            ConnectionId = connectionId;
+            IsHuman = isHuman;
+        }
+
+    }
     public class BelotCard
     {
         public int Suit { get; set; } // 1=C, 2=D, 3=H, 4=S
@@ -69,33 +101,49 @@ namespace ChatWebApp
         {
             int value = 0;
 
-            int[] nontrump = { 1, 2, 3, 7, 4, 5, 6, 8 };
-            int[] trump = { 9, 10, 15, 13, 16, 11, 12, 14 };
+            int[] offNonTrumpSuit = { 1, 2, 3, 7, 4, 5, 6, 8 }; // to help bots choose a card when losing
+            int[] offTrumpSuit = { 1, 2, 7, 5, 8, 3, 4, 6 }; // to help bots choose a card when losing
+            int[] nonTrump = { 9, 10, 11, 15, 12, 13, 14, 16 };
+            int[] trump = { 17, 18, 23, 21, 24, 19, 20, 22 };
 
             int suit = Int32.Parse(card.Substring(1, 1));
             int rank = Int32.Parse(card.Substring(3, 2)) - 6;
             if (roundSuit < 5) // C,D,H,S
             {
-                if (roundSuit == suit) // if a trump was played
+                if (roundSuit == suit) // if card is a trump
                 {
                     value = trump[rank];
                 }
-                else if (trickSuit == suit)  // if the suit was followed
+                else if (trickSuit == suit)  // if card is in lead-suit and is not a trump
                 {
-                    value = nontrump[rank];
+                    value = nonTrump[rank];
+                }
+                else // if card is off-suit, and is a discard
+                {
+                    value = offNonTrumpSuit[rank];
+                }
+            }
+            else if (roundSuit == 5)
+            {
+                if (trickSuit == suit) // if the suit was followed in A
+                {
+                    value = nonTrump[rank];
                 }
                 else
                 {
-                    value = 0;
+                    value = offNonTrumpSuit[rank];
                 }
             }
-            else if (roundSuit == 5 && trickSuit == suit)  // if the suit was followed in A
+            else  // if the suit was followed in J
             {
-                value = nontrump[rank];
-            }
-            else if (trickSuit == suit)  // if the suit was followed in J
-            {
-                value = trump[rank];
+                if (trickSuit == suit)
+                {
+                    value = trump[rank];
+                }
+                else
+                {
+                    value = offTrumpSuit[rank];
+                }
             }
 
             return value;
