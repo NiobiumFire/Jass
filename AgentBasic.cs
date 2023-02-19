@@ -74,7 +74,7 @@ namespace ChatWebApp
             return call;
         }
 
-        public string PlayCard(List<string> hand, int[] validCards, string[] cardPlayed, int turn, int curWinner, int roundSuit, int trickSuit, bool ewCalled)
+        public string SelectCard(List<string> hand, int[] validCards, string[] cardPlayed, int turn, int curWinner, int roundSuit, int trickSuit, bool ewCalled)
         {
             int choice = Array.IndexOf(validCards, 1);
 
@@ -129,7 +129,7 @@ namespace ChatWebApp
                 if (cardsPlayedInTrick == 3 && turn % 2 != curWinner % 2) // if I am the last to play and the other team is winning
                 {
                     bool discard = false;
-                    CardPower cp = new CardPower();
+                    BelotHelpers cp = new BelotHelpers();
                     int bestValue = 0;
                     for (int i = 0; i < 4; i++) // get highest winning power of cards played so far in trick
                     {

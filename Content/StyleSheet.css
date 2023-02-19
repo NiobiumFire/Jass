@@ -1,7 +1,13 @@
-﻿@media only screen and (max-width: 767px) {
+﻿:root {
+    --small-card-height: 95px;
+    --small-card-width: 66.5px;
+}
+
+@media only screen and (max-width: 767px) {
     :root {
         --card-height: 100px;
         --card-width: 70px;
+        --emote-font-size: 0.7em;
     }
 }
 
@@ -9,6 +15,7 @@
     :root {
         --card-height: 150px;
         --card-width: 105px;
+        --emote-font-size: 1em;
     }
 }
 
@@ -167,13 +174,13 @@ td:first-child {
     border-radius: 10% 15%;
 }
 
-.cont .box2:last-child {
-    /*margin-right: 0;*/
-}
+/*.cont .box2:last-child {*/
+/*margin-right: 0;*/
+/*}
 
-.cont .box2:first-child {
-    /*margin-left: 0;*/
-}
+.cont .box2:first-child {*/
+/*margin-left: 0;*/
+/*}*/
 
 
 .cardtop {
@@ -208,6 +215,7 @@ td:first-child {
 
 
 .bubble-w {
+    font-size: var(--emote-font-size);
 }
 
     .bubble-w:after {
@@ -226,9 +234,11 @@ td:first-child {
     }
 
 .bubble-n {
+    font-size: var(--emote-font-size);
 }
 
     .bubble-n:after {
+        white-space: pre-wrap;
         content: '';
         position: absolute;
         left: 50%;
@@ -244,9 +254,11 @@ td:first-child {
     }
 
 .bubble-e {
+    font-size: var(--emote-font-size);
 }
 
     .bubble-e:after {
+        white-space: pre-wrap;
         content: '';
         position: absolute;
         right: 0;
@@ -262,9 +274,11 @@ td:first-child {
     }
 
 .bubble-s {
+    font-size: var(--emote-font-size);
 }
 
     .bubble-s:after {
+        white-space: pre-wrap;
         content: '';
         position: absolute;
         left: 50%;
@@ -396,3 +410,55 @@ td:first-child {
 .west {
     transition: all 0.5s ease-in-out;
 }
+
+.training-tableboard {
+    background-color: rgba(13, 110, 253, 0.25);
+}
+
+.training-cardboard {
+    padding: 50px 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items:center;
+    text-align: right;
+    overflow-y: clip;
+    overflow-x: visible;
+    height: var(--small-card-height);
+    /*max-height: var(--small-card-height);*/
+    width: auto;
+    background-color: rgba(25, 135, 84, 0.55);
+    margin-right: 0;
+}
+
+.training-cardboard-side {
+    padding: 10px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: right;
+    overflow-y: clip;
+    overflow-x: visible;
+    width: var(--small-card-width);
+    /*max-height: var(--small-card-height);*/
+    height: auto;
+    background-color: rgba(25, 135, 84, 0.55);
+    margin-right: 0;
+}
+
+.training-card {
+    /*margin: 0 calc(((75% / 25) - 1px)-2%);*/
+    margin: 0 -10px 0 -10px;
+    height: var(--small-card-height);
+    width: var(--small-card-width);
+    /*margin-top: 5px;*/
+}
+
+.training-card-side {
+    margin: 0 0 -57px 0;
+    height: var(--small-card-height);
+    width: var(--small-card-width);
+    /*margin-top: 5px;*/
+}
+

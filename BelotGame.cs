@@ -8,9 +8,16 @@ namespace ChatWebApp
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players)
+        public BelotGame(Player[] players, string gameId, bool enableLogging)
         {
             Players = players;
+            GameId = gameId;
+            EnableLogging = enableLogging;
+            if (enableLogging)
+            {
+                LogPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/" + GameId + ".txt");
+                Log = new LoggerConfiguration().WriteTo.File(LogPath).CreateLogger();
+            }
         }
 
         public string GameId { get; set; }
@@ -26,6 +33,10 @@ namespace ChatWebApp
         public List<int> SuitCall { get; set; }
         public bool EWCalled { get; set; }
         public int Multiplier { get; set; }
+        public int[] TrickPoints { get; set; }
+        public int[] DeclarationPoints { get; set; }
+        public int[] BelotPoints { get; set; }
+        public string[] Result { get; set; }
         public int EWRoundPoints { get; set; }
         public int NSRoundPoints { get; set; }
         public int EWTotal { get; set; }
@@ -38,9 +49,51 @@ namespace ChatWebApp
         public List<Run>[] Runs { get; set; }
         public List<Carre>[] Carres { get; set; }
         public List<Belot>[] Belots { get; set; }
+        public string LogPath { get; set; }
+        public Serilog.Core.Logger Log { get; set; }
+        public bool EnableLogging { get; set; }
 
-        public static string logPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/BelotServerLog-"+ GameId + ".txt");
-        public static Serilog.Core.Logger Log = new LoggerConfiguration().WriteTo.File(logPath, rollingInterval: RollingInterval.Day).CreateLogger();
+        public void NewGame()
+        {
+            if (EnableLogging) Log.Information("Resetting for a new game. The players are {0}, {1}, {2}, {3}.", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
+            Random rnd = new Random();
+            FirstPlayer = rnd.Next(4);
+            EWTotal = 1000;
+            NSTotal = 1000;
+        }
+
+        public void NewRound() // set new first player
+        {
+            Turn = FirstPlayer;
+            if (EnableLogging) Log.Information("The dealer is " + GetDisplayName(Turn) + ".");
+
+            if (--FirstPlayer == -1) FirstPlayer = 3;
+            Deck = new List<string>();
+            Hand = new List<string>[4];
+            Runs = new List<Run>[4];
+            Carres = new List<Carre>[4];
+            Belots = new List<Belot>[4];
+            for (int i = 0; i < 4; i++)
+            {
+                Hand[i] = new List<string>();
+                Runs[i] = new List<Run>();
+                Carres[i] = new List<Carre>();
+                Belots[i] = new List<Belot>();
+            }
+            PlayedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
+            CardsDealt = 0;
+            NumCardsPlayed = 0;
+            TrickSuit = 0;
+            HighestTrumpInTrick = 0;
+            RoundSuit = 0; // 0 = pass, 1 = clubs ... 5 = no trumps, 6 = all trumps
+            SuitCall = new List<int>();
+            EWRoundPoints = 0;
+            NSRoundPoints = 0;
+            Multiplier = 1;
+            EWWonATrick = false;
+            NSWonATrick = false;
+            Capot = false;
+        }
 
         public void Shuffle()
         {
@@ -50,19 +103,26 @@ namespace ChatWebApp
 
             Random rnd = new Random();
 
-            List<string> deck = new List<string>();
-
-            while (deck.Count < card.Count * suit.Count)
+            while (Deck.Count < card.Count * suit.Count)
             {
                 int i = rnd.Next(card.Count); // 0 <= i <= 13
                 int j = rnd.Next(suit.Count); // 0 <= i <= 4
-                if (!deck.Contains("c" + suit[j] + "-" + card[i]))
+                if (!Deck.Contains("c" + suit[j] + "-" + card[i]))
                 {
-                    deck.Add("c" + suit[j] + "-" + card[i]);
+                    Deck.Add("c" + suit[j] + "-" + card[i]);
                 }
             }
 
-            Log.Information("Shuffled deck: " + String.Join(",", deck));
+            //Deck = new List<string> {"c1-06", "c1-07", "c1-08", "c1-09", "c1-10",
+            //    "c2-07", "c3-07", "c4-07", "c2-08", "c2-08",
+            //    "c3-08", "c4-08", "c2-09", "c2-09", "c3-09",
+            //    "c4-09", "c3-10", "c2-10", "c3-09", "c4-06",
+            //    "c1-11", "c1-12", "c1-13",
+            //    "c4-11", "c4-12", "c2-12",
+            //    "c3-12", "c4-12", "c4-06",
+            //    "c2-06", "c3-06", "c4-06" };
+
+            if (EnableLogging) Log.Information("Shuffled deck: " + String.Join(",", Deck) + ".");
         }
 
         public List<string> OrderCardsForHand(List<string> hand)
@@ -111,6 +171,7 @@ namespace ChatWebApp
 
         public void Deal(int numCards)
         {
+            Turn = FirstPlayer;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < numCards; j++)
@@ -118,8 +179,8 @@ namespace ChatWebApp
                     Hand[Turn].Add(Deck[CardsDealt++]);
                 }
                 Hand[Turn] = OrderCardsForHand(Hand[Turn]);
-                Log.Information(GetDisplayName(Turn) + " is dealt: " + String.Join(",", Hand[Turn]) + ".");
-                if(--Turn == -1) Turn = 3;
+                if (EnableLogging) Log.Information(GetDisplayName(Turn) + " is dealt: " + String.Join(",", Hand[Turn]) + ".");
+                if (--Turn == -1) Turn = 3;
             }
         }
 
@@ -151,6 +212,14 @@ namespace ChatWebApp
 
         public void NominateSuit(int suit)
         {
+            if (EnableLogging)
+            {
+                if (suit > 0 && suit < 7) Log.Information(GetDisplayName(Turn) + " called " + new BelotHelpers().GetSuitNameFromNumber(suit) + ".");
+                else if (suit == 7) Log.Information(GetDisplayName(Turn) + " doubled.");
+                else if (suit == 8) Log.Information(GetDisplayName(Turn) + " redoubled.");
+                else Log.Information(GetDisplayName(Turn) + " passed.");
+            }
+
             SuitCall.Add(suit);
 
             if (suit > 0)
@@ -170,8 +239,6 @@ namespace ChatWebApp
                     Multiplier = 4;
                 }
             }
-
-            if (--Turn == -1) Turn = 3;
         }
 
         public bool SuitDecided()
@@ -302,57 +369,69 @@ namespace ChatWebApp
             return trumpstrength;
         }
 
-        public List<string> FindExtras(string card)
+        public bool CheckBelot(string card)
         {
-            List<string> extras = new List<string>();
-
+            bool canDeclare = false;
             if (RoundSuit != 5)
             {
-                List<bool> finalOverlaps = new List<bool>();
-
                 int rank = Int32.Parse(card.Substring(3, 2));
                 if (rank == 11 || rank == 12)
                 {
                     int suit = Int32.Parse(card.Substring(1, 1));
-                    if (Belots[Turn].Where(s => s.Suit == suit).ToList().Where(d => d.Declarable == true).Count() > 0)
+                    if (Belots[Turn].Where(s => s.Suit == suit).Where(d => d.Declarable == true).Count() > 0)
                     {
                         Belots[Turn].Where(s => s.Suit == suit).First().Declarable = false;
-                        if ((suit == TrickSuit || TrickSuit == 0))
+                        if ((suit == TrickSuit && RoundSuit == 6) || RoundSuit < 5)
                         {
-                            extras.Add("Belot: " + GetSuitNameFromNumber(suit));
-                            finalOverlaps.Add(false);
+                            canDeclare = true;
                         }
                     }
                 }
+            }
+            return canDeclare;
+        }
 
-                if (NumCardsPlayed < 4)
+        public void DeclareBelot(bool declared = true)
+        {
+            if (RoundSuit < 5)
+            {
+                if (Belots[Turn].Where(s => s.Suit == RoundSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == RoundSuit).First().Declared = declared;
+                if (EnableLogging && Belots[Turn].Where(s => s.Suit == RoundSuit).Where(d => d.Declared).Count() > 0) Log.Information(GetDisplayName(Turn) + " declares a Belot.");
+            }
+            else if (RoundSuit == 6)
+            {
+                if (Belots[Turn].Where(s => s.Suit == TrickSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == TrickSuit).First().Declared = declared;
+                if (EnableLogging && Belots[Turn].Where(s => s.Suit == TrickSuit).Where(d => d.Declared).Count() > 0) Log.Information(GetDisplayName(Turn) + " declares a Belot.");
+            }
+        }
+
+        public void DeclareRuns(bool[] declared = null)
+        {
+            for (int i = 0; i < Runs[Turn].Count; i++)
+            {
+                if (Runs[Turn][i].Declarable)
                 {
-                    bool[] overlaps = new bool[Runs[Turn].Count];
-
-                    // find overlaps and truncate runs accordingly
-                    // overlap only occurs if player has at least 1 run and exactly 1 Carre. Runs cannot overlap each other. With 2 Carres, there are no Runs and there is no overlap
-
-                    if (Carres[Turn].Count == 1 && Runs[Turn].Count() > 0) overlaps = FindRunCarreOverlap();
-
-                    for (int i = 0; i < Runs[Turn].Count; i++)
-                    {
-                        extras.Add(GetRunNameFromLength(Runs[Turn][i].Length) + ": " + GetSuitNameFromNumber(Runs[Turn][i].Suit) + " " + GetCardRankFromNumber(Runs[Turn][i].Strength - Runs[Turn][i].Length + 1) + "→" + GetCardRankFromNumber(Runs[Turn][i].Strength));
-                        finalOverlaps.Add(overlaps[i]);
-                    }
-                    for (int i = 0; i < Carres[Turn].Count; i++)
-                    {
-                        extras.Add("Carre: " + GetCardRankFromNumber(Carres[Turn][i].Rank));
-                        finalOverlaps.Add(false);
-                    }
+                    if (declared == null) Runs[Turn][i].Declared = true;
+                    else Runs[Turn][i].Declared = declared[i];
+                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information(GetDisplayName(Turn) + " declares a " + new BelotHelpers().GetRunNameFromLength(Runs[Turn][i].Length) + ".");
                 }
             }
-            return extras;
+        }
+
+        public void DeclareCarres(bool[] declared = null)
+        {
+            for (int i = 0; i < Carres[Turn].Count; i++)
+            {
+                if (declared == null) Carres[Turn][i].Declared = true;
+                else Carres[Turn][i].Declared = declared[i];
+                if (EnableLogging && Carres[Turn][i].Declared) Log.Information(GetDisplayName(Turn) + " declares a Carre.");
+            }
         }
 
         public void PlayCard(string card)
         {
             PlayedCards[Turn] = card;
-            Log.Information(GetDisplayName(Turn) + " plays " + card + ".");
+            if (EnableLogging) Log.Information(GetDisplayName(Turn) + " plays " + card + ".");
 
             Hand[Turn][Hand[Turn].IndexOf(card)] = "c0-00";
 
@@ -363,34 +442,7 @@ namespace ChatWebApp
             int trumpstrength = TrumpStrength(card);
             if (HighestTrumpInTrick < trumpstrength) HighestTrumpInTrick = trumpstrength;
 
-            if (NumCardsPlayed % 4 == 0) // trick end
-            {
-                int winner = DetermineWinner();
-                int pointsBefore = EWRoundPoints + EWRoundPoints;
-                if (winner == 0 || winner == 2)
-                {
-                    EWRoundPoints += CalculateRoundPoints();
-                    EWWonATrick = true;
-                }
-                else
-                {
-                    NSRoundPoints += CalculateRoundPoints();
-                    NSWonATrick = true;
-                }
-                Log.Information(GetDisplayName(winner) + " wins trick " + NumCardsPlayed / 4 + ", worth " + (EWRoundPoints + NSRoundPoints - pointsBefore) + " points.");
-
-                if (NumCardsPlayed < 32)
-                {
-                    Turn = winner;
-                    PlayedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
-                }
-                HighestTrumpInTrick = 0;
-                TrickSuit = 0;
-            }
-            else
-            {
-                if (--Turn == -1) Turn = 3;
-            }
+            //if (EnableLogging && NumCardsPlayed % 4 == 0) Log.Information(GetDisplayName(DetermineWinner()) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
         }
 
         public void FindRuns()
@@ -416,13 +468,18 @@ namespace ChatWebApp
                             }
                         }
                     }
-                    if (maxrun > 2 && maxrun < 6)
+                    if (maxrun == 8)
                     {
-                        Runs[i].Add(new Run(maxrun, suit, strength + maxrun - 1, false));
+                        Runs[i].Add(new Run(3, suit, 8, false, false));
+                        Runs[i].Add(new Run(5, suit, 13, false, false));
+                    }
+                    else if (maxrun > 2 && maxrun < 6)
+                    {
+                        Runs[i].Add(new Run(maxrun, suit, strength + maxrun - 1, false, false));
                     }
                     else if (maxrun > 5)
                     {
-                        Runs[i].Add(new Run(5, suit, strength + maxrun - 1, false));
+                        Runs[i].Add(new Run(5, suit, strength + maxrun - 1, false, false));
                     }
                     j += maxrun - 1;
                 }
@@ -446,59 +503,64 @@ namespace ChatWebApp
             }
         }
 
-        public bool[] FindRunCarreOverlap() // reduce overlapping runs where this still rewards points, and return invalidated runs
+        public void TruncateRuns() // reduce overlapping runs where this still rewards points, and return invalidated runs
         {
-            bool[] overlaps = new bool[Runs[Turn].Count];
-
-            for (int i = 0; i < Runs[Turn].Count; i++)
+            for (int i = 0; i < 4; i++)
             {
-                int upper = Runs[Turn][i].Strength;
-                int lower = upper - Runs[Turn][i].Length + 1;
-                if (Carres[Turn][0].Rank >= lower && Carres[Turn][0].Rank <= upper)
+                for (int j = 0; j < Runs[i].Count; j++)
                 {
-                    if (Runs[Turn][i].Length == 3)
+                    int upper = Runs[i][j].Strength;
+                    int lower = upper - Runs[i][j].Length + 1;
+                    if (Carres[i].Count == 1)
                     {
-                        overlaps[i] = true;
+                        if (Carres[i][0].Rank >= lower && Carres[i][0].Rank <= upper)
+                        {
+                            if (Runs[i][j].Length == 3) Runs[i][j].Declarable = false;
+
+                            else // try truncate run
+                            {
+                                bool first = Carres[i][0].Rank == lower;
+                                bool second = Carres[i][0].Rank == lower + 1;
+                                bool secondLast = Carres[i][0].Rank == upper - 1;
+                                bool last = Carres[i][0].Rank == upper;
+                                if ((first || last) && Runs[i][j].Length > 3) // Quarte becomes Tierce, Quint becomes Quarte
+                                {
+                                    Runs[i][j].Length -= 1;
+                                    // if first, strength remains the same, reducing length by 1 is sufficient
+                                    if (last) Runs[i][j].Strength -= 1;
+                                    Runs[i][j].Declarable = true;
+                                }
+                                else if (second || secondLast)
+                                {
+                                    if (Runs[i][j].Length == 4) // Quarte invalidated
+                                    {
+                                        Runs[i][j].Declarable = false;
+                                    }
+                                    else // Quint becomes Tierce
+                                    {
+                                        Runs[i][j].Length -= 2;
+                                        // if second, strength remains the same, reducing length by 2 is sufficient
+                                        if (secondLast) Runs[i][j].Strength -= 2;
+                                        Runs[i][j].Declarable = true;
+                                    }
+                                }
+                                else // Run is a Quint, and Carre is in the middle, therefore no truncation is possible
+                                {
+                                    Runs[i][j].Declarable = false;
+                                }
+                            }
+                        }
+                        else // carre rank does not lie within the run
+                        {
+                            Runs[i][j].Declarable = true;
+                        }
                     }
-                    else // try truncate run
+                    else
                     {
-                        bool first = Carres[Turn][0].Rank == lower;
-                        bool second = Carres[Turn][0].Rank == lower + 1;
-                        bool secondLast = Carres[Turn][0].Rank == upper - 1;
-                        bool last = Carres[Turn][0].Rank == upper;
-                        if ((first || last) && Runs[Turn][i].Length > 3) // Quarte becomes Tierce, Quint becomes Quarte
-                        {
-                            Runs[Turn][i].Length -= 1;
-                            // if first, strength remains the same, reducing length by 1 is sufficient
-                            if (last) Runs[Turn][i].Strength -= 1;
-                            overlaps[i] = false;
-                        }
-                        else if (second || secondLast)
-                        {
-                            if (Runs[Turn][i].Length == 4) // Quarte invalidated
-                            {
-                                overlaps[i] = true;
-                            }
-                            else // Quint becomes Tierce
-                            {
-                                Runs[Turn][i].Length -= 2;
-                                // if second, strength remains the same, reducing length by 2 is sufficient
-                                if (secondLast) Runs[Turn][i].Strength -= 2;
-                                overlaps[i] = false;
-                            }
-                        }
-                        else // Run is a Quint, and Carre is in the middle, therefore no truncation is possible
-                        {
-                            overlaps[i] = true;
-                        }
+                        Runs[i][j].Declarable = true;
                     }
-                }
-                else // carre rank does not lie within the run
-                {
-                    overlaps[i] = false;
                 }
             }
-            return overlaps;
         }
 
         public void FindBelots()
@@ -527,7 +589,7 @@ namespace ChatWebApp
             int winner = Turn;
             int bestValue = 0;
 
-            CardPower cp = new CardPower();
+            BelotHelpers cp = new BelotHelpers();
 
             if (TrickSuit > 0)
             {
@@ -544,10 +606,14 @@ namespace ChatWebApp
                     }
                 }
             }
+            if (EnableLogging && PlayedCards.Where(c => c == "c0-00").Count() == 0)
+            {
+                Log.Information(GetDisplayName(winner) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
+            }
             return winner;
         }
 
-        public int CalculateRoundPoints() // C,D,H,S = 162 (65 vs 97 would result in 7 & 10 in pure rounding), A = 260 (x2), J = 258
+        public int CalculateTrickPoints() // C,D,H,S = 162 (65 vs 97 would result in 7 & 10 in pure rounding), A = 260 (x2), J = 258
         {
             int[] nontrump = { 0, 0, 0, 10, 2, 3, 4, 11 };
             int[] trump = { 0, 0, 14, 10, 20, 3, 4, 11 };
@@ -572,12 +638,12 @@ namespace ChatWebApp
             return points;
         }
 
-        public void FinalisePoints()
+        public string FinalisePoints()
         {
-            int[] TrickPoints = new int[] { EWRoundPoints, NSRoundPoints };
-            int[] DeclarationPoints = new int[] { 0, 0 };
-            int[] BelotPoints = new int[] { 0, 0 };
-            string[] Result = new string[] { "", "Success" };
+            TrickPoints = new int[] { EWRoundPoints, NSRoundPoints };
+            DeclarationPoints = new int[] { 0, 0 };
+            BelotPoints = new int[] { 0, 0 };
+            Result = new string[] { "", "Success" };
             string[] message = { "N/S", "call", "succeeded" };
             if (EWCalled)
             {
@@ -609,10 +675,7 @@ namespace ChatWebApp
                         MaxComparer[0] = EWRuns.Where(r => r.Length == MaxComparer[0]).OrderByDescending(r => r.Strength).First().Strength;
                         MaxComparer[1] = NSRuns.Where(r => r.Length == MaxComparer[1]).OrderByDescending(r => r.Strength).First().Strength;
                     }
-                    if (MaxComparer[0] == MaxComparer[1])
-                    {
-                        Log.Information("The Runs were tied. No extra points awarded for Runs.");
-                    }
+                    if (EnableLogging && MaxComparer[0] == MaxComparer[1]) Log.Information("The Runs were tied. No extra points awarded for Runs.");
                     else if (MaxComparer[0] > MaxComparer[1])
                     {
                         DeclarationPoints[0] += 20 * (EWRuns.Where(r => r.Length == 3).Count());
@@ -672,14 +735,14 @@ namespace ChatWebApp
             {
                 NSRoundPoints += 90;
                 Result[1] = "Capot";
-                message[3] += ", Capot";
+                message[2] += ", Capot";
                 Capot = true;
             }
             else if (!NSWonATrick)
             {
                 EWRoundPoints += 90;
                 Result[0] = "Capot";
-                message[3] += ", Capot";
+                message[2] += ", Capot";
                 Capot = true;
             }
 
@@ -719,43 +782,9 @@ namespace ChatWebApp
             }
             EWTotal += EWRoundPoints;
             NSTotal += NSRoundPoints;
-            Log.Information(String.Join(" ", message) + ".");
-            Log.Information("E/W win {0} points. N/S win {1} points.", EWRoundPoints, NSRoundPoints);
-        }
-
-        public string GetSuitNameFromNumber(int suit)
-        {
-            string[] suitNames = { "Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps" };
-            return suitNames[suit - 1];
-        }
-        public int GetSuitNumberFromName(string suit)
-        {
-            string[] suitNames = { "Clubs", "Diamonds", "Hearts" };
-            for (int i = 0; i < 3; i++)
-            {
-                if (suit == suitNames[i]) return i + 1;
-            }
-            return 4;
-        }
-        public string GetCardRankFromNumber(int rank)
-        {
-            string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K", "A" };
-            return rankNames[rank - 6];
-        }
-        public int GetRankFromChar(string rank)
-        {
-            string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K" };
-            for (int i = 0; i < 7; i++)
-            {
-                if (rank == rankNames[i])
-                    return i + 6;
-            }
-            return 13;
-        }
-        public string GetRunNameFromLength(int length)
-        {
-            string[] types = { "Tierce", "Quarte", "Quint" };
-            return types[length - 3];
+            if (EnableLogging) Log.Information(String.Join(" ", message) + ".");
+            if (EnableLogging) Log.Information("E/W win {0} points. N/S win {1} points.", EWRoundPoints, NSRoundPoints);
+            return String.Join(" ", message) + ".";
         }
 
         public string GetBotName(int pos)

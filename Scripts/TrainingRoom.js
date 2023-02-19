@@ -1,5 +1,5 @@
 ﻿(function () {
-    var room = $.connection.room;
+    var room = $.connection.trainingroom;
 
     // -------------------- Connection --------------------
 
@@ -14,48 +14,23 @@
             //writeToPage("Connection to SignalR failed.");
         });
 
-    room.client.connectedUsers = function (players, spectators) {
-        document.getElementById("userList").innerHTML = "";
-        for (i = 0; i < players.length; i++) {
-            $("#userList").append("&#x25AA " + players[i] + "<br />");
-        };
-        for (i = 0; i < spectators.length; i++) {
-            $("#userList").append("&#x25AB " + spectators[i] + "<br />");
-        };
-    };
-
     // -------------------- Play Card --------------------
 
-    playCardRequest = function () {
-        disableCards();
-        document.getElementById(this.id).hidden = true;
-        card = this.src.substr(this.src.length - 9, 5);
-        room.server.hubPlayCard(card);
-    };
-
-    room.client.playFinalCard = function () {
-        disableCards();
-        for (i = 0; i < 7; i++) {
-            document.getElementById("card".concat(i)).hidden = true;
-        }
-    };
-
-    disableCards = function () {
-        for (i = 0; i < 8; i++) {
-            document.getElementById("card".concat(i)).onclick = "";
-        }
-        document.getElementById("cardboard").classList.remove("card-board-pulse");
-    };
-
-    room.client.enableCards = function (validcards) {
-        for (i = 0; i < 8; i++) { // change to for each element in received integer array
-            if (validcards[i] == 1) document.getElementById("card".concat(i)).onclick = playCardRequest;
-        }
-        document.getElementById("cardboard").classList.add("card-board-pulse");
-    };
-
     room.client.setTableCard = function (tableCardPosition, tableCard) {
-        var path = document.URL.substring(0, document.URL.indexOf("Room"));
+
+        seat = ["w", "n", "e", "s"];
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 8; j++) {
+                var src = document.getElementById(seat[i].concat("card").concat(j)).src;
+                if (src.indexOf(tableCard) > -1) {
+                    document.getElementById(seat[i].concat("card").concat(j)).hidden = true;
+                    j = 8;
+                    i = 4;
+                }
+            };
+        };
+
+        var path = document.URL.substring(0, document.URL.indexOf("Training"));
         document.getElementById("tablecard".concat(tableCardPosition)).src = path.concat("Images/Cards/", tableCard, ".png");
     };
 
@@ -104,27 +79,21 @@
 
     // -------------------- Reset --------------------
 
-    room.client.closeModalsAndButtons = function () {
-        $('#extras-modal').modal('hide');
-        $('#suit-modal').modal('hide');
-        $('#summary-modal').modal('hide');
-        document.getElementById("dealBtn").classList.remove("deal-pulse");
-        document.getElementById("suit-selector").style.visibility = "hidden";
-        document.getElementById("suit-selector").classList.remove("suit-selector-pulse");
-        document.getElementById("suit-selector").onclick = "";
-    }
 
     resetTable = function () {
         //alert(document.URL);
-        path = document.URL.substring(0, document.URL.indexOf("Room")).concat("Images/Cards/c0-00.png");
+        path = document.URL.substring(0, document.URL.indexOf("Training")).concat("Images/Cards/c0-00.png");
         for (i = 0; i < 4; i++) {
-            document.getElementById("tablecard".concat(i)).src = path;
+            document.getElementById("tablecard".concat(String(i))).src = path;
         }
     };
 
     resetBoard = function () {
-        for (i = 0; i < 8; i++) {
-            document.getElementById("card".concat(i)).hidden = true;
+        seat = ["w", "n", "e", "s"];
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 8; j++) {
+                document.getElementById(seat[i].concat("card").concat(j)).hidden = true;
+            };
         };
     };
 
@@ -136,19 +105,8 @@
         document.getElementById("selectedmultiplier").innerHTML = "";
     };
 
-    $("#newGameBtn").on("click", function () {
-        room.server.gameController();
-    });
 
     room.client.newGame = function () {
-
-        var table = document.getElementById("scoreTable");
-        while (table.rows.length > 2) {
-            table.deleteRow(1)
-        };
-        table.rows[1].cells[1].innerHTML = 0;
-        table.rows[1].cells[2].innerHTML = 0;
-
         document.getElementById("scoreTotals").rows[1].cells[0].innerHTML = 0;
         document.getElementById("scoreTotals").rows[1].cells[1].innerHTML = 0;
 
@@ -184,65 +142,17 @@
 
     };
 
-    room.client.appendScoreTable = function (ewPoints, nsPoints) {
-
-        var table = document.getElementById("scoreTable");
-
-        var row = table.insertRow(table.rows.length - 1);
-
-        var cell1 = row.insertCell(0);
-        var cell2 = row.insertCell(1);
-        var cell3 = row.insertCell(2);
-
-        if (table.rows.length == 3) {
-            cell1.innerHTML = 1;
-        }
-        else {
-            cell1.innerHTML = parseInt(table.rows[table.rows.length - 3].cells[0].innerHTML) + 1;
-        };
-
-        cell2.innerHTML = nsPoints;
-        cell3.innerHTML = ewPoints;
-
-        var totalNS = 0;
-        var totalEW = 0;
-        for (i = 1; i < table.rows.length - 1; i++) {
-            totalNS += parseInt(table.rows[i].cells[1].innerHTML);
-            totalEW += parseInt(table.rows[i].cells[2].innerHTML);
-        };
-        table.rows[table.rows.length - 1].cells[1].innerHTML = totalNS;
-        table.rows[table.rows.length - 1].cells[2].innerHTML = totalEW;
-
-    };
-
     room.client.resetTable = function () {
         resetTable();
-    };
-
-    room.client.disableDealBtn = function () {
-        document.getElementById("dealBtn").disabled = true;
-    };
-
-    room.client.enableDealBtn = function () {
-        document.getElementById("dealBtn").disabled = false;
-        document.getElementById("dealBtn").classList.add("deal-pulse");
     };
 
     room.client.newRound = function () {
         resetTable();
         resetBoard();
-        disableCards();
         resetSuitSelection();
     };
 
     // -------------------- Deal Cards --------------------
-
-    $("#dealBtn").on("click", function () {
-        document.getElementById("dealBtn").disabled = true;
-        document.getElementById("dealBtn").classList.remove("deal-pulse");
-        resetTable();
-        room.server.hubShuffle();
-    });
 
     room.client.setDealerMarker = function (turn) {
         for (i = 0; i < 4; i++) {
@@ -254,93 +164,18 @@
         };
     };
 
-    room.client.disableRadios = function () {
-        // disable team selection
-        const radios = ["w", "n", "s", "e", "x"];
-        for (i = 0; i < 5; i++) {
-            document.getElementById(radios[i].concat("radio")).disabled = true;
-        }
-    };
-
-    room.client.enableRadios = function () {
-        // disable team selection
-        const radios = ["w", "n", "s", "e", "x"];
-        for (i = 0; i < 5; i++) {
-            document.getElementById(radios[i].concat("radio")).disabled = false;
-        }
-    };
-
-    room.client.deal = function (cards) {
+    room.client.deal = function (cards, player) {
         // show hand card images
-        var card = JSON.parse(cards);
-        var path = document.URL.substring(0, document.URL.indexOf("Room"));
-        for (i = 0; i < card.length; i++) {
-            document.getElementById("card".concat(i)).src = path.concat("Images/Cards/", card[i], ".png");
-            document.getElementById("card".concat(i)).hidden = false;
-        };
+        cards = JSON.parse(cards);
+        var path = document.URL.substring(0, document.URL.indexOf("Training"));
+        seat = ["w", "n", "e", "s"];
+        for (i = 0; i < cards.length; i++) {
+            document.getElementById(seat[player].concat("card").concat(i)).src = path.concat("Images/Cards/", cards[i], ".png");
+            document.getElementById(seat[player].concat("card").concat(i)).hidden = false;
+        }
     };
 
     // -------------------- Extra Points --------------------
-
-    room.client.declareExtras = function (extras) {
-        extras = JSON.parse(extras);
-        if (extras.length > 0) {
-            for (i = 0; i < extras.length; i++) {
-                const dv = document.createElement('div');
-                //dv.id = "extra-items".concat(i);
-
-                const box = document.createElement('input');
-                box.classList.add("form-check-input");
-                box.type = ("checkbox");
-                if (extras[i].charAt(0) == "#") {
-                    box.checked = false;
-                    box.disabled = true;
-                    extras[i] = extras[i].substring(1, extras[i].length - 1);
-                }
-                else {
-                    box.checked = true;
-                };
-                box.id = extras[i];
-
-                const lbl = document.createElement('label');
-                lbl.classList.add("form-check-label");
-                lbl.style = "margin-left: 10px";
-                lbl.for = extras[i];
-                lbl.innerHTML = extras[i];
-
-                dv.appendChild(box);
-                dv.appendChild(lbl);
-                document.getElementById("extras").appendChild(dv);
-            };
-            $('#extras-modal').modal('show');
-        }
-        else {
-            var belot = false;
-            var runs = [];
-            var carres = [];
-            room.server.hubExtrasDeclared(belot, runs, carres);
-        };
-    };
-
-    closeExtrasModal = function () {
-        $('#extras-modal').modal('hide');
-
-        var belot = false;
-        var runs = [];
-        var carres = [];
-
-        var dv = document.getElementById('extras');
-        var boxes = dv.children;
-        for (i = 0; i < boxes.length; i++) {
-            var box = boxes[i].children;
-            if (box[0].id.charAt(0) == "B") belot = box[0].checked;
-            else if (box[0].id.charAt(0) == "C") carres.push(box[0].checked);
-            else runs.push(box[0].checked);
-        };
-
-        document.getElementById("extras").innerHTML = "";
-        room.server.hubExtrasDeclared(belot, runs, carres);
-    };
 
     room.client.setExtrasEmote = function (extras, turn) {
         extras = JSON.parse(extras);
@@ -355,32 +190,6 @@
 
 
     // -------------------- Suit Selection --------------------
-
-    room.client.showSuitModal = function (validCalls) {
-        for (i = 0; i < 8; i++) {
-            if (validCalls[i] == 1) {
-                setSuitIconOn(i + 1);
-            }
-            else {
-                setSuitIconOff(i + 1);
-            };
-        };
-        $('#lobby').offcanvas('hide');
-        //window.scrollTo(0, 99999);
-        $('#suit-modal').modal('show');
-    }
-
-    minimiseSuitModal = function () {
-        $('#suit-modal').modal('hide');
-        document.getElementById("suit-selector").style.visibility = "visible";
-        document.getElementById("suit-selector").classList.add("suit-selector-pulse");
-        document.getElementById("suit-selector").onclick = function () {
-            $('#suit-modal').modal('show');
-            document.getElementById("suit-selector").style.visibility = "hidden";
-            document.getElementById("suit-selector").classList.remove("suit-selector-pulse");
-            document.getElementById("suit-selector").onclick = "";
-        };
-    };
 
     room.client.emoteSuit = function (suit, turn) {
         seat = turn.concat("bubble");
@@ -444,11 +253,6 @@
         };
 
         document.getElementById("suit".concat(String(suit))).onclick = function () { nominateSuit(this) };
-    };
-
-    nominateSuit = function (el) {
-        $('#suit-modal').modal('hide');
-        room.server.hubNominateSuit(el.id.charAt(el.id.length - 1));
     };
 
     room.client.suitNominated = function (suit) {
@@ -517,10 +321,6 @@
 
     // -------------------- Seat Management --------------------
 
-    requestSeatBooking = function (seat) {
-        room.server.bookSeat(seat);
-    };
-
     getSeatNameByNumber = function (number) {
         var seat = "";
         switch (number) {
@@ -536,21 +336,8 @@
             case 3:
                 seat = "South";
                 break;
-            case 4:
-                seat = "XSpectator";
-                break;
         };
         return seat;
-    };
-
-    room.client.enableNewGame = function () {
-        document.getElementById("newGameBtn").classList.add("deal-pulse");
-        document.getElementById("newGameBtn").disabled = false;
-    };
-
-    room.client.disableNewGame = function () {
-        document.getElementById("newGameBtn").classList.remove("deal-pulse");
-        document.getElementById("newGameBtn").disabled = true;
     };
 
     setSeatColour = function (seat, colour) {
@@ -569,76 +356,39 @@
         setSeatColour(seat, "black");
     };
 
-    room.client.seatAlreadyBooked = function (occupier) {
-        document.getElementById("seat-modal-body").innerHTML = "This seat is already occupied by ".concat(occupier).concat(".");
-        $('#seat-modal').modal('show');
-    };
 
-    room.client.setRadio = function (pos) {
-        document.getElementById("wradio").classList.remove("active");
-        document.getElementById("nradio").classList.remove("active");
-        document.getElementById("sradio").classList.remove("active");
-        document.getElementById("eradio").classList.remove("active");
-        document.getElementById("xradio").classList.remove("active");
-        document.getElementById(pos.charAt(0).toLocaleLowerCase().concat("radio")).classList.add("active");
-    };
+    // -------------------- Load Game --------------------
 
-    room.client.setBotBadge = function (pos, isBot) {
-        document.getElementById(pos.charAt(0).toLocaleLowerCase().concat("BotBadge")).hidden = !isBot;
-    };
-
-    moveWest = function () {
-        const w = document.getElementById("west");
-        w.style.top = 0;
-        w.style.left = 0;
-    };
-
-
-    // -------------------- Chat Log --------------------
-
-    room.client.announce = function (message) {
-        writeToPage(message);
-    };
-
-    room.client.showChatNotification = function () {
-        chatOpen = document.getElementById("chatLogAccordian").classList.contains("show");
-        lobbyOpen = document.getElementById("lobby").classList.contains("show");
-        if (!lobbyOpen || (lobbyOpen && !chatOpen)) {
-            document.getElementById("chatLogBadge").hidden = false
-        }
-    };
-
-    writeToPage = function (message) {
-        if (document.getElementById("chatLog").value != "") {
-            $("#chatLog").append("\n");
-        };
-        $("#chatLog").append(message);
-        var textarea = document.getElementById('chatLog');
-        textarea.scrollTop = textarea.scrollHeight;
-    };
-
-    $("#messageToSend").keyup(function (event) {
+    $("#gameGUID").keyup(function (event) {
         if (event.keyCode === 13) {
-            $("#sendmessage").click();
+            $("#load-game").click();
         }
     });
 
-    $("#sendmessage").on("click", function () {
-        room.server.announce(document.getElementById("messageToSend").value);
-        document.getElementById("messageToSend").value = "";
+    $("#load-game").on("click", function () {
+        room.server.loadGame(document.getElementById("gameGUID").value);
+        document.getElementById("gameGUID").value = "";
     });
 
-    $("#chatLogBtn").on("click", function () {
-        //alert(document.getElementById("chatLogAccordian").classList.contains("collapsing"));
-        document.getElementById("chatLogBadge").hidden = true;
+    $("#game-speed-btn").on("click", function () {
+        var delay = 600;
+        
+        if (!isNaN(parseInt(document.getElementById("speed-value").value))) delay = parseInt(document.getElementById("speed-value").value);
+        if (delay > 5000 || delay < 0) delay = 600;
+
+        document.getElementById("speed-value").value = delay;
+        room.server.setGameSpeed(delay);
     });
 
-    $("#chatbtn").on("click", function () {
-        chatOpen = document.getElementById("chatLogAccordian").classList.contains("show");
-        lobbyOpening = document.getElementById("lobby").classList.contains("showing");
-        if (lobbyOpening && chatOpen) {
-            document.getElementById("chatLogBadge").hidden = true;
+    $("#pause-game").on("click", function () {
+        if (document.getElementById("pause-game").value == "Pause") {
+            document.getElementById("pause-game").value = "Resume";
+            room.server.pauseGame(true);
         }
+        else {
+            document.getElementById("pause-game").value = "Pause";
+            room.server.pauseGame(false);
+        };
     });
 
 })();

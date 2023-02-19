@@ -6,7 +6,7 @@ using System.Web.Mvc;
 
 namespace ChatWebApp.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class TrainingController : Controller
     {
         // GET: Training

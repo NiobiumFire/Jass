@@ -48,34 +48,6 @@ namespace ChatWebApp
         public string Image { get; set; } // image to be displayed on the table
     }
 
-    public class Run
-    {
-        public Run(int length, int suit, int strength, bool declared)
-        {
-            Length = length;
-            Suit = suit;
-            Strength = strength;
-            Declared = declared;
-        }
-
-        public int Length { get; set; } // 3 = Tierce, 4 = Quart, 5 = Quint
-        public int Suit { get; set; } // 1=C, 2=D, 3=H, 4=S
-        public int Strength { get; set; } // 9 high=0, A high=5
-        public bool Declared { get; set; }
-    }
-
-    public class Carre
-    {
-        public Carre(int rank, bool declared)
-        {
-            Rank = rank;
-            Declared = declared;
-        }
-
-        public int Rank { get; set; }
-        public bool Declared { get; set; }
-    }
-
     public class Belot
     {
         public Belot(int suit, bool declared, bool declarable)
@@ -95,8 +67,73 @@ namespace ChatWebApp
         }
     }
 
-    public class CardPower
+    public class Run
     {
+        public Run(int length, int suit, int strength, bool declared, bool declarable)
+        {
+            Length = length;
+            Suit = suit;
+            Strength = strength;
+            Declared = declared;
+            Declarable = declarable;
+        }
+
+        public int Length { get; set; } // 3 = Tierce, 4 = Quarte, 5 = Quint
+        public int Suit { get; set; } // 1=C, 2=D, 3=H, 4=S
+        public int Strength { get; set; }
+        public bool Declared { get; set; }
+        public bool Declarable { get; set; }
+    }
+
+    public class Carre
+    {
+        public Carre(int rank, bool declared)
+        {
+            Rank = rank;
+            Declared = declared;
+        }
+
+        public int Rank { get; set; }
+        public bool Declared { get; set; }
+    }
+
+    public class BelotHelpers
+    {
+        public string GetSuitNameFromNumber(int suit)
+        {
+            string[] suitNames = { "Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps" };
+            return suitNames[suit - 1];
+        }
+        public int GetSuitNumberFromName(string suit)
+        {
+            string[] suitNames = { "Clubs", "Diamonds", "Hearts" };
+            for (int i = 0; i < 3; i++)
+            {
+                if (suit == suitNames[i]) return i + 1;
+            }
+            return 4;
+        }
+        public string GetCardRankFromNumber(int rank)
+        {
+            string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K", "A" };
+            return rankNames[rank - 6];
+        }
+        public int GetRankFromChar(string rank)
+        {
+            string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K" };
+            for (int i = 0; i < 7; i++)
+            {
+                if (rank == rankNames[i])
+                    return i + 6;
+            }
+            return 13;
+        }
+        public string GetRunNameFromLength(int length)
+        {
+            string[] types = { "Tierce", "Quarte", "Quint" };
+            return types[length - 3];
+        }
+
         public int DetermineCardPower(string card, int roundSuit, int trickSuit)
         {
             int value = 0;
