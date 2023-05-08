@@ -148,7 +148,8 @@ namespace ChatWebApp
                     Clients.All.NewRound();
                     SysAnnounce(game.FinalisePoints());
                     //HubFinalisePoints();
-                    Clients.All.AppendScoreTable(game.EWRoundPoints, game.NSRoundPoints);
+                    game.ScoreHistory.Add(new int[] { game.EWRoundPoints, game.NSRoundPoints });
+                    Clients.All.AppendScoreHistory(game.EWRoundPoints, game.NSRoundPoints);
                     Clients.All.UpdateScoreTotals(game.EWTotal, game.NSTotal);
                     Clients.All.ShowRoundSummary(game.TrickPoints, game.DeclarationPoints, game.BelotPoints, game.Result, game.EWRoundPoints, game.NSRoundPoints);
                     Thread.Sleep(6000);
@@ -215,13 +216,13 @@ namespace ChatWebApp
 
                     game.PlayCard(card);
 
-                    List<string> extras = new List<string>();
+                    //List<string> extras = new List<string>();
 
                     if (game.RoundSuit != 5)
                     {
                         if (game.CheckBelot(card))
                         {
-                            extras.Add("Belot");
+                            //extras.Add("Belot");
                             game.DeclareBelot();
                             belot = true;
                         }
@@ -273,8 +274,6 @@ namespace ChatWebApp
 
         // -------------------- Reset --------------------
 
-
-
         public void EndGame()
         {
             log.Debug("Entering EndGame.");
@@ -299,6 +298,7 @@ namespace ChatWebApp
             Clients.All.EnableNewGame();
             Clients.All.EnableRadios();
             newGame = true;
+            game.CloseLog();
             log.Debug("Leaving EndGame.");
         }
 
@@ -371,6 +371,7 @@ namespace ChatWebApp
         {
             log.Debug("Entering HubPlayCard.");
             game.PlayCard(card);
+            Clients.Caller.SetTableCard(game.Turn, game.PlayedCards[game.Turn]);
 
             List<string> extras = new List<string>();
 
@@ -391,6 +392,7 @@ namespace ChatWebApp
                     extras.Add("Carre: " + helpers.GetCardRankFromNumber(game.Carres[game.Turn][i].Rank));
                 }
             }
+            game.CurrentExtras = extras;
             Clients.Caller.DeclareExtras(new JavaScriptSerializer().Serialize(extras));
             log.Debug("Leaving HubPlayCard.");
         }
@@ -595,17 +597,20 @@ namespace ChatWebApp
             log.Debug("Entering UnbookSeat.");
             string username = GetCallerUsername();
 
-            if (spectators.Where(s => s.Username == username).Count() == 0)
+            if (players.Where(s => s.Username == username).Count() == 1)
             {
-                Clients.All.DisableNewGame();
                 int position = Array.IndexOf(players, players.Where(p => p.Username == username).First());
-                players[position] = new Player();
-                UpdateConnectedUsers();
-
+                if (newGame)
+                {
+                    Clients.All.DisableNewGame();
+                    players[position] = new Player();
+                }
+                else players[position].IsDisconnected = true;
                 Clients.All.SeatUnbooked(position, username);
-                string[] seat = { "West", "North", "East", "South" };
+                //string[] seat = { "West", "North", "East", "South" };
                 //log.Information(username + " vacated the " + seat[position] + " seat.");
             }
+            UpdateConnectedUsers();
             log.Debug("Leaving UnbookSeat.");
         }
 
@@ -671,7 +676,7 @@ namespace ChatWebApp
 
         public void UpdateConnectedUsers()
         {
-            string[] playerNames = players.Select(s => s.Username).Where(s => s != "").Where(s => s != botGUID).ToArray();
+            string[] playerNames = players.Where(d => d.IsDisconnected == false).Select(s => s.Username).Where(s => s != "").Where(s => s != botGUID).ToArray();
             Array.Sort(playerNames);
             string[] specNames = spectators.Select(s => s.Username).ToArray();
             Array.Sort(specNames);
@@ -682,10 +687,10 @@ namespace ChatWebApp
         {
             for (int i = 0; i < 4; i++)
             {
+                // Update table seats
                 if (players[i].IsHuman)
                 {
                     Clients.Caller.SeatBooked(i, players[i].Username);
-
                 }
                 else if (players[i].Username == botGUID)
                 {
@@ -693,9 +698,90 @@ namespace ChatWebApp
                     Clients.Caller.SeatBooked(i, GetBotName(i));
                     Clients.Caller.SetBotBadge(seat[i], true);
                 }
+
+                // Update table cards
+                if (!newGame) Clients.Caller.SetTableCard(i, game.PlayedCards[i]);
             }
 
-            if (players.Where(s => s.Username != "").Count() == 4) Clients.Caller.EnableNewGame();
+            if (!newGame)
+            {
+                int dealer = game.FirstPlayer + 1;
+                if (dealer == 4) dealer = 0;
+                Clients.Caller.SetDealerMarker(dealer);
+
+                Clients.Caller.SetTurnIndicator(game.Turn);
+
+                Clients.Caller.DisableRadios();
+
+                Clients.Caller.UpdateScoreTotals(game.EWTotal, game.NSTotal);
+
+                for (int i = 0; i < game.ScoreHistory.Count; i++)
+                {
+                    Clients.Caller.AppendScoreHistory(game.ScoreHistory[i][0], game.ScoreHistory[i][1]);
+                }
+
+                Clients.Caller.SuitNominated(game.RoundSuit);
+                if (game.Multiplier == 2) Clients.Caller.SuitNominated(7);
+                else if (game.Multiplier == 4) Clients.Caller.SuitNominated(8);
+
+                if (game.RoundSuit > 0) Clients.Caller.setCallerIndicator(game.Caller);
+
+                // if the connecting user is a player
+                if (players.Where(u => u.Username == GetCallerUsername()).Count() > 0)
+                {
+                    int pos = Array.IndexOf(players, players.Where(p => p.Username == GetCallerUsername()).First());
+
+                    Clients.Caller.Deal(new JavaScriptSerializer().Serialize(game.Hand[pos]));
+
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (i < game.Hand[pos].Count)
+                        {
+                            if (game.Hand[pos][i] == "c0-00")
+                            {
+                                Clients.Caller.HideCard("card" + i);
+                            }
+                        }
+                        else
+                        {
+                            Clients.Caller.HideCard("card" + i);
+                        }
+                    }
+
+                    if (game.Turn == pos)
+                    {
+                        // deal
+                        if (dealer == pos && game.Hand[pos].Count == 0)
+                        {
+                            Clients.Caller.EnableDealBtn();
+                        }
+                        // if the game is in the suit-calling phase
+                        else if (game.Hand[pos].Count == 5)
+                        {
+                            int[] validCalls = game.ValidCalls();
+                            Clients.Caller.ShowSuitModal(validCalls);
+                        }
+                        // if the connecting user must declare extras
+                        else if (game.PlayedCards[game.Turn] != "c0-00")
+                        {
+                            Clients.Caller.DeclareExtras(new JavaScriptSerializer().Serialize(game.CurrentExtras));
+                        }
+                        // if the game is in the card-playing phase
+                        else if (game.Hand[pos].Count == 8)
+                        {
+                            Clients.Caller.EnableCards(game.ValidCards());
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        Clients.Caller.HideCard("card" + i);
+                    }
+                }
+            }
+            else if (players.Where(s => s.Username != "").Count() == 4) Clients.Caller.EnableNewGame();
         }
 
         public override Task OnConnected()
@@ -703,6 +789,12 @@ namespace ChatWebApp
             log.Debug("Entering OnConnected.");
             string username = GetCallerUsername();
             if (players.Where(p => p.Username == username).Count() == 0) spectators.Add(new Spectator(username, Context.ConnectionId));
+            else
+            {
+                players.Where(p => p.Username == username).First().ConnectionId = Context.ConnectionId;
+                players.Where(p => p.Username == username).First().IsDisconnected = false;
+                Clients.Others.SeatBooked(Array.IndexOf(players, players.Where(p => p.Username == username).First()), username);
+            }
             UpdateConnectedUsers();
 
             SysAnnounce(username + " connected.");
@@ -717,8 +809,6 @@ namespace ChatWebApp
             log.Debug("Entering OnDisconnected.");
             string username = GetCallerUsername();
             if (spectators.Where(p => p.Username == username).Count() == 1) spectators.Remove(spectators.Where(s => s.Username == username).First());
-            UpdateConnectedUsers();
-
             UnbookSeat();
             SysAnnounce(username + " disconnected.");
             log.Information(username + " disconnected.");

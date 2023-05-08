@@ -87,7 +87,7 @@ td:first-child {
     transform: rotate(17.5deg);
 }
 
-.z1 {
+/*.z1 {
     z-index: 1;
 }
 
@@ -117,7 +117,7 @@ td:first-child {
 
 .z8 {
     z-index: 8;
-}
+}*/
 
 .modal-open {
     overflow-y: auto;
@@ -416,16 +416,16 @@ td:first-child {
 }
 
 .training-cardboard {
-    padding: 50px 0px;
+    /*padding: 50px 0px;*/
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items:center;
+    /*align-items: center;*/
     text-align: right;
     overflow-y: clip;
     overflow-x: visible;
-    height: var(--small-card-height);
-    /*max-height: var(--small-card-height);*/
+    /*height: var(--small-card-height);*/
+    height: var(--small-card-width);
     width: auto;
     background-color: rgba(25, 135, 84, 0.55);
     margin-right: 0;
@@ -435,10 +435,10 @@ td:first-child {
     padding: 10px 40px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /*justify-content: center;*/
     align-items: center;
     text-align: right;
-    overflow-y: clip;
+    /*overflow-y: clip;*/
     overflow-x: visible;
     width: var(--small-card-width);
     /*max-height: var(--small-card-height);*/
@@ -462,3 +462,28 @@ td:first-child {
     /*margin-top: 5px;*/
 }
 
+.metrics-table td:nth-child(1) {
+    width: 5%;
+}
+
+.metrics-table td:nth-child(2) {
+    width: 9%;
+}
+.metrics-table td:nth-child(3) {
+    width: 5%;
+}
+.metrics-table td:nth-child(4) {
+    width: 13%;
+}
+.metrics-table td:nth-child(5) {
+    width: 11%;
+}
+.metrics-table td:nth-child(6) {
+    width: 14%;
+}
+.metrics-table td:nth-child(7) {
+    width: 23%;
+}
+.metrics-table td:nth-child(8) {
+    width: 15%;
+}

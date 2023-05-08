@@ -370,9 +370,11 @@
         document.getElementById("gameGUID").value = "";
     });
 
+    // -------------------- Game Speed --------------------
+
     $("#game-speed-btn").on("click", function () {
         var delay = 600;
-        
+
         if (!isNaN(parseInt(document.getElementById("speed-value").value))) delay = parseInt(document.getElementById("speed-value").value);
         if (delay > 5000 || delay < 0) delay = 600;
 
@@ -380,15 +382,39 @@
         room.server.setGameSpeed(delay);
     });
 
+    // -------------------- Pause --------------------
+
     $("#pause-game").on("click", function () {
-        if (document.getElementById("pause-game").value == "Pause") {
-            document.getElementById("pause-game").value = "Resume";
+        if (document.getElementById("pause-icon").classList.contains("bi-pause-circle-fill")) {
+            document.getElementById("pause-icon").classList = "bi bi-play-circle-fill";
             room.server.pauseGame(true);
         }
         else {
-            document.getElementById("pause-game").value = "Pause";
+            document.getElementById("pause-icon").classList = "bi-pause-circle-fill";
             room.server.pauseGame(false);
         };
     });
+
+    room.client.togglePauseEnabled = function () {
+        document.getElementById("pause-game").disabled = !document.getElementById("pause-game").disabled;
+    };
+
+    // -------------------- Generate Game --------------------
+
+    $("#gameBtn").on("click", function () {
+        room.server.generateGame(document.getElementById("num-games").value);
+    });
+
+    // -------------------- Append Metrics Table --------------------
+
+    room.client.appendTrainingTable = function (metrics, bestGUID) {
+        var table = document.getElementById("training-metrics-table");
+        var row = table.insertRow(table.rows.length);
+        for (i = 0; i < metrics.length; i++) {
+            row.insertCell(i).innerHTML = metrics[i];
+        }
+        row.insertCell(metrics.length).innerHTML = bestGUID;
+        document.getElementById("training-metrics").scrollTop = document.getElementById("training-metrics").scrollHeight;
+    };
 
 })();

@@ -21,6 +21,8 @@ namespace ChatWebApp
         public string Username { get; set; }
         public string ConnectionId { get; set; }
         public bool IsHuman { get; set; }
+        public bool IsDisconnected { get; set; }
+        public AgentAdvanced Agent { get; set; }
 
         public Player()
         {
@@ -132,6 +134,14 @@ namespace ChatWebApp
         {
             string[] types = { "Tierce", "Quarte", "Quint" };
             return types[length - 3];
+        }
+
+        public int GetCardNumber(string card) // 0 for already played, 1-32 for the possible cards
+        {
+            if (card == "c0-00") return 0;
+            int rank = Int32.Parse(card.Substring(3, 2));
+            int suit = Int32.Parse(card.Substring(1, 1));
+            return (suit - 1) * 8 + rank - 6 + 1;
         }
 
         public int DetermineCardPower(string card, int roundSuit, int trickSuit)

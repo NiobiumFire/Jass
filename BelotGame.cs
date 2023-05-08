@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,9 @@ namespace ChatWebApp
         public int RoundSuit { get; set; }
         public int TrickSuit { get; set; }
         public List<int> SuitCall { get; set; }
+        public int Rounds { get; set; }
         public bool EWCalled { get; set; }
+        public int Caller { get; set; }
         public int Multiplier { get; set; }
         public int[] TrickPoints { get; set; }
         public int[] DeclarationPoints { get; set; }
@@ -39,31 +42,40 @@ namespace ChatWebApp
         public string[] Result { get; set; }
         public int EWRoundPoints { get; set; }
         public int NSRoundPoints { get; set; }
+        public List<int[]> ScoreHistory { get; set; }
         public int EWTotal { get; set; }
         public int NSTotal { get; set; }
         public bool EWWonATrick { get; set; }
         public bool NSWonATrick { get; set; }
         public bool Capot { get; set; }
+        public bool Inside { get; set; }
         public string[] PlayedCards { get; set; }
+        public List<int> AllPlayedCards { get; set; }
         public int HighestTrumpInTrick { get; set; }
         public List<Run>[] Runs { get; set; }
         public List<Carre>[] Carres { get; set; }
         public List<Belot>[] Belots { get; set; }
+        public List<string> CurrentExtras { get; set; }
         public string LogPath { get; set; }
         public Serilog.Core.Logger Log { get; set; }
         public bool EnableLogging { get; set; }
 
+        public static Random rnd = new Random();
+        public static BelotHelpers helpers = new BelotHelpers();
+
         public void NewGame()
         {
             if (EnableLogging) Log.Information("Resetting for a new game. The players are {0}, {1}, {2}, {3}.", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
-            Random rnd = new Random();
-            FirstPlayer = rnd.Next(4);
-            EWTotal = 1000;
-            NSTotal = 1000;
+            //Random rnd = new Random();
+            lock(rnd) FirstPlayer = rnd.Next(4);
+            EWTotal = 0;
+            NSTotal = 0;
+            ScoreHistory = new List<int[]>();
         }
 
         public void NewRound() // set new first player
         {
+            Rounds++;
             Turn = FirstPlayer;
             if (EnableLogging) Log.Information("The dealer is " + GetDisplayName(Turn) + ".");
 
@@ -81,6 +93,7 @@ namespace ChatWebApp
                 Belots[i] = new List<Belot>();
             }
             PlayedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
+            AllPlayedCards = new List<int>();
             CardsDealt = 0;
             NumCardsPlayed = 0;
             TrickSuit = 0;
@@ -93,6 +106,7 @@ namespace ChatWebApp
             EWWonATrick = false;
             NSWonATrick = false;
             Capot = false;
+            Inside = false;
         }
 
         public void Shuffle()
@@ -101,17 +115,24 @@ namespace ChatWebApp
             var card = new List<string> { "06", "07", "08", "09", "10", "11", "12", "13" }; // Belot deck
             var suit = new List<int> { 1, 2, 3, 4 };
 
-            Random rnd = new Random();
+            List<string> masterDeck = new List<string>();
 
-            while (Deck.Count < card.Count * suit.Count)
+            for (int i = 0; i < card.Count; i++)
             {
-                int i = rnd.Next(card.Count); // 0 <= i <= 13
-                int j = rnd.Next(suit.Count); // 0 <= i <= 4
-                if (!Deck.Contains("c" + suit[j] + "-" + card[i]))
+                for (int j = 0; j < suit.Count; j++)
                 {
-                    Deck.Add("c" + suit[j] + "-" + card[i]);
+                    masterDeck.Add("c" + suit[j] + "-" + card[i]);
                 }
             }
+
+            for (int i = 0; i < card.Count * suit.Count; i++)
+            {
+                int p;
+                lock (rnd) p = rnd.Next(masterDeck.Count);
+                Deck.Add(masterDeck[p]);
+                masterDeck.RemoveAt(p);
+            }
+            //System.Threading.Thread.Sleep(1000);
 
             //Deck = new List<string> {"c1-06", "c1-07", "c1-08", "c1-09", "c1-10",
             //    "c2-07", "c3-07", "c4-07", "c2-08", "c2-08",
@@ -225,6 +246,7 @@ namespace ChatWebApp
             if (suit > 0)
             {
                 EWCalled = Turn == 0 || Turn == 2;
+                Caller = Turn;
                 if (suit < 7)
                 {
                     RoundSuit = suit;
@@ -247,13 +269,13 @@ namespace ChatWebApp
             {
                 if (string.Join("", SuitCall.GetRange(SuitCall.Count - 3, 3).ToArray()) == "000")
                 {
-                    if (SuitCall[SuitCall.Count - 4] == 0)
-                    {
-                        for (int i = 0; i < 4; i++) // 4 passes
-                        {
-                            Hand[i] = new List<string>();
-                        }
-                    }
+                    //if (SuitCall[SuitCall.Count - 4] == 0)
+                    //{
+                    //    for (int i = 0; i < 4; i++) // 4 passes
+                    //    {
+                    //        Hand[i] = new List<string>();
+                    //    }
+                    //}
                     return true;
                 }
             }
@@ -442,6 +464,8 @@ namespace ChatWebApp
             int trumpstrength = TrumpStrength(card);
             if (HighestTrumpInTrick < trumpstrength) HighestTrumpInTrick = trumpstrength;
 
+            AllPlayedCards.Add(helpers.GetCardNumber(card));
+
             //if (EnableLogging && NumCardsPlayed % 4 == 0) Log.Information(GetDisplayName(DetermineWinner()) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
         }
 
@@ -589,15 +613,13 @@ namespace ChatWebApp
             int winner = Turn;
             int bestValue = 0;
 
-            BelotHelpers cp = new BelotHelpers();
-
             if (TrickSuit > 0)
             {
                 for (int i = 0; i < 4; i++)
                 {
                     if (PlayedCards[i] != "c0-00")
                     {
-                        int value = cp.DetermineCardPower(PlayedCards[i], RoundSuit, TrickSuit);
+                        int value = helpers.DetermineCardPower(PlayedCards[i], RoundSuit, TrickSuit);
                         if (value > bestValue)
                         {
                             bestValue = value;
@@ -754,6 +776,7 @@ namespace ChatWebApp
                 message[2] = "failed";
                 if (Capot) message[2] += ", Capot";
                 message[2] += ", Inside";
+                Inside = true;
             }
             else if (!EWCalled && NSRoundPoints <= EWRoundPoints)
             {
@@ -763,6 +786,7 @@ namespace ChatWebApp
                 message[2] = "failed";
                 if (Capot) message[2] += ", Capot";
                 message[2] += ", Inside";
+                Inside = true;
             }
 
             if (Multiplier > 1) // double and redouble
@@ -780,6 +804,12 @@ namespace ChatWebApp
                     EWRoundPoints = 0;
                 }
             }
+
+            if (EWRoundPoints > 1000 || NSRoundPoints > 1000)
+            {
+
+            }
+
             EWTotal += EWRoundPoints;
             NSTotal += NSRoundPoints;
             if (EnableLogging) Log.Information(String.Join(" ", message) + ".");
@@ -804,35 +834,10 @@ namespace ChatWebApp
                 return GetBotName(pos);
             }
         }
-    }
 
-    public class BelotGameState
-    {
-        public static Player[] players = { new Player(), new Player(), new Player(), new Player() };
-        public static List<string> deck;
-        public static List<string>[] hand = { new List<string>(), new List<string>(), new List<string>(), new List<string>() };
-        public static bool newRound = true;
-        public static int cardsDealt;
-        public static int firstPlayer, turn;
-        public static int numCardsPlayed = 0;
-        public static int roundSuit, trickSuit;
-        public static List<int> suitCall;
-        public static bool ewCalled;
-        public static int multiplier;
-        public static int ewRoundPoints, nsRoundPoints, ewTotal, nsTotal;
-        public static bool ewWonATrick, nsWonATrick;
-        public static bool capot;
-        public static int scoreTarget = 1501;
-        public static string[] playedCards;
-        public static int highestTrumpInTrick;
-        public static List<Run>[] runs;
-        public static List<Carre>[] carres;
-        public static List<Belot>[] belots;
-        public static string botGUID = "7eae0694-38c9-48c0-9016-40e7d9ab962c";
-        public static int botDelay = 500;
-        public static bool waitDeal, waitCall, waitCard;
-
-        public static string logPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/BelotServerLog-.txt");
-        public static Serilog.Core.Logger log = new LoggerConfiguration().WriteTo.File(logPath, rollingInterval: RollingInterval.Day).CreateLogger();
+        public void CloseLog()
+        {
+            Log.Dispose();
+        }
     }
 }

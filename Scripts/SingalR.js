@@ -27,20 +27,30 @@
     // -------------------- Play Card --------------------
 
     playCardRequest = function () {
-        disableCards();
-        document.getElementById(this.id).hidden = true;
+        room.client.disableCards();
+        //document.getElementById(this.id).hidden = true;
+        room.client.hideCard(this.id);
         card = this.src.substr(this.src.length - 9, 5);
         room.server.hubPlayCard(card);
     };
 
     room.client.playFinalCard = function () {
-        disableCards();
+        room.client.disableCards();
         for (i = 0; i < 7; i++) {
-            document.getElementById("card".concat(i)).hidden = true;
+            //document.getElementById("card".concat(i)).hidden = true;
+            room.client.hideCard("card".concat(i));
         }
     };
 
-    disableCards = function () {
+    room.client.hideCard = function (cardId) {
+        document.getElementById(cardId).hidden = true;
+    };
+
+    room.client.showCard = function (cardId) {
+        document.getElementById(cardId).hidden = false;
+    };
+
+    room.client.disableCards = function () {
         for (i = 0; i < 8; i++) {
             document.getElementById("card".concat(i)).onclick = "";
         }
@@ -184,7 +194,7 @@
 
     };
 
-    room.client.appendScoreTable = function (ewPoints, nsPoints) {
+    room.client.appendScoreHistory = function (ewPoints, nsPoints) {
 
         var table = document.getElementById("scoreTable");
 
@@ -231,7 +241,7 @@
     room.client.newRound = function () {
         resetTable();
         resetBoard();
-        disableCards();
+        room.client.disableCards();
         resetSuitSelection();
     };
 

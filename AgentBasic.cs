@@ -7,6 +7,8 @@ namespace ChatWebApp
 {
     public class AgentBasic
     {
+        public static Random rnd = new Random();
+
         // basic agent ignores extra points in suit nomination (for now)
         // basic agent doesn't double or redouble
         // basic agent always accepts all available extras
@@ -81,8 +83,6 @@ namespace ChatWebApp
             if (validCards.Sum() > 1)
             {
 
-                Random rnd = new Random();
-
                 int cardsPlayedInTrick = 4 - cardPlayed.Where(c => c == "c0-00").Count();
                 //int cardsPlayedInRound = 8 - hand.Where(c => c == "c0-00").Count();
 
@@ -94,17 +94,20 @@ namespace ChatWebApp
                         int suit = Int32.Parse(hand[i].Substring(1, 1));
                         if (rank == 10 && validCards[i] == 1)
                         {
-                            if (rnd.Next(100) + 1 > 10 && suit == roundSuit)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
+                            lock (rnd)
                             {
-                                return hand[i];
-                            }
-                            else if (rnd.Next(100) + 1 > 20 && roundSuit == 6)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
-                            {
-                                return hand[i];
-                            }
-                            else
-                            {
+                                if (rnd.Next(100) + 1 > 10 && suit == roundSuit)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
+                                {
+                                    return hand[i];
+                                }
+                                else if (rnd.Next(100) + 1 > 20 && roundSuit == 6)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
+                                {
+                                    return hand[i];
+                                }
+                                else
+                                {
 
+                                }
                             }
                         }
                     }
@@ -116,13 +119,16 @@ namespace ChatWebApp
                     {
                         int rank = Int32.Parse(hand[i].Substring(3, 2));
                         int suit = Int32.Parse(hand[i].Substring(1, 1));
-                        if (rank == 13 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
+                        lock (rnd)
                         {
-                            return hand[i];
-                        }
-                        else if (rank == 13 && suit != roundSuit && validCards[i] == 1)
-                        {
+                            if (rank == 13 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
+                            {
+                                return hand[i];
+                            }
+                            else if (rank == 13 && suit != roundSuit && validCards[i] == 1)
+                            {
 
+                            }
                         }
                     }
                 }
@@ -167,7 +173,7 @@ namespace ChatWebApp
                     {
                         while (true)
                         {
-                            choice = rnd.Next(winningCards.Count());
+                            lock (rnd) choice = rnd.Next(winningCards.Count());
                             if (winningCards[choice] == 1) return hand[choice];
                         }
                     }
@@ -175,8 +181,11 @@ namespace ChatWebApp
                 }
                 while (true)
                 {
-                    choice = rnd.Next(validCards.Count());
-                    if (validCards[choice] == 1) return hand[choice];
+                    lock(rnd) choice = rnd.Next(validCards.Count());
+                    if (validCards[choice] == 1)
+                    {
+                        return hand[choice];
+                    }
                 }
 
             }

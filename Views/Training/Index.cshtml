@@ -8,19 +8,19 @@
     <script src="~/signalr/js"></script>
     <script src="~/Scripts/TrainingRoom.js"></script>
     <script>
-        //$(document).ready(function () {
-        //    $('#suit-modal').modal('show');
-        //});
+                    //$(document).ready(function () {
+                    //    $('#suit-modal').modal('show');
+                    //});
 
-        //$(document).ready(function () {
-        //    const w = document.getElementById("cardWest");
-        //    w.style.transition = "all 1s ease-in-out";
-        //    //w.style.left = `${ Math.random() * 200 }px`;
-        //    //w.style.marginTop = "100px";
-        //    window.setTimeout(() => {
-        //        document.getElementById("cardCol3").appendChild(w);
-        //    }, 0);
-        //});
+                    //$(document).ready(function () {
+                    //    const w = document.getElementById("cardWest");
+                    //    w.style.transition = "all 1s ease-in-out";
+                    //    //w.style.left = `${ Math.random() * 200 }px`;
+                    //    //w.style.marginTop = "100px";
+                    //    window.setTimeout(() => {
+                    //        document.getElementById("cardCol3").appendChild(w);
+                    //    }, 0);
+                    //});
 
     </script>
 }
@@ -28,29 +28,59 @@
 
 <h1>@ViewBag.Title</h1>
 
-<!-- Team Selector -->
+<!-- Control Panel -->
 
 <div class="d-flex flex-column bg-info rounded p-1">
-    <div class="d-flex flex-row justify-content-around align-items-center" style="min-width:0">
+    <div class="d-flex justify-content-between align-items-center" style="min-width:0">
         <div class="d-flex">
             <input class="form-control m-1" type="text" id="gameGUID" placeholder="Game GUID" />
             <input class="btn btn-primary m-1" type="button" value="Load" id="load-game" />
         </div>
-        <input class="btn btn-primary m-1" type="button" value="Pause" id="pause-game" />
+        <button class="btn btn-primary py-0 px-2" type="button" id="pause-game" disabled><i class="bi bi-pause-circle-fill" id="pause-icon" style="font-size:1.5em"></i></button>
         <div class="d-flex">
-            <input class="form-control m-1" type="text" id="speed-value" value="600" />
+            <input class="form-control m-1" type="text" id="speed-value" value="600" style="width: 100px" />
             <input class="btn btn-primary m-1" type="button" value="Set Game Speed" id="game-speed-btn" />
         </div>
     </div>
 
-    <div class="d-flex m-0 p-0 py-2 mt-2 justify-content-between align-items-center px-sm-5">
-        <input class="btn btn-sm btn-dark px-2" type="button" id="dealBtn" value="Deal" disabled />
-        <input class="btn btn-sm btn-dark px-1 m-0" type="button" id="newGameBtn" value="New Game" disabled />
+    <div class="d-flex align-items-center" style="min-width:0">
+        <input class="form-control m-1" type="text" id="num-games" value="3" style="width: 100px" />
+        <input class="btn btn-dark m-1" type="button" id="gameBtn" value="Generate Game" />
     </div>
 </div>
 
+<!-- Training Metrics -->
+
+
+<div class="mt-2 py-2 rounded training-tableboard metrics-table">
+    <table class="table m-0" style="width: auto;  border-style:hidden">
+        <thead>
+            <tr>
+                <td class="py-0">Generation</td>
+                <td class="py-0">Time (s)</td>
+                <td class="py-0">Agents</td>
+                <td class="py-0">Best Fitness</td>
+                <td class="py-0">Best Errors</td>
+                <td class="py-0">Most Games</td>
+                <td class="py-0">Average Errors per Agent</td>
+                <td class="py-0">Best Game GUID</td>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+
+<div class="mb-2 py-2 rounded training-tableboard metrics-table" id="training-metrics" style="height: 200px; overflow-y: scroll">
+    <table class="table m-0" id="training-metrics-table" style="width: auto;  border-style:hidden">
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<!-- Card Table -->
+
 <div class="cont small mt-2">
-    <div class="training-cardboard rounded" id="cardboard">
+    <div class="training-cardboard rounded-top" id="cardboard">
         <img class="training-card" src="~/Images/Cards/c4-10.png" id="ncard0">
         <img class="training-card" src="~/Images/Cards/c3-10.png" id="ncard1">
         <img class="training-card" src="~/Images/Cards/c2-10.png" id="ncard2">
@@ -61,8 +91,6 @@
         <img class="training-card" src="~/Images/Cards/c1-13.png" id="ncard7">
     </div>
 </div>
-
-<!-- Card Table -->
 
 <div class="d-flex">
     <div class="training-cardboard-side">
@@ -76,7 +104,7 @@
         <img class="training-card-side" src="~/Images/Cards/c1-13.png" id="wcard7">
     </div>
 
-    <div class="p-3 d-flex training-tableboard rounded justify-content-center position-relative" style="flex:1">
+    <div class="p-3 d-flex training-tableboard justify-content-center position-relative" style="flex:1">
 
         <!-- Score Totals -->
         <div class="d-flex justify-content-center align-items-center score-summary">
@@ -199,7 +227,7 @@
 </div>
 
 <div class="cont small">
-    <div class="training-cardboard rounded" id="cardboard">
+    <div class="training-cardboard rounded-bottom" id="cardboard">
         <img class="training-card" src="~/Images/Cards/c4-10.png" id="scard0">
         <img class="training-card" src="~/Images/Cards/c3-10.png" id="scard1">
         <img class="training-card" src="~/Images/Cards/c2-10.png" id="scard2">
