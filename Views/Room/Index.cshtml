@@ -22,6 +22,15 @@
         //    }, 0);
         //});
 
+        $(document).ready(function () {
+            //var children = document.getElementById("cardboard").children;
+            //for (var i = 0; i < children.length; i++) {
+            //    var child = children[i];
+            //    child.style.transform = "translate(-5%,".concat(0).concat("%) rotate(").concat(-35 + 5 * (8 - children.length) + 10 * i + 1).concat("deg)");
+            //}
+            rotateCards();
+        });
+
     </script>
 }
 
@@ -106,7 +115,8 @@
 
 <div class="offcanvas offcanvas-end" tabindex="-1" id="lobby">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Chat</h5>
+        <!-- Game Invite -->
+        <input class="btn btn-primary m-1" type="button" value="Copy Game Invite" onclick="copyGameInvite()" id="copyGameIdBtn" />
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body pt-0">
@@ -241,9 +251,9 @@
                 <!-- West -->
                 <div class="d-flex position-relative align-items-center" id="cardWest" style="transition: all 3s ease-in-out">
                     <!-- Player Name Marker -->
-                    <div class="rotate270">
+                    <div class="rotate270 z-3">
                         <span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="wlabelbadge">
-                            <span class="small" style="font-weight:500" id="wlabel">West</span>
+                            <span class="small" style="font-weight: 500" id="wlabel">West</span>
                         </span>
                     </div>
                     <!-- Emote -->
@@ -260,8 +270,8 @@
                 <!-- North -->
                 <div class="d-flex position-relative justify-content-center align-items-center">
                     <!-- Player Name Marker -->
-                    <span class="badge rounded-pill position-absolute top-0 start-50 translate-middle px-3 py-0" style="background-color: black" id="nlabelbadge">
-                        <span class="small" style="font-weight:500" id="nlabel">North</span>
+                    <span class="badge rounded-pill position-absolute z-3 top-0 start-50 translate-middle px-3 py-0" style="background-color: black" id="nlabelbadge">
+                        <span class="small" style="font-weight: 500; z-index: 2" id="nlabel">North</span>
                     </span>
                     <!-- Emote -->
                     <div class="emote bubble-n d-flex justify-content-center align-items-center position-absolute" style="top:15px; visibility: hidden" id="nbubble"></div>
@@ -274,7 +284,7 @@
                 <!-- South -->
                 <div class="d-flex position-relative justify-content-center align-items-center">
                     <!-- Player Name Marker -->
-                    <span class="badge rounded-pill position-absolute top-100 start-50 translate-middle px-3 py-0" style="background-color: black" id="slabelbadge">
+                    <span class="badge rounded-pill position-absolute z-3 top-100 start-50 translate-middle px-3 py-0" style="background-color: black" id="slabelbadge">
                         <span class="small" style="font-weight:500" id="slabel">South</span>
                     </span>
                     <!-- Emote -->
@@ -287,7 +297,7 @@
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
 
                     <!-- Turn Indicator -->
-                    <span class="badge rounded-circle p-1 position-absolute top-0 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
+                    <span class="badge rounded-circle p-1 position-absolute z-3 top-0 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
                         <i class="bi bi-suit-spade-fill" style="font-size: 2em; color: darkmagenta;" id="turnIndicator"></i>
                     </span>
                 </div>
@@ -303,7 +313,7 @@
                     </span>
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard2">
                     <!-- Player Name Marker -->
-                    <div class="rotate90">
+                    <div class="rotate90 z-3">
                         <span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="elabelbadge">
                             <span class="small" style="font-weight:500" id="elabel">East</span>
                         </span>
@@ -432,50 +442,22 @@
 </div>
 
 <!-- User Card Board -->
-<!--<div class="container p-0 rounded mt-2 bg-success bg-opacity-50">-->
-<!--<div class="d-flex flex-row justify-content-between p-0 bg-success bg-opacity-50 rounded">-->
-<!--<div class="bg-success bg-opacity-50 rounded d-flex justify-content-center mt-2" style="height:110px" id="user-card-board">
-    <div class="container position-relative">
-        <img class="position-absolute" src="~/Images/Cards/c1-06.png" id="card0" style="height: 100px; width:70px">
-        <img class="position-absolute" src="~/Images/Cards/c1-07.png" id="card1" style="height: 100px; width:70px">
-        <img class="position-absolute" src="~/Images/Cards/c1-08.png" id="card2" style="height: 100px; width:70px">
-        <img class="position-absolute" src="~/Images/Cards/c1-09.png" id="card3" style="height: 100px; width:70px">
-        <img class="position-absolute" src="~/Images/Cards/c2-06.png" id="card4" style="height: 100px; width:70px">
-        <img class="position-absolute" src="~/Images/Cards/c2-07.png" id="card5" style="height: 100px; width:70px">
-        <img class="position-absolute" src="~/Images/Cards/c2-08.png" id="card6" style="height: 100px; width:70px">
-        <img class="position-absolute" src="~/Images/Cards/c2-09.png" id="card7" style="height: 100px; width:70px">
-    </div>
-</div>-->
-<!-- <div class="cont small mt-2">
-    <img class="box cardleft" src="~/Images/Cards/c1-06.png" id="card0" style="height: 100px; width:70px">
-    <img class="box cardleft" src="~/Images/Cards/c1-07.png" id="card1" style="height: 100px; width:70px">
-    <img class="box cardleft" src="~/Images/Cards/c1-08.png" id="card2" style="height: 100px; width:70px">
-    <img class="box cardleft" src="~/Images/Cards/c1-09.png" id="card3" style="height: 100px; width:70px">
-    <img class="box cardright" src="~/Images/Cards/c2-06.png" id="card4" style="height: 100px; width:70px">
-    <img class="box cardright" src="~/Images/Cards/c2-07.png" id="card5" style="height: 100px; width:70px">
-    <img class="box cardright" src="~/Images/Cards/c2-08.png" id="card6" style="height: 100px; width:70px">
-    <img class="box cardright" src="~/Images/Cards/c2-09.png" id="card7" style="height: 100px; width:70px">
-</div>-->
-<div class="cont small mt-2">
-    <div class="d-flex flex-column cardboard rounded" id="cardboard">
-        <div class="cardrow">
-            <img class="belot-card box2 cardleft cardtop" src="~/Images/Cards/c4-10.png" id="card0">
-            <img class="belot-card box2 cardleft cardtop" src="~/Images/Cards/c3-10.png" id="card1">
-            <img class="belot-card box2 cardright cardtop" src="~/Images/Cards/c2-10.png" id="card2">
-            <img class="belot-card box2 cardright cardtop" src="~/Images/Cards/c1-10.png" id="card3">
-        </div>
 
-        <div class="cardrow cardrow2">
-            <img class="belot-card box2 cardleft cardbtm" src="~/Images/Cards/c4-13.png" id="card4">
-            <img class="belot-card box2 cardleft cardbtm" src="~/Images/Cards/c3-13.png" id="card5">
-            <img class="belot-card box2 cardright cardbtm" src="~/Images/Cards/c2-13.png" id="card6">
-            <img class="belot-card box2 cardright cardbtm" src="~/Images/Cards/c1-13.png" id="card7">
-        </div>
+<div class="cont small mt-2">
+    <div class="d-flex flex-row align-items-center justify-content-center rounded cardboard position-relative" id="cardboard">
+        <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card0">
+        <img class="belot-card2" src="~/Images/Cards/c2-13.png" id="card1">
+        <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card2" hidden>
+        <img class="belot-card2" src="~/Images/Cards/c1-10.png" id="card3" hidden>
+        <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card4" hidden>
+        <img class="belot-card2" src="~/Images/Cards/c3-10.png" id="card5" hidden>
+        <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card6" hidden>
+        <img class="belot-card2" src="~/Images/Cards/c1-10.png" id="card7" hidden>
     </div>
 </div>
 
-
-
+@*<div style="height:100px">
+    </div>*@
 
 <div id="footer">
 </div>

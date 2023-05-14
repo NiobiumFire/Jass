@@ -1,7 +1,4 @@
-﻿@{
-    ViewBag.Title = "Home Page";
-}
-
+﻿
 <div class="bg-info p-5 rounded mb-5 mt-5">
     <h1>NiobiumFire Web App</h1>
     <p class="lead">ASP.NET</p>
@@ -11,7 +8,12 @@
     <div class="col-md-6">
         <h2>Belot</h2>
         <p>Klaverjassen. Jass.</p>
-        <p><button type="button" onclick="location.href='/Room/Index'" class="btn btn-primary">Join a room &raquo;</button></p>
+        <p><button type="button" onclick="location.href='/Room/Index/new'" class="btn btn-primary">Create room &raquo;</button></p>
+        <div class="input-group mb-3">
+            <button class="btn btn-primary" type="button" onclick="joinRoomByGuid()" id="button-addon2">Join room &raquo;</button>
+            <input type="text" class="form-control" style="font-size:10px" placeholder="Game Id" id="gameId">
+        </div>
+        <p style="color: red" id="joinGameError"></p>
     </div>
     <div class="col-md-6">
         <h2>Train Advanced Agent</h2>
@@ -19,3 +21,16 @@
         <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary">Training center &raquo;</button></p>
     </div>
 </div>
+
+<script>
+    joinRoomByGuid = function () {
+        s = document.getElementById("gameId").value;
+        if (s.length == 36) {
+            window.location.href = "/Room/Index/".concat(document.getElementById("gameId").value);
+        }
+        else {
+            document.getElementById("joinGameError").innerHTML = "Invalid Game Id";
+        };
+        //window.location.href = "/Room/Index".concat(document.getElementById(gameId).innerText);
+    };
+</script>

@@ -16,8 +16,15 @@ namespace ChatWebApp
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+                //defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+                defaults: new { controller = "Home", action = "Index", id = "" }
             );
+
+            routes.MapRoute(
+            "Room",
+            "{controller}/{action}/{game}",
+            new { controller = "Room", action = "Index", id = "123" }
+        );
 
             routes.MapRoute(
                 name: "Login",

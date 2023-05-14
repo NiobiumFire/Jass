@@ -116,7 +116,18 @@
         document.getElementById("3winnermarker").hidden = true;
     };
 
-    room.client.showWinner = function (winner) {
+    room.client.showTrickWinner = function (winner) {
+
+        document.getElementById("tablecard".concat(winner)).classList.add("winning-card-pulse");
+        document.getElementById("tablecard".concat(winner)).style.zIndex = 2;
+        setTimeout(function () {
+            document.getElementById("tablecard".concat(winner)).classList.remove("winning-card-pulse", "z-2");
+            document.getElementById("tablecard".concat(winner)).style.zIndex = 1;
+        }, 1000)
+    };
+
+    room.client.showGameWinner = function (winner) {
+
 
         var marker = document.getElementById(String(winner).concat("winnermarker"));
         marker.hidden = !marker.hidden;

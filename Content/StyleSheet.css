@@ -25,7 +25,7 @@
 
 /*768, 992, 1200*/
 
-
+/* ----- Tables ----- */
 
 body {
     padding-top: 70px;
@@ -47,6 +47,8 @@ td:first-child {
     font-weight: bold
 }
 
+/* ----- East / West rotated badges ----- */
+
 .rotate90 {
     transform: rotate(90deg);
 }
@@ -55,69 +57,7 @@ td:first-child {
     transform: rotate(270deg);
 }
 
-.rotate1 {
-    transform: rotate(-17.5deg);
-}
-
-.rotate2 {
-    transform: rotate(-12.5deg);
-}
-
-.rotate3 {
-    transform: rotate(-7.5deg);
-}
-
-.rotate4 {
-    transform: rotate(-2.5deg);
-}
-
-.rotate5 {
-    transform: rotate(2.5deg);
-}
-
-.rotate6 {
-    transform: rotate(7.5deg);
-}
-
-.rotate7 {
-    transform: rotate(12.5deg);
-}
-
-.rotate8 {
-    transform: rotate(17.5deg);
-}
-
-/*.z1 {
-    z-index: 1;
-}
-
-.z2 {
-    z-index: 2;
-}
-
-.z3 {
-    z-index: 3;
-}
-
-.z4 {
-    z-index: 4;
-}
-
-.z5 {
-    z-index: 5;
-}
-
-.z6 {
-    z-index: 6;
-}
-
-.z7 {
-    z-index: 7;
-}
-
-.z8 {
-    z-index: 8;
-}*/
+/* ----- Misc ----- */
 
 .modal-open {
     overflow-y: auto;
@@ -127,72 +67,142 @@ td:first-child {
     outline: none;
 }
 
+.z-2{
+    z-index:2;
+}
+
+.z-3 {
+    z-index: 3;
+}
+
+/*.west {
+    transition: all 0.5s ease-in-out;
+}*/
+
+/* ----- Card table ----- */
+
 .tableboard {
     background-color: rgba(13, 110, 253, 0.25);
 }
+
+.score-summary {
+    padding: 0 0 !important;
+    position: absolute;
+    left: 0;
+    height: calc(50% - var(--card-height)*0.5) !important;
+    width: calc(50% - var(--card-width)*0.5) !important;
+}
+
+.selected-suit {
+    padding: 0 0;
+    margin: 0 0;
+    position: absolute;
+    left: calc(50% + var(--card-width)*0.5);
+    height: calc(50% - var(--card-height)*0.5) !important;
+    width: calc(50% - var(--card-width)*0.5) !important;
+}
+
+.suit-selector {
+    padding: 0 0;
+    margin: 0 0;
+    position: absolute;
+    bottom: 0;
+    left: calc(50% + var(--card-width)*0.5);
+    height: calc(50% - var(--card-height)*0.5) !important;
+    width: calc(50% - var(--card-width)*0.5) !important;
+}
+
+.suit-selector-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: #dc3545;
+    color: white;
+    font-size: 0.9em;
+    font-weight: 500;
+    visibility: hidden;
+    overflow: hidden;
+}
+
+.suit-selector-pulse {
+}
+
+    .suit-selector-pulse::after {
+        content: "";
+        width: 30px;
+        height: 100px;
+        position: absolute;
+        margin-top: -23px;
+        background: white;
+        opacity: 0.6;
+        filter: blur(10px);
+        transform-origin: top;
+        animation: suit-selector-pulse 2s infinite;
+    }
+
+@keyframes suit-selector-pulse {
+    from {
+        transform: translate(-75px) rotate(30deg);
+    }
+
+    to {
+        transform: translateX(55px) rotate(30deg);
+    }
+}
+
+.winning-card-pulse {
+    animation: winning-card-pulse 0.9s ease-in-out;
+}
+
+@keyframes winning-card-pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ----- Card board ----- */
 
 .cardboard {
     text-align: right;
     overflow-y: clip;
     overflow-x: visible;
-    min-height: var(--card-height);
-    max-height: var(--card-height);
+    min-height: calc(1.3*var(--card-height));
     width: auto;
     background-color: rgba(25, 135, 84, 0.55);
     margin-right: 0;
 }
 
-.cardrow {
-    display: inline-block;
-    line-height: 25px;
-    text-align: center;
-    font-family: arial;
-    width: 250px;
-    display: flex;
-    padding-right: 0;
-    justify-content: space-around;
-    box-sizing: border-box;
-    width: auto;
-    min-height: var(--card-height);
-    max-height: var(--card-height);
+.card-board-pulse {
+    animation: card-board-pulse 2s infinite;
 }
 
-.cardrow2 {
-    margin-top: calc(-0.5*var(--card-height));
-    /*55px;*/
+@keyframes card-board-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(175, 175, 0, 0.7);
+    }
+
+    50% {
+        transform: scale(1.005);
+        box-shadow: 0 0 0 7px rgba(175, 175, 0, 0.5);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(175, 175, 0, 0.7);
+    }
 }
 
-.cont .cardleft {
-    transform: rotate(-2.5deg);
-    border: 1px solid black;
-    border-radius: 10% 15%;
-}
-
-.cont .cardright {
-    transform: rotate(2.5deg);
-    border: 1px solid black;
-    border-radius: 10% 15%;
-}
-
-/*.cont .box2:last-child {*/
-/*margin-right: 0;*/
-/*}
-
-.cont .box2:first-child {*/
-/*margin-left: 0;*/
-/*}*/
-
-
-.cardtop {
-    margin: 0 calc(((75% / 25) - 15px)+2%);
-    min-width: var(--card-width);
-    margin-top: 5px;
-}
-
-.cardbtm {
-    margin: 0 calc(((75% / 25) - 15px)+5%);
-    min-width: var(--card-width);
-}
+/* ----- Emotes ----- */
 
 .emote {
     --emote-color: #e6e830;
@@ -205,14 +215,13 @@ td:first-child {
     padding: 2px 5px;
     font-size: 11px;
     font-weight: 700;
-    z-index: 1;
+    z-index: 2;
     line-height: 105%;
     text-align: center;
     text-transform: uppercase;
     /*#e5e668;
     #ff6a00;*/
 }
-
 
 .bubble-w {
     font-size: var(--emote-font-size);
@@ -293,36 +302,21 @@ td:first-child {
         margin-left: -10px;
     }
 
+/* ----- Cards ----- */
+
 .belot-card {
+    position: relative;
+    z-index: 1;
     height: var(--card-height);
     width: var(--card-width);
 }
 
-.score-summary {
-    padding: 0 0 !important;
+.belot-card2 {
     position: absolute;
-    left: 0;
-    height: calc(50% - var(--card-height)*0.5) !important;
-    width: calc(50% - var(--card-width)*0.5) !important;
-}
-
-.selected-suit {
-    padding: 0 0;
-    margin: 0 0;
-    position: absolute;
-    left: calc(50% + var(--card-width)*0.5);
-    height: calc(50% - var(--card-height)*0.5) !important;
-    width: calc(50% - var(--card-width)*0.5) !important;
-}
-
-.suit-selector {
-    padding: 0 0;
-    margin: 0 0;
-    position: absolute;
-    bottom: 0;
-    left: calc(50% + var(--card-width)*0.5);
-    height: calc(50% - var(--card-height)*0.5) !important;
-    width: calc(50% - var(--card-width)*0.5) !important;
+    top: 0%;
+    height: var(--card-height);
+    width: var(--card-width);
+    transform-origin: center 350%;
 }
 
 .deal-pulse {
@@ -347,69 +341,7 @@ td:first-child {
     }
 }
 
-.card-board-pulse {
-    animation: card-board-pulse 2s infinite;
-}
-
-@keyframes card-board-pulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(175, 175, 0, 0.7);
-    }
-
-    50% {
-        transform: scale(1.005);
-        box-shadow: 0 0 0 7px rgba(175, 175, 0, 0.5);
-    }
-
-    100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(175, 175, 0, 0.7);
-    }
-}
-
-.suit-selector-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    background: #dc3545;
-    color: white;
-    font-size: 0.9em;
-    font-weight: 500;
-    visibility: hidden;
-    overflow: hidden;
-}
-
-.suit-selector-pulse {
-}
-
-    .suit-selector-pulse::after {
-        content: "";
-        width: 30px;
-        height: 100px;
-        position: absolute;
-        margin-top: -23px;
-        background: white;
-        opacity: 0.6;
-        filter: blur(10px);
-        transform-origin: top;
-        animation: suit-selector-pulse 2s infinite;
-    }
-
-@keyframes suit-selector-pulse {
-    from {
-        transform: translate(-75px) rotate(30deg);
-    }
-
-    to {
-        transform: translateX(55px) rotate(30deg);
-    }
-}
-
-.west {
-    transition: all 0.5s ease-in-out;
-}
+/* ----- Training room ----- */
 
 .training-tableboard {
     background-color: rgba(13, 110, 253, 0.25);
@@ -465,7 +397,6 @@ td:first-child {
 .metrics-table td:nth-child(1) {
     width: 5%;
 }
-
 .metrics-table td:nth-child(2) {
     width: 9%;
 }

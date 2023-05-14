@@ -36,14 +36,36 @@
 
     room.client.playFinalCard = function () {
         room.client.disableCards();
-        for (i = 0; i < 7; i++) {
-            //document.getElementById("card".concat(i)).hidden = true;
+        for (i = 0; i < 8; i++) {
             room.client.hideCard("card".concat(i));
+        }
+    };
+
+    rotateCards = function () {
+
+        rotation = 8;
+
+        var children = document.getElementById("cardboard").children;
+        var visibleChildren = 8;
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].hidden == true) visibleChildren--;
+        }
+        var count = 0;
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].hidden == false) {
+                //if (visibleChildren == 4) alert(i);
+                var child = children[i];
+                child.style.transform = "translate(-5%,".concat(0).concat("%) rotate(").concat(-3.5 * rotation + .5 * rotation * (8 - visibleChildren) + rotation * count + 1).concat("deg)");
+                //if (visibleChildren == 4) alert(-35 + 5 * (8 - visibleChildren) + 10 * count);
+                //alert(child.style.transform);
+                count++;
+            }
         }
     };
 
     room.client.hideCard = function (cardId) {
         document.getElementById(cardId).hidden = true;
+        rotateCards();
     };
 
     room.client.showCard = function (cardId) {
@@ -168,7 +190,18 @@
         document.getElementById("3winnermarker").hidden = true;
     };
 
-    room.client.showWinner = function (winner) {
+    room.client.showTrickWinner = function (winner) {
+
+        document.getElementById("tablecard".concat(winner)).classList.add("winning-card-pulse");
+        document.getElementById("tablecard".concat(winner)).style.zIndex = 2;
+        setTimeout(function () {
+            document.getElementById("tablecard".concat(winner)).classList.remove("winning-card-pulse", "z-2");
+            document.getElementById("tablecard".concat(winner)).style.zIndex = 1;
+        }, 1000)
+    };
+
+    room.client.showGameWinner = function (winner) {
+
 
         var marker = document.getElementById(String(winner).concat("winnermarker"));
         marker.hidden = !marker.hidden;
@@ -286,8 +319,10 @@
         var path = document.URL.substring(0, document.URL.indexOf("Room"));
         for (i = 0; i < card.length; i++) {
             document.getElementById("card".concat(i)).src = path.concat("Images/Cards/", card[i], ".png");
-            document.getElementById("card".concat(i)).hidden = false;
+            //document.getElementById("card".concat(i)).hidden = false;
+            room.client.showCard("card".concat(i));
         };
+        rotateCards();
     };
 
     // -------------------- Extra Points --------------------
@@ -605,6 +640,10 @@
 
 
     // -------------------- Chat Log --------------------
+
+    copyGameInvite = function () {
+        navigator.clipboard.writeText(document.URL);
+    }
 
     room.client.announce = function (message) {
         writeToPage(message);

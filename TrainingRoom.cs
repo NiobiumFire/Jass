@@ -663,12 +663,8 @@ namespace ChatWebApp
 
             if (botDelay > 0)
             {
-                Clients.Caller.ShowWinner(winner);
-                for (int i = 0; i < 5; i++)
-                {
-                    Thread.Sleep(400);
-                    Clients.Caller.ShowWinner(winner);
-                }
+                Clients.All.ShowTrickWinner(winner);
+                Thread.Sleep(1000);
             }
 
             if (game.NumCardsPlayed < 32)
@@ -700,13 +696,13 @@ namespace ChatWebApp
             {
                 if (game.EWTotal > game.NSTotal)
                 {
-                    Clients.Caller.ShowWinner(0);
-                    Clients.Caller.ShowWinner(2);
+                    Clients.Caller.ShowGameWinner(0);
+                    Clients.Caller.ShowGameWinner(2);
                 }
                 else
                 {
-                    Clients.Caller.ShowWinner(1);
-                    Clients.Caller.ShowWinner(3);
+                    Clients.Caller.ShowGameWinner(1);
+                    Clients.Caller.ShowGameWinner(3);
                 }
                 Clients.Caller.TogglePauseEnabled();
             }

@@ -13,16 +13,14 @@ namespace ChatWebApp
         {
             Players = players;
             GameId = gameId;
+            IsNewGame = true;
+            IsNewRound = true;
             EnableLogging = enableLogging;
-            if (enableLogging)
-            {
-                LogPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/" + GameId + ".txt");
-                Log = new LoggerConfiguration().WriteTo.File(LogPath).CreateLogger();
-            }
         }
 
         public string GameId { get; set; }
         public Player[] Players { get; set; }
+        public List<Spectator> spectators = new List<Spectator>();
         public List<string> Deck { get; set; }
         public List<string>[] Hand { get; set; }
         public int CardsDealt { get; set; }
@@ -56,6 +54,11 @@ namespace ChatWebApp
         public List<Carre>[] Carres { get; set; }
         public List<Belot>[] Belots { get; set; }
         public List<string> CurrentExtras { get; set; }
+        public bool IsNewRound { get; set; }
+        public bool IsNewGame { get; set; }
+        public bool WaitDeal { get; set; }
+        public bool WaitCall { get; set; }
+        public bool WaitCard { get; set; }
         public string LogPath { get; set; }
         public Serilog.Core.Logger Log { get; set; }
         public bool EnableLogging { get; set; }
@@ -63,6 +66,14 @@ namespace ChatWebApp
         public static Random rnd = new Random();
         public static BelotHelpers helpers = new BelotHelpers();
 
+        public void SetLogger()
+        {
+            if (EnableLogging)
+            {
+                LogPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/" + Guid.NewGuid().ToString() + ".txt");
+                Log = new LoggerConfiguration().WriteTo.File(LogPath).CreateLogger();
+            }
+        }
         public void NewGame()
         {
             if (EnableLogging) Log.Information("Resetting for a new game. The players are {0}, {1}, {2}, {3}.", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
@@ -697,7 +708,10 @@ namespace ChatWebApp
                         MaxComparer[0] = EWRuns.Where(r => r.Length == MaxComparer[0]).OrderByDescending(r => r.Strength).First().Strength;
                         MaxComparer[1] = NSRuns.Where(r => r.Length == MaxComparer[1]).OrderByDescending(r => r.Strength).First().Strength;
                     }
-                    if (EnableLogging && MaxComparer[0] == MaxComparer[1]) Log.Information("The Runs were tied. No extra points awarded for Runs.");
+                    if (MaxComparer[0] == MaxComparer[1])
+                    {
+                        if (EnableLogging) Log.Information("The Runs were tied. No extra points awarded for Runs.");
+                    }
                     else if (MaxComparer[0] > MaxComparer[1])
                     {
                         DeclarationPoints[0] += 20 * (EWRuns.Where(r => r.Length == 3).Count());
