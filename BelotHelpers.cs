@@ -101,12 +101,12 @@ namespace ChatWebApp
 
     public class BelotHelpers
     {
-        public string GetSuitNameFromNumber(int suit)
+        public static string GetSuitNameFromNumber(int suit)
         {
             string[] suitNames = { "Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps" };
             return suitNames[suit - 1];
         }
-        public int GetSuitNumberFromName(string suit)
+        public static int GetSuitNumberFromName(string suit)
         {
             string[] suitNames = { "Clubs", "Diamonds", "Hearts" };
             for (int i = 0; i < 3; i++)
@@ -115,12 +115,12 @@ namespace ChatWebApp
             }
             return 4;
         }
-        public string GetCardRankFromNumber(int rank)
+        public static string GetCardRankFromNumber(int rank)
         {
             string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K", "A" };
             return rankNames[rank - 6];
         }
-        public int GetRankFromChar(string rank)
+        public static int GetRankFromChar(string rank)
         {
             string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K" };
             for (int i = 0; i < 7; i++)
@@ -130,13 +130,13 @@ namespace ChatWebApp
             }
             return 13;
         }
-        public string GetRunNameFromLength(int length)
+        public static string GetRunNameFromLength(int length)
         {
             string[] types = { "Tierce", "Quarte", "Quint" };
             return types[length - 3];
         }
 
-        public int GetCardNumber(string card) // 0 for already played, 1-32 for the possible cards
+        public static int GetCardNumber(string card) // 0 for already played, 1-32 for the possible cards
         {
             if (card == "c0-00") return 0;
             int rank = Int32.Parse(card.Substring(3, 2));
@@ -144,7 +144,13 @@ namespace ChatWebApp
             return (suit - 1) * 8 + rank - 6 + 1;
         }
 
-        public int DetermineCardPower(string card, int roundSuit, int trickSuit)
+        public static int GetSuitFromCard(string card)
+        {
+            if (card == "c0-00") return 0;
+            return Int32.Parse(card.Substring(1, 1));
+        }
+
+        public static int DetermineCardPower(string card, int roundSuit, int trickSuit)
         {
             int value = 0;
 

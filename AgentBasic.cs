@@ -135,12 +135,11 @@ namespace ChatWebApp
                 if (cardsPlayedInTrick == 3 && turn % 2 != curWinner % 2) // if I am the last to play and the other team is winning
                 {
                     bool discard = false;
-                    BelotHelpers cp = new BelotHelpers();
                     int bestValue = 0;
                     for (int i = 0; i < 4; i++) // get highest winning power of cards played so far in trick
                     {
                         int value = 0;
-                        if (cardPlayed[i] != "c0-00") value = cp.DetermineCardPower(cardPlayed[i], roundSuit, trickSuit);
+                        if (cardPlayed[i] != "c0-00") value = BelotHelpers.DetermineCardPower(cardPlayed[i], roundSuit, trickSuit);
                         if (value > bestValue)
                         {
                             bestValue = value;
@@ -155,7 +154,7 @@ namespace ChatWebApp
                     {
                         if (validCards[i] == 1)
                         {
-                            myCardPower[i] = cp.DetermineCardPower(hand[i], roundSuit, trickSuit);
+                            myCardPower[i] = BelotHelpers.DetermineCardPower(hand[i], roundSuit, trickSuit);
                             if (myCardPower[i] > bestValue) // if I can win the trick, I will
                             {
                                 winningCards[i] = 1;

@@ -15,12 +15,13 @@ namespace ChatWebApp
             GameId = gameId;
             IsNewGame = true;
             IsNewRound = true;
+            Spectators = new List<Spectator>();
             EnableLogging = enableLogging;
         }
 
         public string GameId { get; set; }
         public Player[] Players { get; set; }
-        public List<Spectator> spectators = new List<Spectator>();
+        public List<Spectator> Spectators { get; set; }
         public List<string> Deck { get; set; }
         public List<string>[] Hand { get; set; }
         public int CardsDealt { get; set; }
@@ -64,7 +65,6 @@ namespace ChatWebApp
         public bool EnableLogging { get; set; }
 
         public static Random rnd = new Random();
-        public static BelotHelpers helpers = new BelotHelpers();
 
         public void SetLogger()
         {
@@ -78,7 +78,8 @@ namespace ChatWebApp
         {
             if (EnableLogging) Log.Information("Resetting for a new game. The players are {0}, {1}, {2}, {3}.", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
             //Random rnd = new Random();
-            lock(rnd) FirstPlayer = rnd.Next(4);
+            lock (rnd) FirstPlayer = rnd.Next(4);
+            //FirstPlayer = 0;
             EWTotal = 0;
             NSTotal = 0;
             ScoreHistory = new List<int[]>();
@@ -143,13 +144,12 @@ namespace ChatWebApp
                 Deck.Add(masterDeck[p]);
                 masterDeck.RemoveAt(p);
             }
-            //System.Threading.Thread.Sleep(1000);
 
-            //Deck = new List<string> {"c1-06", "c1-07", "c1-08", "c1-09", "c1-10",
+            //Deck = new List<string> {"c1-10", "c1-10", "c1-10", "c1-10", "c1-10",
             //    "c2-07", "c3-07", "c4-07", "c2-08", "c2-08",
             //    "c3-08", "c4-08", "c2-09", "c2-09", "c3-09",
             //    "c4-09", "c3-10", "c2-10", "c3-09", "c4-06",
-            //    "c1-11", "c1-12", "c1-13",
+            //    "c1-10", "c1-10", "c1-10",
             //    "c4-11", "c4-12", "c2-12",
             //    "c3-12", "c4-12", "c4-06",
             //    "c2-06", "c3-06", "c4-06" };
@@ -246,7 +246,7 @@ namespace ChatWebApp
         {
             if (EnableLogging)
             {
-                if (suit > 0 && suit < 7) Log.Information(GetDisplayName(Turn) + " called " + new BelotHelpers().GetSuitNameFromNumber(suit) + ".");
+                if (suit > 0 && suit < 7) Log.Information(GetDisplayName(Turn) + " called " + BelotHelpers.GetSuitNameFromNumber(suit) + ".");
                 else if (suit == 7) Log.Information(GetDisplayName(Turn) + " doubled.");
                 else if (suit == 8) Log.Information(GetDisplayName(Turn) + " redoubled.");
                 else Log.Information(GetDisplayName(Turn) + " passed.");
@@ -325,6 +325,53 @@ namespace ChatWebApp
                 }
             }
             return validCards;
+        }
+
+        public int[] GetWinners(int player)
+        {
+            int[] winners = { 0, 0, 0, 0, 0, 0, 0, 0 }; // 2 = hard winner, 1 = soft winner/could be trumped
+
+            bool theirTrumps = false;
+
+            int[] theirStrongestCard = { 0, 0, 0, 0 };
+            for (int i = 0; i < 4; i++) // player
+            {
+                if (i == player) continue;
+                for (int j = 0; j < 8; j++) // card
+                {
+                    int suit = BelotHelpers.GetSuitFromCard(Hand[i][j]);
+                    if (suit == 0) continue;
+                    int str = BelotHelpers.DetermineCardPower(Hand[i][j], RoundSuit, suit);
+                    if (str > theirStrongestCard[suit - 1])
+                    {
+                        theirStrongestCard[suit - 1] = str;
+                    }
+                    if (suit == RoundSuit && i != player) theirTrumps = true;
+                }
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                int suit = BelotHelpers.GetSuitFromCard(Hand[player][i]);
+                if (suit == 0) continue;
+                int myStrength = BelotHelpers.DetermineCardPower(Hand[player][i], RoundSuit, suit);
+
+                if (suit != RoundSuit && !theirTrumps && myStrength > theirStrongestCard[suit - 1]) winners[i] = 2;
+                else if (suit != RoundSuit && theirTrumps && myStrength > theirStrongestCard[suit - 1]) winners[i] = 1;
+                else if (suit == RoundSuit && myStrength > theirStrongestCard[suit - 1]) winners[i] = 2;
+            }
+
+            return winners;
+        }
+
+        public int RemainingCardsInASuit(int suit, int player)
+        {
+            int cards = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                if (suit == BelotHelpers.GetSuitFromCard(Hand[player][i])) cards++;
+            }
+            return cards;
         }
 
         public int[] RemovePlayedCards(int[] validcards)
@@ -446,7 +493,7 @@ namespace ChatWebApp
                 {
                     if (declared == null) Runs[Turn][i].Declared = true;
                     else Runs[Turn][i].Declared = declared[i];
-                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information(GetDisplayName(Turn) + " declares a " + new BelotHelpers().GetRunNameFromLength(Runs[Turn][i].Length) + ".");
+                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information(GetDisplayName(Turn) + " declares a " + BelotHelpers.GetRunNameFromLength(Runs[Turn][i].Length) + ".");
                 }
             }
         }
@@ -475,7 +522,7 @@ namespace ChatWebApp
             int trumpstrength = TrumpStrength(card);
             if (HighestTrumpInTrick < trumpstrength) HighestTrumpInTrick = trumpstrength;
 
-            AllPlayedCards.Add(helpers.GetCardNumber(card));
+            AllPlayedCards.Add(BelotHelpers.GetCardNumber(card));
 
             //if (EnableLogging && NumCardsPlayed % 4 == 0) Log.Information(GetDisplayName(DetermineWinner()) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
         }
@@ -630,7 +677,7 @@ namespace ChatWebApp
                 {
                     if (PlayedCards[i] != "c0-00")
                     {
-                        int value = helpers.DetermineCardPower(PlayedCards[i], RoundSuit, TrickSuit);
+                        int value = BelotHelpers.DetermineCardPower(PlayedCards[i], RoundSuit, TrickSuit);
                         if (value > bestValue)
                         {
                             bestValue = value;
@@ -648,25 +695,35 @@ namespace ChatWebApp
 
         public int CalculateTrickPoints() // C,D,H,S = 162 (65 vs 97 would result in 7 & 10 in pure rounding), A = 260 (x2), J = 258
         {
-            int[] nontrump = { 0, 0, 0, 10, 2, 3, 4, 11 };
-            int[] trump = { 0, 0, 14, 10, 20, 3, 4, 11 };
             int points = 0;
 
             for (int i = 0; i < 4; i++)
             {
-
-                int suit = Int32.Parse(PlayedCards[i].Substring(1, 1));
-                int card = Int32.Parse(PlayedCards[i].Substring(3, 2)) - 6;
-                if (RoundSuit == 6 || RoundSuit == suit)
-                {
-                    points += trump[card];
-                }
-                else
-                {
-                    points += nontrump[card];
-                }
+                points += CalculateCardPoints(PlayedCards[i]);
             }
+
             if (NumCardsPlayed == 32) points += 10;
+
+            return points;
+        }
+
+        public int CalculateCardPoints(string card) // C,D,H,S = 162 (65 vs 97 would result in 7 & 10 in pure rounding), A = 260 (x2), J = 258
+        {
+            int[] nontrump = { 0, 0, 0, 10, 2, 3, 4, 11 };
+            int[] trump = { 0, 0, 14, 10, 20, 3, 4, 11 };
+            int points = 0;
+
+            if (card == "c0-00") return points;
+            int suit = Int32.Parse(card.Substring(1, 1));
+            int rank = Int32.Parse(card.Substring(3, 2)) - 6;
+            if (RoundSuit == 6 || RoundSuit == suit)
+            {
+                points += trump[rank];
+            }
+            else
+            {
+                points += nontrump[rank];
+            }
 
             return points;
         }

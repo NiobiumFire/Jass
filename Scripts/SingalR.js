@@ -28,6 +28,7 @@
 
     playCardRequest = function () {
         room.client.disableCards();
+        hideThrowBtn();
         //document.getElementById(this.id).hidden = true;
         room.client.hideCard(this.id);
         card = this.src.substr(this.src.length - 9, 5);
@@ -39,6 +40,46 @@
         for (i = 0; i < 8; i++) {
             room.client.hideCard("card".concat(i));
         }
+    };
+
+    hideThrowBtn = function () {
+        document.getElementById("throw-cards-btn").hidden = true;
+        document.getElementById("throw-cards-btn").onclick = "";
+    };
+
+    room.client.showThrowBtn = function () {
+        document.getElementById("throw-cards-btn").hidden = false;
+        document.getElementById("throw-cards-btn").onclick = function () {
+            hideThrowBtn();
+            room.server.throwCards();
+        };
+    };
+
+    room.client.throwCards = function (player, hand) {
+        hand = JSON.parse(hand);
+        pos = [ "w", "n", "e", "s"];
+        document.getElementById("throw-modal-title").innerHTML = player.concat(" throws the cards!");
+        for (i = 0; i < 8; i++) {
+            for (j = 0; j < 4; j++) {
+                if (hand[j][i] == "c0-00") {
+                    document.getElementById(pos[j].concat("throwcard").concat(i)).hidden = true;
+                }
+                else {
+                    var path = document.URL.substring(0, document.URL.indexOf("Room"));
+                    document.getElementById(pos[j].concat("throwcard").concat(i)).src = path.concat("Images/Cards/", hand[j][i], ".png");
+                    document.getElementById(pos[j].concat("throwcard").concat(i)).hidden = false;
+                };
+            };
+        };
+        $('#throw-modal').modal('show');
+    };
+
+    closeThrowModal = function () {
+        $('#throw-modal').modal('hide');
+    };
+
+    room.client.closeThrowModal = function () {
+        closeThrowModal();
     };
 
     rotateCards = function () {
@@ -141,9 +182,8 @@
         $('#suit-modal').modal('hide');
         $('#summary-modal').modal('hide');
         document.getElementById("dealBtn").classList.remove("deal-pulse");
-        document.getElementById("suit-selector").style.visibility = "hidden";
-        document.getElementById("suit-selector").classList.remove("suit-selector-pulse");
-        document.getElementById("suit-selector").onclick = "";
+        document.getElementById("make-call-btn").hidden = true;
+        document.getElementById("make-call-btn").onclick = "";
     }
 
     resetTable = function () {
@@ -417,13 +457,11 @@
 
     minimiseSuitModal = function () {
         $('#suit-modal').modal('hide');
-        document.getElementById("suit-selector").style.visibility = "visible";
-        document.getElementById("suit-selector").classList.add("suit-selector-pulse");
-        document.getElementById("suit-selector").onclick = function () {
+        document.getElementById("make-call-btn").hidden = false;
+        document.getElementById("make-call-btn").onclick = function () {
             $('#suit-modal').modal('show');
-            document.getElementById("suit-selector").style.visibility = "hidden";
-            document.getElementById("suit-selector").classList.remove("suit-selector-pulse");
-            document.getElementById("suit-selector").onclick = "";
+            document.getElementById("make-call-btn").hidden = true;
+            document.getElementById("make-call-btn").onclick = "";
         };
     };
 

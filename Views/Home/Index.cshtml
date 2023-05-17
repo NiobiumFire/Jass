@@ -7,17 +7,17 @@
 <div class="row">
     <div class="col-md-6">
         <h2>Belot</h2>
-        <p>Klaverjassen. Jass.</p>
-        <p><button type="button" onclick="location.href='/Room/Index/new'" class="btn btn-primary">Create room &raquo;</button></p>
+        <p>Klaverjassen rooms: @ViewBag.numGames</p>
+        <p><button type="button" onclick="location.href='/Room/Index/new'" class="btn btn-primary" style="width: 30%">Create &raquo;</button></p>
         <div class="input-group mb-3">
-            <button class="btn btn-primary" type="button" onclick="joinRoomByGuid()" id="button-addon2">Join room &raquo;</button>
+            <button class="btn btn-primary" type="button" onclick="joinRoomByGuid()" id="button-addon2" style="width: 30%">Join &raquo;</button>
             <input type="text" class="form-control" style="font-size:10px" placeholder="Game Id" id="gameId">
         </div>
         <p style="color: red" id="joinGameError"></p>
     </div>
     <div class="col-md-6">
         <h2>Train Advanced Agent</h2>
-        <p>Klaverjassen. Jass.</p>
+        <p>Control room. Keep out.</p>
         <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary">Training center &raquo;</button></p>
     </div>
 </div>

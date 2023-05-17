@@ -28,8 +28,6 @@ namespace ChatWebApp
         public static int roundSummaryDelay = 6000;
         //public static bool waitDeal, waitCall, waitCard;
 
-        public static BelotHelpers helpers = new BelotHelpers();
-
         public static AgentBasic basic = new AgentBasic();
 
         public static string logPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/BelotServerLog-.txt");
@@ -46,7 +44,7 @@ namespace ChatWebApp
 
         public async Task GameController()
         {
-            log.Debug("Entering GameController.");
+            log.Information("Entering GameController.");
             BelotGame game = GetGame();
             if (game.IsNewGame)
             {
@@ -69,12 +67,12 @@ namespace ChatWebApp
             }
 
             if (!game.WaitDeal && !game.WaitCall & !game.WaitCard) EndGame();
-            log.Debug("Leaving GameController.");
+            log.Information("Leaving GameController.");
         }
 
         public void RoundController()
         {
-            log.Debug("Entering RoundController.");
+            log.Information("Entering RoundController.");
             BelotGame game = GetGame();
             if (game.IsNewRound)
             {
@@ -82,12 +80,16 @@ namespace ChatWebApp
                 game.NewRound();
                 Clients.Group(GetGameId()).SetTurnIndicator(game.Turn); // show dealer
                 Clients.Group(GetGameId()).SetDealerMarker(game.Turn);
-                Clients.Group(GetGameId()).DisableDealBtn();
+                //log.Information("Disabling Deal Button.");
+                //Clients.Group(GetGameId()).DisableDealBtn();
+                //log.Information("Deal Button Disabled.");
                 Clients.Group(GetGameId()).NewRound(); // reset table, reset board, disable cards, reset suit selection 
                 if (game.Players[game.Turn].IsHuman)
                 {
-                    Clients.Client(game.Players[game.Turn].ConnectionId).EnableDealBtn();
                     game.WaitDeal = true;
+                    //log.Information("Enabling Deal Button.");
+                    Clients.Client(game.Players[game.Turn].ConnectionId).EnableDealBtn();
+                    //log.Information("Deal Button Enabled.");
                     return;
                 }
                 else
@@ -124,7 +126,7 @@ namespace ChatWebApp
             {
                 if (game.NumCardsPlayed == 0)
                 {
-                    SysAnnounce("The round will be played in " + helpers.GetSuitNameFromNumber(game.RoundSuit) + ".");
+                    SysAnnounce("The round will be played in " + BelotHelpers.GetSuitNameFromNumber(game.RoundSuit) + ".");
                     game.Turn = game.FirstPlayer;
                     Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
                     game.Deal(3);
@@ -140,7 +142,7 @@ namespace ChatWebApp
                         game.FindBelots();
                     }
                 }
-                while (game.NumCardsPlayed < 32 & !game.WaitCard)
+                while (game.NumCardsPlayed < 32 && !game.WaitCard)
                 {
                     Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
                     TrickController();
@@ -159,12 +161,12 @@ namespace ChatWebApp
                     game.IsNewRound = true;
                 }
             }
-            log.Debug("Leaving RoundController.");
+            log.Information("Leaving RoundController.");
         }
 
         public void CallController()
         {
-            log.Debug("Entering CallController.");
+            log.Information("Entering CallController.");
             BelotGame game = GetGame();
             int[] validCalls = game.ValidCalls();
             if (validCalls.Sum() == 0)
@@ -186,12 +188,12 @@ namespace ChatWebApp
                 AnnounceSuit();
                 if (--game.Turn == -1) game.Turn = 3;
             }
-            log.Debug("Leaving CallController.");
+            log.Information("Leaving CallController.");
         }
 
         public void TrickController()
         {
-            log.Debug("Entering TrickController.");
+            log.Information("Entering TrickController.");
             BelotGame game = GetGame();
             while (game.PlayedCards.Where(c => c != "c0-00").Count() < 4 && !game.WaitCard)
             {
@@ -210,8 +212,15 @@ namespace ChatWebApp
                 int[] validCards = game.ValidCards();
                 if (game.Players[game.Turn].IsHuman)
                 {
-                    Clients.Client(game.Players[game.Turn].ConnectionId).enableCards(validCards);
                     game.WaitCard = true;
+                    if (game.PlayedCards.Where(c => c != "c0-00").Count() == 0)
+                    {
+                        if (game.GetWinners(game.Turn).Where(w => w == 2).Count() == game.Hand[game.Turn].Where(c => c != "c0-00").Count())
+                        {
+                            Clients.Client(game.Players[game.Turn].ConnectionId).ShowThrowBtn(); ;
+                        }
+                    }
+                    Clients.Client(game.Players[game.Turn].ConnectionId).enableCards(validCards);
                     // once a card is clicked, declarable extras are calculated in hub method, human selects and declares extras, then the card is played and game loop reinitiates
                 }
                 else
@@ -269,14 +278,14 @@ namespace ChatWebApp
                 game.HighestTrumpInTrick = 0;
                 game.TrickSuit = 0;
             }
-            log.Debug("Leaving TrickController.");
+            log.Information("Leaving TrickController.");
         }
 
         // -------------------- Reset --------------------
 
         public void EndGame()
         {
-            log.Debug("Entering EndGame.");
+            log.Information("Entering EndGame.");
             BelotGame game = GetGame();
             string winner = "N/S";
             if (game.EWTotal > game.NSTotal) winner = "E/W";
@@ -300,18 +309,18 @@ namespace ChatWebApp
             Clients.Group(GetGameId()).EnableRadios();
             game.IsNewGame = true;
             game.CloseLog();
-            log.Debug("Leaving EndGame.");
+            log.Information("Leaving EndGame.");
         }
 
         // -------------------- Setup --------------------
 
         public void HubShuffle()
         {
-            log.Debug("Entering HubShuffle.");
+            log.Information("Entering HubShuffle.");
             // this method is only called by human interaction with the html elements
             GetGame().WaitDeal = false;
             GameController();
-            log.Debug("Leaving HubShuffle.");
+            log.Information("Leaving HubShuffle.");
         }
 
         // -------------------- Suit Nomination --------------------
@@ -319,7 +328,7 @@ namespace ChatWebApp
         public void HubNominateSuit(int suit)
         {
 
-            log.Debug("Entering HubNominateSuit.");
+            log.Information("Entering HubNominateSuit.");
             BelotGame game = GetGame();
             game.NominateSuit(suit);
 
@@ -328,12 +337,12 @@ namespace ChatWebApp
             AnnounceSuit();
             if (--game.Turn == -1) game.Turn = 3;
             GameController();
-            log.Debug("Leaving HubNominateSuit.");
+            log.Information("Leaving HubNominateSuit.");
         }
 
         public void AnnounceSuit()
         {
-            log.Debug("Entering AnnounceSuit.");
+            log.Information("Entering AnnounceSuit.");
             BelotGame game = GetGame();
             string username = GetDisplayName(game.Turn);
 
@@ -347,7 +356,7 @@ namespace ChatWebApp
                 Clients.Group(GetGameId()).setCallerIndicator(game.Turn);
                 if (suit < 7)
                 {
-                    message = username + " called " + helpers.GetSuitNameFromNumber(suit) + ".";
+                    message = username + " called " + BelotHelpers.GetSuitNameFromNumber(suit) + ".";
                 }
                 else if (suit == 7)
                 {
@@ -363,7 +372,7 @@ namespace ChatWebApp
             string[] seatPos = new string[] { "w", "n", "e", "s" };
             Clients.Group(GetGameId()).EmoteSuit(suit, seatPos[game.Turn]);
             Emote(seatPos[game.Turn], botDelay);
-            log.Debug("Leaving AnnounceSuit.");
+            log.Information("Leaving AnnounceSuit.");
         }
 
         // -------------------- Card Validation --------------------
@@ -372,14 +381,14 @@ namespace ChatWebApp
 
         public void HubPlayCard(string card)
         {
-            log.Debug("Entering HubPlayCard.");
+            log.Information("Entering HubPlayCard.");
             BelotGame game = GetGame();
             game.PlayCard(card);
             Clients.Caller.SetTableCard(game.Turn, game.PlayedCards[game.Turn]);
 
             List<string> extras = new List<string>();
 
-            if (game.CheckBelot(card)) extras.Add("Belot: " + helpers.GetSuitNameFromNumber(Int32.Parse(card.Substring(1, 1))));
+            if (game.CheckBelot(card)) extras.Add("Belot: " + BelotHelpers.GetSuitNameFromNumber(Int32.Parse(card.Substring(1, 1))));
 
             if (game.RoundSuit != 5 && game.NumCardsPlayed < 5)
             {
@@ -387,34 +396,34 @@ namespace ChatWebApp
                 {
                     string extra = "";
                     if (!game.Runs[game.Turn][i].Declarable) extra += "#";
-                    extra += helpers.GetRunNameFromLength(game.Runs[game.Turn][i].Length) + ": " + helpers.GetSuitNameFromNumber(game.Runs[game.Turn][i].Suit) + " " + helpers.GetCardRankFromNumber(game.Runs[game.Turn][i].Strength - game.Runs[game.Turn][i].Length + 1) + "→" + helpers.GetCardRankFromNumber(game.Runs[game.Turn][i].Strength);
+                    extra += BelotHelpers.GetRunNameFromLength(game.Runs[game.Turn][i].Length) + ": " + BelotHelpers.GetSuitNameFromNumber(game.Runs[game.Turn][i].Suit) + " " + BelotHelpers.GetCardRankFromNumber(game.Runs[game.Turn][i].Strength - game.Runs[game.Turn][i].Length + 1) + "→" + BelotHelpers.GetCardRankFromNumber(game.Runs[game.Turn][i].Strength);
                     extras.Add(extra);
                 }
 
                 for (int i = 0; i < game.Carres[game.Turn].Count; i++)
                 {
-                    extras.Add("Carre: " + helpers.GetCardRankFromNumber(game.Carres[game.Turn][i].Rank));
+                    extras.Add("Carre: " + BelotHelpers.GetCardRankFromNumber(game.Carres[game.Turn][i].Rank));
                 }
             }
             game.CurrentExtras = extras;
             Clients.Caller.DeclareExtras(new JavaScriptSerializer().Serialize(extras));
-            log.Debug("Leaving HubPlayCard.");
+            log.Information("Leaving HubPlayCard.");
         }
 
         public void CardPlayEnd()
         {
-            log.Debug("Entering CardPlayEnd.");
+            log.Information("Entering CardPlayEnd.");
             BelotGame game = GetGame();
             Clients.Group(GetGameId()).SetTableCard(game.Turn, game.PlayedCards[game.Turn]);
             Thread.Sleep(botDelay);
             if (game.NumCardsPlayed % 4 != 0) if (--game.Turn == -1) game.Turn = 3;
             if (game.NumCardsPlayed < 32) Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
-            log.Debug("Leaving CardPlayEnd.");
+            log.Information("Leaving CardPlayEnd.");
         }
 
         public void HubExtrasDeclared(bool belot, bool[] runs, bool[] carres)
         {
-            log.Debug("Entering HubExtrasDeclared.");
+            log.Information("Entering HubExtrasDeclared.");
             BelotGame game = GetGame();
             if (game.RoundSuit != 5)
             {
@@ -429,12 +438,12 @@ namespace ChatWebApp
             CardPlayEnd();
             game.WaitCard = false;
             GameController();
-            log.Debug("Leaving HubExtrasDeclared.");
+            log.Information("Leaving HubExtrasDeclared.");
         }
 
         public void AnnounceExtras(bool belotDeclared)
         {
-            log.Debug("Entering AnnounceExtras.");
+            log.Information("Entering AnnounceExtras.");
             BelotGame game = GetGame();
             List<string> emotes = new List<string>();
             if (belotDeclared)
@@ -448,7 +457,7 @@ namespace ChatWebApp
                 {
                     if (run.Declared)
                     {
-                        string runName = helpers.GetRunNameFromLength(run.Length);
+                        string runName = BelotHelpers.GetRunNameFromLength(run.Length);
                         SysAnnounce(game.GetDisplayName(game.Turn) + " called a " + runName + ".");
                         emotes.Add(runName);
                     }
@@ -468,23 +477,62 @@ namespace ChatWebApp
                 Clients.Group(GetGameId()).SetExtrasEmote(new JavaScriptSerializer().Serialize(emotes), seatPos[game.Turn]);
                 Emote(seatPos[game.Turn], botDelay);
             }
-            log.Debug("Leaving AnnounceExtras.");
+            log.Information("Leaving AnnounceExtras.");
         }
 
         public void Emote(string seat, int duration)
         {
-            log.Debug("Entering Emote.");
+            log.Information("Entering Emote.");
             Clients.Group(GetGameId()).ShowEmote(seat);
             Thread.Sleep(duration);
             Clients.Group(GetGameId()).HideEmote(seat);
-            log.Debug("Leaving Emote.");
+            log.Information("Leaving Emote.");
+        }
+
+        public void ThrowCards()
+        {
+            log.Information("Entering ThrowCards.");
+            BelotGame game = GetGame();
+
+            int points = 10; // stoch
+
+            for (int i = 0; i < 4; i++)
+            {
+                foreach (string card in game.Hand[i].Where(c => c != "c0-00"))
+                {
+                    points += game.CalculateCardPoints(card);
+                }
+            }
+
+            if (game.Turn % 2 == 0) game.EWRoundPoints += points;
+            else game.NSRoundPoints += points;
+
+            for (int i = 0; i < 4; i++)
+            {
+                foreach(Belot belot in game.Belots[i])
+                {
+                    if (belot.Declarable == true) belot.Declared = true;
+                }
+            }
+
+            game.NumCardsPlayed = 32;
+            game.WaitCard = false;
+
+            Clients.Group(GetGameId()).throwCards(GetDisplayName(game.Turn), new JavaScriptSerializer().Serialize(game.Hand));
+            Thread.Sleep(3500);
+            Clients.Group(GetGameId()).CloseThrowModal();
+
+            GameController();
+
+            //Thread.Sleep(duration);
+            log.Information("Leaving ThrowCards.");
         }
 
         // -------------------- Points --------------------
 
         public void HubFinalisePoints()
         {
-            log.Debug("Entering HubFinalisePoints.");
+            log.Information("Entering HubFinalisePoints.");
             BelotGame game = GetGame();
             string[] Result = new string[] { "", "Success" };
             string[] message = { "N/S", "call", "succeeded" };
@@ -521,14 +569,14 @@ namespace ChatWebApp
                 message[2] += ", Inside";
             }
             SysAnnounce(String.Join(" ", message) + ".");
-            log.Debug("Leaving HubFinalisePoints.");
+            log.Information("Leaving HubFinalisePoints.");
         }
 
         // -------------------- Seat Management --------------------
 
         public void BookSeat(int position) // 0 = W, 1 = N, 2 = E, 3 = S, 4-7 = Robot
         {
-            log.Debug("Entering BookSeat.");
+            log.Information("Entering BookSeat.");
             BelotGame game = GetGame();
             string[] seat = { "West", "North", "East", "South" };
 
@@ -536,10 +584,10 @@ namespace ChatWebApp
 
             if (position == 8) // vacate to Spectator
             {
-                if (game.spectators.Where(s => s.Username == requestor).Count() == 0)
+                if (game.Spectators.Where(s => s.Username == requestor).Count() == 0)
                 {
                     UnbookSeat();
-                    game.spectators.Add(new Spectator(requestor, Context.ConnectionId));
+                    game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
                     UpdateConnectedUsers();
                     Clients.Caller.SetRadio("x");
                 }
@@ -559,7 +607,7 @@ namespace ChatWebApp
             if ((occupier == "" || occupier == botGUID) && position < 4) // empty seat or bot-occupied requested by human
             {
                 UnbookSeat();
-                if (game.spectators.Where(s => s.Username == requestor).Count() == 1) game.spectators.Remove(game.spectators.Where(s => s.Username == requestor).First());
+                if (game.Spectators.Where(s => s.Username == requestor).Count() == 1) game.Spectators.Remove(game.Spectators.Where(s => s.Username == requestor).First());
                 game.Players[position] = new Player(requestor, Context.ConnectionId, true);
                 UpdateConnectedUsers();
                 Clients.Group(GetGameId()).SeatBooked(position, requestor);
@@ -583,7 +631,7 @@ namespace ChatWebApp
                 position -= 4;
                 string botName = GetBotName(position);
                 UnbookSeat();
-                game.spectators.Add(new Spectator(requestor, Context.ConnectionId));
+                game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
                 game.Players[position] = new Player(botGUID, "", false);
                 UpdateConnectedUsers();
                 Clients.Group(GetGameId()).SeatBooked(position, botName);
@@ -598,12 +646,12 @@ namespace ChatWebApp
             }
 
             if (game.Players.Where(s => s.Username != "").Count() == 4) Clients.Group(GetGameId()).EnableNewGame();
-            log.Debug("Leaving BookSeat.");
+            log.Information("Leaving BookSeat.");
         }
 
         public void UnbookSeat()
         {
-            log.Debug("Entering UnbookSeat.");
+            log.Information("Entering UnbookSeat.");
             BelotGame game = GetGame();
             string username = GetCallerUsername();
 
@@ -621,7 +669,7 @@ namespace ChatWebApp
                 //log.Information(username + " vacated the " + seat[position] + " seat.");
             }
             UpdateConnectedUsers();
-            log.Debug("Leaving UnbookSeat.");
+            log.Information("Leaving UnbookSeat.");
         }
 
         // -------------------- Messaging & Alerts --------------------
@@ -701,7 +749,7 @@ namespace ChatWebApp
             BelotGame game = GetGame();
             string[] playerNames = game.Players.Where(d => d.IsDisconnected == false).Select(s => s.Username).Where(s => s != "").Where(s => s != botGUID).ToArray();
             Array.Sort(playerNames);
-            string[] specNames = game.spectators.Select(s => s.Username).ToArray();
+            string[] specNames = game.Spectators.Select(s => s.Username).ToArray();
             Array.Sort(specNames);
             Clients.Group(GetGameId()).ConnectedUsers(playerNames, specNames);
             //Clients.Caller.ConnectedUsers(playerNames, specNames);
@@ -809,20 +857,27 @@ namespace ChatWebApp
             else if (game.Players.Where(s => s.Username != "").Count() == 4) Clients.Caller.EnableNewGame();
         }
 
-        public async override Task OnConnected()
+        public async void AddToGroup(string gameId)
         {
-            log.Debug("Entering OnConnected.");
+            await Groups.Add(Context.ConnectionId, gameId);
+        }
+
+        public override Task OnConnected()
+        {
+            log.Information("Entering OnConnected.");
 
             var gameId = Context.Headers["Referer"].Substring(Context.Headers["Referer"].Length - 36, 36);
 
             allConnections.Add(Context.ConnectionId, gameId);
 
-            await Groups.Add(Context.ConnectionId, gameId);
+            AddToGroup(gameId);
+
+            //await Groups.Add(Context.ConnectionId, gameId);
 
             BelotGame game = GetGame();
 
             string username = GetCallerUsername();
-            if (game.Players.Where(p => p.Username == username).Count() == 0) game.spectators.Add(new Spectator(username, Context.ConnectionId));
+            if (game.Players.Where(p => p.Username == username).Count() == 0) game.Spectators.Add(new Spectator(username, Context.ConnectionId));
             else
             {
                 game.Players.Where(p => p.Username == username).First().ConnectionId = Context.ConnectionId;
@@ -835,23 +890,23 @@ namespace ChatWebApp
             log.Information(username + " Connected.");
 
             LoadContext();
-            log.Debug("Leaving OnConnected.");
-            return; //base.OnConnected();
+            log.Information("Leaving OnConnected.");
+            return base.OnConnected();
         }
         public override Task OnDisconnected(bool stopCalled = true)
         {
-            log.Debug("Entering OnDisconnected.");
+            log.Information("Entering OnDisconnected.");
 
             BelotGame game = GetGame();
 
             string username = GetCallerUsername();
-            if (game.spectators.Where(p => p.Username == username).Count() == 1) game.spectators.Remove(game.spectators.Where(s => s.Username == username).First());
+            if (game.Spectators.Where(p => p.Username == username).Count() == 1) game.Spectators.Remove(game.Spectators.Where(s => s.Username == username).First());
             UnbookSeat();
             SysAnnounce(username + " disconnected.");
             log.Information(username + " disconnected.");
             //Clients.Group(GetGameId()).connectedUsers((new JavaScriptSerializer()).Serialize(connectedUsers));
 
-            if (game.spectators.Count() + game.Players.Where(h => h.IsHuman == true).Where(d => d.IsDisconnected == false).Count() == 0)
+            if (game.Spectators.Count() + game.Players.Where(h => h.IsHuman == true).Where(d => d.IsDisconnected == false).Count() == 0)
             {
 
                 int oldwinnerDelay = winnerDelay;
@@ -865,7 +920,7 @@ namespace ChatWebApp
                 botDelay = oldBotDelay;
                 roundSummaryDelay = oldRoundSummaryDelay;
 
-                if (game.spectators.Count() + game.Players.Where(h => h.IsHuman == true).Where(d => d.IsDisconnected == false).Count() == 0)
+                if (game.Spectators.Count() + game.Players.Where(h => h.IsHuman == true).Where(d => d.IsDisconnected == false).Count() == 0)
                 {
                     games.Remove(game);
                     game = null;
@@ -874,7 +929,7 @@ namespace ChatWebApp
                 }
             }
             allConnections.Remove(Context.ConnectionId);
-            log.Debug("Leaving OnDisconnected.");
+            log.Information("Leaving OnDisconnected.");
             return base.OnDisconnected(stopCalled);
         }
     }

@@ -10,6 +10,7 @@ namespace ChatWebApp.Controllers
     {
         public ActionResult Index()
         {
+            ViewBag.numGames = ChatRoom.games.Count();
             return View();
         }
 

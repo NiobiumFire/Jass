@@ -1,8 +1,4 @@
 ﻿
-@{
-    //ViewBag.Title = "Room";
-}
-
 @section scripts{
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/js"></script>
@@ -28,14 +24,12 @@
             //    var child = children[i];
             //    child.style.transform = "translate(-5%,".concat(0).concat("%) rotate(").concat(-35 + 5 * (8 - children.length) + 10 * i + 1).concat("deg)");
             //}
+            //$('#throw-modal').modal('show');
             rotateCards();
         });
 
     </script>
 }
-
-
-<h1>@ViewBag.Title</h1>
 
 <!-- Team Selector -->
 
@@ -112,6 +106,7 @@
     </div>
 </div>
 
+<!-- Offcanvas -->
 
 <div class="offcanvas offcanvas-end" tabindex="-1" id="lobby">
     <div class="offcanvas-header">
@@ -219,7 +214,7 @@
     <div class="row tableboard rounded justify-content-center position-relative">
 
         <!-- Score Totals -->
-        <div class="d-flex justify-content-center align-items-center score-summary">
+        <div class="score-summary d-flex justify-content-center align-items-center">
             <table class="table table-sm m-0" id="scoreTotals" style="width: auto;  border-style:hidden">
                 <thead>
                     <tr>
@@ -237,7 +232,7 @@
         </div>
 
         <!-- Selected Suit Indicator -->
-        <div class="d-flex selected-suit p-0 m-0 justify-content-center align-items-center" style="width:auto;">
+        <div class="selected-suit d-flex p-0 m-0 justify-content-center align-items-center" style="width:auto;">
             <i class="bi bi-arrows-move" style="font-size: 25px; color: dimgrey;" id="wnescallindicator"></i>
             <div class="position-relative">
                 <i class="bi bi-suit-spade-fill" style="font-size: 25px; color: dimgrey;" id="selectedsuit"></i>
@@ -323,9 +318,15 @@
                 </div>
             </div>
         </div>
+        <!-- Throw Cards Button -->
+        <div class="d-flex throw-cards-ctnr p-0 m-0 justify-content-center align-items-center" style="width: auto;">
+            <button class="throw-cards-btn round-btn-pulse px-1 position-relative" id="throw-cards-btn" hidden>
+                Throw
+            </button>
+        </div>
         <!-- Maximise Suit Selector -->
-        <div class="d-flex suit-selector p-0 m-0 justify-content-center align-items-center" style="width: auto;">
-            <button class="suit-selector-btn px-1 position-relative" id="suit-selector">
+        <div class="d-flex make-call-ctnr p-0 m-0 justify-content-center align-items-center" style="width: auto;">
+            <button class="make-call-btn round-btn-pulse px-1 position-relative" id="make-call-btn" hidden>
                 Call
             </button>
         </div>
@@ -357,6 +358,71 @@
             </div>
             <div class="modal-footer py-1">
                 <button type="button" id="suit0" class="btn btn-dark" onclick="nominateSuit(this);">Pass</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Throw Cards Modal -->
+
+<div class="modal" id="throw-modal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-1">
+                <h5 class="modal-title" id="throw-modal-title"></h5>
+            </div>
+            <div class="d-flex modal-body p-0" style="background-color: rgba(13, 110, 253, 0.25)">
+                <div class="d-flex justify-content-center align-items-center miniboard-lr">
+                    <div class="d-flex justify-content-center align-items-center rotate90" style="margin-top: calc(-0.3*var(--card-width))">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard0">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard1">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard2">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard3">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard4">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard5">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard6">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard7">
+                    </div>
+                </div>
+                @*<div class="testud">*@
+            <div class="d-flex flex-column justify-content-between miniboard-ud">
+                <div class="d-flex justify-content-center align-items-center" style="margin-left: calc(-0.3*var(--card-width))">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard0">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard1">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard2">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard3">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard4">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard5">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard6">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard7">
+                </div>
+                <div class="d-flex justify-content-center align-items-center" style="margin-left: calc(-0.3*var(--card-width))">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard0">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard1">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard2">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard3">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard4">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard5">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard6">
+                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard7">
+                </div>
+            </div>
+                @*</div>*@
+                <div class="d-flex justify-content-center align-items-center miniboard-lr">
+                    <div class="d-flex justify-content-center align-items-center rotate270" style="margin-bottom: calc(-0.3*var(--card-width))">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard0">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard1">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard2">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard3">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard4">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard5">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard6">
+                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard7">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-primary" onclick="closeThrowModal()">Continue</button>
             </div>
         </div>
     </div>

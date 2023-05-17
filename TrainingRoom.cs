@@ -45,8 +45,6 @@ namespace ChatWebApp
 
         public static Random rnd = new Random();
 
-        public static BelotHelpers helpers = new BelotHelpers();
-
         public static AgentBasic basic = new AgentBasic();
 
         public static int punishment = 5000;
@@ -553,7 +551,7 @@ namespace ChatWebApp
                         if (!game.Players[game.Turn].Agent.CallVariation.Contains(suit)) game.Players[game.Turn].Agent.CallVariation.Add(suit);
                         if (game.EnableLogging)
                         {
-                            if (suit < 7) game.Log.Information(game.GetDisplayName(game.Turn) + " attempted to call " + helpers.GetSuitNameFromNumber(suit) + ".");
+                            if (suit < 7) game.Log.Information(game.GetDisplayName(game.Turn) + " attempted to call " + BelotHelpers.GetSuitNameFromNumber(suit) + ".");
                             else if (suit == 7) game.Log.Information(game.GetDisplayName(game.Turn) + " attempted to double.");
                             else game.Log.Information(game.GetDisplayName(game.Turn) + " attempted to redouble.");
                         }
@@ -769,7 +767,7 @@ namespace ChatWebApp
             input.Add(game.Turn);
             for (int i = 0; i < game.Hand[game.Turn].Count; i++)
             {
-                input.Add(helpers.GetCardNumber(game.Hand[game.Turn][i]));
+                input.Add(BelotHelpers.GetCardNumber(game.Hand[game.Turn][i]));
             }
             //if (game.Hand[game.Turn].Count == 5)
             //{
@@ -831,7 +829,7 @@ namespace ChatWebApp
             {
                 foreach (Run run in game.Runs[game.Turn])
                 {
-                    if (run.Declared) emotes.Add(helpers.GetRunNameFromLength(run.Length));
+                    if (run.Declared) emotes.Add(BelotHelpers.GetRunNameFromLength(run.Length));
                 }
                 foreach (Carre carre in game.Carres[game.Turn])
                 {
