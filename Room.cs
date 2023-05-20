@@ -23,9 +23,9 @@ namespace ChatWebApp
 
         public static int scoreTarget = 1501;
         public static string botGUID = "7eae0694-38c9-48c0-9016-40e7d9ab962c";
-        public static int winnerDelay = 400;
-        public static int botDelay = 800;
-        public static int roundSummaryDelay = 6000;
+        //public static int winnerDelay = 400;
+        //public static int botDelay = 800;
+        //public static int roundSummaryDelay = 6000;
         //public static bool waitDeal, waitCall, waitCard;
 
         public static AgentBasic basic = new AgentBasic();
@@ -94,7 +94,7 @@ namespace ChatWebApp
                 }
                 else
                 {
-                    Thread.Sleep(botDelay);
+                    Thread.Sleep(game.BotDelay);
                 }
             }
 
@@ -156,7 +156,7 @@ namespace ChatWebApp
                     Clients.Group(GetGameId()).AppendScoreHistory(game.EWRoundPoints, game.NSRoundPoints);
                     Clients.Group(GetGameId()).UpdateScoreTotals(game.EWTotal, game.NSTotal);
                     Clients.Group(GetGameId()).ShowRoundSummary(game.TrickPoints, game.DeclarationPoints, game.BelotPoints, game.Result, game.EWRoundPoints, game.NSRoundPoints);
-                    Thread.Sleep(roundSummaryDelay);
+                    Thread.Sleep(game.RoundSummaryDelay);
                     Clients.Group(GetGameId()).HideRoundSummary();
                     game.IsNewRound = true;
                 }
@@ -371,7 +371,7 @@ namespace ChatWebApp
             SysAnnounce(message);
             string[] seatPos = new string[] { "w", "n", "e", "s" };
             Clients.Group(GetGameId()).EmoteSuit(suit, seatPos[game.Turn]);
-            Emote(seatPos[game.Turn], botDelay);
+            Emote(seatPos[game.Turn], game.BotDelay);
             log.Information("Leaving AnnounceSuit.");
         }
 
@@ -415,7 +415,7 @@ namespace ChatWebApp
             log.Information("Entering CardPlayEnd.");
             BelotGame game = GetGame();
             Clients.Group(GetGameId()).SetTableCard(game.Turn, game.PlayedCards[game.Turn]);
-            Thread.Sleep(botDelay);
+            Thread.Sleep(game.BotDelay);
             if (game.NumCardsPlayed % 4 != 0) if (--game.Turn == -1) game.Turn = 3;
             if (game.NumCardsPlayed < 32) Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
             log.Information("Leaving CardPlayEnd.");
@@ -475,7 +475,7 @@ namespace ChatWebApp
             {
                 string[] seatPos = new string[] { "w", "n", "e", "s" };
                 Clients.Group(GetGameId()).SetExtrasEmote(new JavaScriptSerializer().Serialize(emotes), seatPos[game.Turn]);
-                Emote(seatPos[game.Turn], botDelay);
+                Emote(seatPos[game.Turn], game.BotDelay);
             }
             log.Information("Leaving AnnounceExtras.");
         }
@@ -509,7 +509,7 @@ namespace ChatWebApp
 
             for (int i = 0; i < 4; i++)
             {
-                foreach(Belot belot in game.Belots[i])
+                foreach (Belot belot in game.Belots[i])
                 {
                     if (belot.Declarable == true) belot.Declared = true;
                 }
@@ -610,7 +610,8 @@ namespace ChatWebApp
                 if (game.Spectators.Where(s => s.Username == requestor).Count() == 1) game.Spectators.Remove(game.Spectators.Where(s => s.Username == requestor).First());
                 game.Players[position] = new Player(requestor, Context.ConnectionId, true);
                 UpdateConnectedUsers();
-                Clients.Group(GetGameId()).SeatBooked(position, requestor);
+                Clients.OthersInGroup(GetGameId()).SeatBooked(position, requestor, false);
+                Clients.Caller.SeatBooked(position, requestor, true);
                 Clients.Group(GetGameId()).SetBotBadge(seat[position], false);
                 Clients.Caller.SetRadio(seat[position]);
                 //log.Information(requestor + " occupied the " + seat[position] + " seat.");
@@ -621,7 +622,7 @@ namespace ChatWebApp
                 string botName = GetBotName(position);
                 game.Players[position] = new Player(botGUID, "", false);
                 UpdateConnectedUsers();
-                Clients.Group(GetGameId()).SeatBooked(position, botName);
+                Clients.Group(GetGameId()).SeatBooked(position, botName, false);
                 Clients.Group(GetGameId()).SetBotBadge(seat[position], true);
                 //log.Information(botName + " occupied the " + seat[position] + " seat.");
             }
@@ -634,7 +635,7 @@ namespace ChatWebApp
                 game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
                 game.Players[position] = new Player(botGUID, "", false);
                 UpdateConnectedUsers();
-                Clients.Group(GetGameId()).SeatBooked(position, botName);
+                Clients.Group(GetGameId()).SeatBooked(position, botName, false);
                 Clients.Caller.SetRadio("x");
                 Clients.Group(GetGameId()).SetBotBadge(seat[position], true);
                 //log.Information(botName + " occupied the " + seat[position] + " seat.");
@@ -664,7 +665,7 @@ namespace ChatWebApp
                     game.Players[position] = new Player();
                 }
                 else game.Players[position].IsDisconnected = true;
-                Clients.Group(GetGameId()).SeatUnbooked(position, username);
+                Clients.Group(GetGameId()).SeatUnbooked(position);
                 //string[] seat = { "West", "North", "East", "South" };
                 //log.Information(username + " vacated the " + seat[position] + " seat.");
             }
@@ -758,17 +759,19 @@ namespace ChatWebApp
         public void LoadContext()
         {
             BelotGame game = GetGame();
+
             for (int i = 0; i < 4; i++)
             {
                 // Update table seats
                 if (game.Players[i].IsHuman)
                 {
-                    Clients.Caller.SeatBooked(i, game.Players[i].Username);
+                    if (game.Players[i].Username == Context.User.Identity.Name) Clients.Caller.SeatBooked(i, game.Players[i].Username, true);
+                    else Clients.Caller.SeatBooked(i, game.Players[i].Username, false);
                 }
                 else if (game.Players[i].Username == botGUID)
                 {
                     string[] seat = { "West", "North", "East", "South" };
-                    Clients.Caller.SeatBooked(i, GetBotName(i));
+                    Clients.Caller.SeatBooked(i, GetBotName(i),false);
                     Clients.Caller.SetBotBadge(seat[i], true);
                 }
 
@@ -780,6 +783,7 @@ namespace ChatWebApp
             {
                 int dealer = game.FirstPlayer + 1;
                 if (dealer == 4) dealer = 0;
+
                 Clients.Caller.SetDealerMarker(dealer);
 
                 Clients.Caller.SetTurnIndicator(game.Turn);
@@ -877,12 +881,14 @@ namespace ChatWebApp
             BelotGame game = GetGame();
 
             string username = GetCallerUsername();
-            if (game.Players.Where(p => p.Username == username).Count() == 0) game.Spectators.Add(new Spectator(username, Context.ConnectionId));
+            IEnumerable<Player> players = game.Players.Where(p => p.Username == username);
+            if (players.Count() == 0) game.Spectators.Add(new Spectator(username, Context.ConnectionId));
             else
             {
-                game.Players.Where(p => p.Username == username).First().ConnectionId = Context.ConnectionId;
-                game.Players.Where(p => p.Username == username).First().IsDisconnected = false;
-                Clients.Group(GetGameId()).SeatBooked(Array.IndexOf(game.Players, game.Players.Where(p => p.Username == username).First()), username);
+                players.First().ConnectionId = Context.ConnectionId;
+                players.First().IsDisconnected = false;
+                int pos = Array.IndexOf(game.Players, players.First());
+                Clients.OthersInGroup(GetGameId()).SeatBooked(pos, username, false);
             }
             UpdateConnectedUsers();
 
@@ -909,16 +915,16 @@ namespace ChatWebApp
             if (game.Spectators.Count() + game.Players.Where(h => h.IsHuman == true).Where(d => d.IsDisconnected == false).Count() == 0)
             {
 
-                int oldwinnerDelay = winnerDelay;
-                int oldBotDelay = botDelay;
-                int oldRoundSummaryDelay = roundSummaryDelay;
-                winnerDelay = 0;
-                botDelay = 0;
-                roundSummaryDelay = 0;
+                int oldwinnerDelay = game.WinnerDelay;
+                int oldBotDelay = game.BotDelay;
+                int oldRoundSummaryDelay = game.RoundSummaryDelay;
+                game.WinnerDelay = 0;
+                game.BotDelay = 0;
+                game.RoundSummaryDelay = 0;
                 Thread.Sleep(1500);
-                winnerDelay = oldwinnerDelay;
-                botDelay = oldBotDelay;
-                roundSummaryDelay = oldRoundSummaryDelay;
+                game.WinnerDelay = oldwinnerDelay;
+                game.BotDelay = oldBotDelay;
+                game.RoundSummaryDelay = oldRoundSummaryDelay;
 
                 if (game.Spectators.Count() + game.Players.Where(h => h.IsHuman == true).Where(d => d.IsDisconnected == false).Count() == 0)
                 {

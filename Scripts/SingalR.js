@@ -327,13 +327,10 @@
         room.server.hubShuffle();
     });
 
-    room.client.setDealerMarker = function (turn) {
+    room.client.setDealerMarker = function (dealer) {
         for (i = 0; i < 4; i++) {
-            var seat = getSeatNameByNumber(i);
-            if (i == turn) {
-                setSeatColour(seat, "darkmagenta");
-            }
-            else setSeatColour(seat, "#0d6efd");
+            if (i == dealer) document.getElementById("dealermarker".concat(i)).hidden = false;
+            else document.getElementById("dealermarker".concat(i)).hidden = true;
         };
     };
 
@@ -472,6 +469,8 @@
         document.getElementById(seat).appendChild(emote);
         emote.style.fontSize = "2em";
 
+        // use array of icons and array of colours instead of switch
+
         switch (suit) {
             case 0:
                 document.getElementById(seat).innerHTML = "Pass";
@@ -493,12 +492,10 @@
                 emote.classList = "bi bi-suit-spade-fill";
                 break;
             case 5:
-                emote.style.color = "darkmagenta";
-                emote.classList = "bi bi-x-diamond";
+                emote.classList = "i-notrumps";
                 break;
             case 6:
-                emote.style.color = "darkmagenta";
-                emote.classList = "bi bi-x-diamond-fill";
+                emote.classList = "i-alltrumps";
                 break;
             case 7:
                 document.getElementById(seat).innerHTML = "Double!";
@@ -511,19 +508,20 @@
 
     setSuitIconOff = function (suit) {
         document.getElementById("suit".concat(String(suit))).onclick = "";
-        document.getElementById("suit".concat(String(suit))).style.color = "dimgrey";
+        if (suit < 5 || suit > 6) document.getElementById("suit".concat(String(suit))).style.color = "dimgrey";
+        else document.getElementById("suitfill".concat(String(suit))).style.fill = "dimgrey";
     };
 
     setSuitIconOn = function (suit) {
-        if (suit == 1 || suit == 4 || suit == 7 || suit == 8) {
+        if (suit == 1 || suit == 4) {
             document.getElementById("suit".concat(String(suit))).style.color = "black";
         }
-        else if (suit == 2 || suit == 3) {
+        else if (suit == 2 || suit == 3 || suit == 7 || suit == 8) {
             document.getElementById("suit".concat(String(suit))).style.color = "red";
         }
         else if (suit == 5 || suit == 6) {
-            document.getElementById("suit".concat(String(suit))).style.color = "darkmagenta";
-            document.getElementById("suit".concat(String(suit))).style.color = "darkmagenta";
+            document.getElementById("suit".concat(String(suit))).style.fill = "darkmagenta";
+            document.getElementById("suit".concat(String(suit))).style.fill = "darkmagenta";
         };
 
         document.getElementById("suit".concat(String(suit))).onclick = function () { nominateSuit(this) };
@@ -554,7 +552,7 @@
                 break;
             case 2:
                 document.getElementById("selectedsuit").style.color = "red";
-                document.getElementById("selectedsuit").classList = "bi bi-suit-diamond-fill";
+                document.getElementById("selectedsuit").classList = "bi-suit-diamond-fill";
                 break;
             case 3:
                 document.getElementById("selectedsuit").style.color = "red";
@@ -566,11 +564,11 @@
                 break;
             case 5:
                 document.getElementById("selectedsuit").style.color = "darkmagenta";
-                document.getElementById("selectedsuit").classList = "bi bi-x-diamond";
+                document.getElementById("selectedsuit").classList = "i-notrumps";
                 break;
             case 6:
                 document.getElementById("selectedsuit").style.color = "darkmagenta";
-                document.getElementById("selectedsuit").classList = "bi bi-x-diamond-fill";
+                document.getElementById("selectedsuit").classList = "i-alltrumps";
                 break;
             case 7:
                 document.getElementById("selectedmultiplier").innerHTML = "x2";
@@ -636,20 +634,22 @@
         document.getElementById("newGameBtn").disabled = true;
     };
 
-    setSeatColour = function (seat, colour) {
-        document.getElementById(seat.charAt(0).toLowerCase().concat("labelbadge")).style.backgroundColor = colour;
+    room.client.setSeatColour = function (position, colour) {
+        document.getElementById("usernamelabel".concat(position)).style.backgroundColor = colour;
     };
 
-    room.client.seatBooked = function (position, username) {
-        var seat = getSeatNameByNumber(position);
-        document.getElementById(seat.charAt(0).toLowerCase().concat("label")).innerHTML = username;
-        setSeatColour(seat, "#0d6efd");
+    room.client.seatBooked = function (position, username, isSelf) {
+        //var seat = getSeatNameByNumber(position);
+        document.getElementById("usernamelabeltext".concat(position)).innerHTML = username;
+        var colour = "#0d6efd";
+        if (isSelf) colour = "darkmagenta";
+        room.client.setSeatColour(position, colour);
     };
 
-    room.client.seatUnbooked = function (position, username) {
+    room.client.seatUnbooked = function (position) {
         var seat = getSeatNameByNumber(position);
-        document.getElementById(seat.charAt(0).toLowerCase().concat("label")).innerHTML = seat;
-        setSeatColour(seat, "black");
+        document.getElementById("usernamelabeltext".concat(position)).innerHTML = seat;
+        room.client.setSeatColour(position, "black");
     };
 
     room.client.seatAlreadyBooked = function (occupier) {

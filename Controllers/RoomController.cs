@@ -7,7 +7,7 @@ using System.Web.Mvc;
 
 namespace ChatWebApp.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class RoomController : Controller
     {
 

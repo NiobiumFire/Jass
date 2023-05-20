@@ -15,6 +15,7 @@ namespace ChatWebApp
         public int CallSuit(List<string> hand, int[] validCalls)
         {
             int call = 0;
+            //return call;
             double mostPoints = 0;
             int[] singleTrumpValue = { 1, 1, 2, 2, 4, 1, 1, 2 }; // considering length and strength
             int[] noTrumpValue = { 0, 0, 0, 1, 0, 0, 0, 3 };

@@ -13,8 +13,8 @@ namespace ChatWebApp
         {
             Players = players;
             GameId = gameId;
-            IsNewGame = true;
-            IsNewRound = true;
+            //IsNewGame = true;
+            //IsNewRound = true;
             Spectators = new List<Spectator>();
             EnableLogging = enableLogging;
         }
@@ -55,14 +55,18 @@ namespace ChatWebApp
         public List<Carre>[] Carres { get; set; }
         public List<Belot>[] Belots { get; set; }
         public List<string> CurrentExtras { get; set; }
-        public bool IsNewRound { get; set; }
-        public bool IsNewGame { get; set; }
+        public bool IsNewRound { get; set; } = true;
+        public bool IsNewGame { get; set; } = true;
         public bool WaitDeal { get; set; }
         public bool WaitCall { get; set; }
         public bool WaitCard { get; set; }
         public string LogPath { get; set; }
         public Serilog.Core.Logger Log { get; set; }
         public bool EnableLogging { get; set; }
+
+        public int WinnerDelay { get; set; } = 400;
+        public int BotDelay { get; set; } = 800;
+        public int RoundSummaryDelay { get; set; } = 6000;
 
         public static Random rnd = new Random();
 
@@ -117,7 +121,7 @@ namespace ChatWebApp
             Multiplier = 1;
             EWWonATrick = false;
             NSWonATrick = false;
-            Capot = false;
+            //Capot = false;
             Inside = false;
         }
 
@@ -838,6 +842,7 @@ namespace ChatWebApp
                 message[2] += ", Capot";
                 Capot = true;
             }
+            else Capot = false;
 
             if (EWCalled && EWRoundPoints <= NSRoundPoints) // inside
             {

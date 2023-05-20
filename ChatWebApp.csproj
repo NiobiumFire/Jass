@@ -295,6 +295,7 @@
     <Content Include="Images\Cards\c4-13.png" />
     <Content Include="Images\NiobiumCrystal.ico" />
     <Content Include="Images\NiobiumCrystal.png" />
+    <Content Include="Images\Other\Dealer.svg" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
