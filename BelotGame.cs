@@ -2,6 +2,7 @@
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 
@@ -74,8 +75,7 @@ namespace ChatWebApp
         {
             if (EnableLogging)
             {
-                LogPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/" + Guid.NewGuid().ToString() + ".txt");
-                Log = new LoggerConfiguration().WriteTo.File(LogPath).CreateLogger();
+                Log = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + Guid.NewGuid().ToString() + ".txt").CreateLogger();
             }
         }
         public void NewGame()

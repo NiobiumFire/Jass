@@ -237,7 +237,7 @@
         setTimeout(function () {
             document.getElementById("tablecard".concat(winner)).classList.remove("winning-card-pulse", "z-2");
             document.getElementById("tablecard".concat(winner)).style.zIndex = 1;
-        }, 1000)
+        }, 1000);
     };
 
     room.client.showGameWinner = function (winner) {
@@ -332,22 +332,6 @@
             if (i == dealer) document.getElementById("dealermarker".concat(i)).hidden = false;
             else document.getElementById("dealermarker".concat(i)).hidden = true;
         };
-    };
-
-    room.client.disableRadios = function () {
-        // disable team selection
-        const radios = ["w", "n", "s", "e", "x"];
-        for (i = 0; i < 5; i++) {
-            document.getElementById(radios[i].concat("radio")).disabled = true;
-        }
-    };
-
-    room.client.enableRadios = function () {
-        // disable team selection
-        const radios = ["w", "n", "s", "e", "x"];
-        for (i = 0; i < 5; i++) {
-            document.getElementById(radios[i].concat("radio")).disabled = false;
-        }
     };
 
     room.client.deal = function (cards) {
@@ -520,8 +504,7 @@
             document.getElementById("suit".concat(String(suit))).style.color = "red";
         }
         else if (suit == 5 || suit == 6) {
-            document.getElementById("suit".concat(String(suit))).style.fill = "darkmagenta";
-            document.getElementById("suit".concat(String(suit))).style.fill = "darkmagenta";
+            document.getElementById("suitfill".concat(String(suit))).style.fill = "darkmagenta";
         };
 
         document.getElementById("suit".concat(String(suit))).onclick = function () { nominateSuit(this) };
@@ -602,6 +585,52 @@
         room.server.bookSeat(seat);
     };
 
+    room.client.disableRadios = function () {
+        // disable team selection
+        //const radios = ["w", "n", "s", "e", "x"];
+        //for (i = 0; i < 5; i++) {
+        //    document.getElementById(radios[i].concat("radio")).disabled = true;
+        //}
+        for (i = 0; i < 4; i++) {
+            document.getElementById("tablecardslot".concat(i)).disabled = true;
+        }
+    };
+
+    room.client.enableRadios = function () {
+        // disable team selection
+        //const radios = ["w", "n", "s", "e", "x"];
+        //for (i = 0; i < 5; i++) {
+        //    document.getElementById(radios[i].concat("radio")).disabled = false;
+        //}
+        for (i = 0; i < 4; i++) {
+            document.getElementById("tablecardslot".concat(i)).disabled = false;
+        }
+    };
+
+    room.client.enableSeatOptions = function (pos, setting) {
+        if (document.getElementById("tablecardslot".concat(pos)).classList.contains("show"))
+            $("#tablecardslot".concat(pos)).dropdown("toggle");
+        document.getElementById("teamselector".concat(pos)).hidden = !setting;
+        /*document.getElementById("tablecardslot".concat(pos)).dropdown('toggle');*/
+        //if (!document.getElementById("tablecardslot".concat(pos)).find('.dropdown-menu').is(":hidden")) {
+        //    document.getElementById("tablecardslot".concat(pos)).dropdown('toggle');
+        //}
+        //document.getElementById("teamselector".concat(pos)).show = true;
+        
+    };
+
+    room.client.enableOccupySeat = function (pos, setting) {
+        document.getElementById("occupy".concat(pos)).hidden = !setting;
+    };
+
+    room.client.enableAssignBotToSeat = function (pos, setting) {
+        document.getElementById("assignbot".concat(pos)).hidden = !setting;
+    };
+
+    room.client.enableVacateSeat = function (pos, setting) {
+        document.getElementById("vacate".concat(pos)).hidden = !setting;
+    };
+
     getSeatNameByNumber = function (number) {
         var seat = "";
         switch (number) {
@@ -667,7 +696,7 @@
     };
 
     room.client.setBotBadge = function (pos, isBot) {
-        document.getElementById(pos.charAt(0).toLocaleLowerCase().concat("BotBadge")).hidden = !isBot;
+        document.getElementById("BotBadge".concat(pos)).hidden = !isBot;
     };
 
     moveWest = function () {
@@ -680,8 +709,23 @@
     // -------------------- Chat Log --------------------
 
     copyGameInvite = function () {
-        navigator.clipboard.writeText(document.URL);
-    }
+        //navigator.clipboard.writeText(document.URL);
+        var inputEl = document.createElement("input");
+        inputEl.type = "text";
+        inputEl.value = document.URL;
+        //alert(inputEl.value);
+        document.getElementById("lobby").appendChild(inputEl);
+        inputEl.select();
+        inputEl.setSelectionRange(0,inputEl.value.length);
+        document.execCommand('copy');
+        document.getElementById("lobby").removeChild(inputEl);
+        document.getElementById("copyGameIdBtn").disabled = true;
+        document.getElementById("copyGameIdBtn").value = "Copied!";
+        setTimeout(function () {
+            document.getElementById("copyGameIdBtn").value = "Copy Game Invite";
+            document.getElementById("copyGameIdBtn").disabled = false;
+        }, 600);
+    };
 
     room.client.announce = function (message) {
         writeToPage(message);

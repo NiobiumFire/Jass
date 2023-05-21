@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Concurrent;
 using Serilog;
+using System.Configuration;
 
 namespace ChatWebApp
 {
@@ -30,8 +31,7 @@ namespace ChatWebApp
 
         public static AgentBasic basic = new AgentBasic();
 
-        public static string logPath = System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/BelotServerLog-.txt");
-        public static Serilog.Core.Logger log = new LoggerConfiguration().WriteTo.File(logPath, rollingInterval: RollingInterval.Day).CreateLogger();
+        public static Serilog.Core.Logger log = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 
         //public static logPath
 
@@ -612,7 +612,14 @@ namespace ChatWebApp
                 UpdateConnectedUsers();
                 Clients.OthersInGroup(GetGameId()).SeatBooked(position, requestor, false);
                 Clients.Caller.SeatBooked(position, requestor, true);
-                Clients.Group(GetGameId()).SetBotBadge(seat[position], false);
+
+                Clients.OthersInGroup(GetGameId()).EnableSeatOptions(position, false);
+                Clients.Group(GetGameId()).EnableOccupySeat(position, false);
+                Clients.OthersInGroup(GetGameId()).EnableAssignBotToSeat(position, false);
+                Clients.Caller.EnableAssignBotToSeat(position, true);
+                Clients.Caller.EnableVacateSeat(position, true);
+
+                Clients.Group(GetGameId()).SetBotBadge(position, false);
                 Clients.Caller.SetRadio(seat[position]);
                 //log.Information(requestor + " occupied the " + seat[position] + " seat.");
             }
@@ -623,7 +630,9 @@ namespace ChatWebApp
                 game.Players[position] = new Player(botGUID, "", false);
                 UpdateConnectedUsers();
                 Clients.Group(GetGameId()).SeatBooked(position, botName, false);
-                Clients.Group(GetGameId()).SetBotBadge(seat[position], true);
+                Clients.Group(GetGameId()).SetBotBadge(position, true);
+                Clients.Group(GetGameId()).EnableAssignBotToSeat(position, false);
+                Clients.Caller.EnableVacateSeat(position, false);
                 //log.Information(botName + " occupied the " + seat[position] + " seat.");
             }
             // if bot occupied seat requested by bot -> do nothing
@@ -637,7 +646,9 @@ namespace ChatWebApp
                 UpdateConnectedUsers();
                 Clients.Group(GetGameId()).SeatBooked(position, botName, false);
                 Clients.Caller.SetRadio("x");
-                Clients.Group(GetGameId()).SetBotBadge(seat[position], true);
+                Clients.Group(GetGameId()).SetBotBadge(position, true);
+                Clients.Group(GetGameId()).EnableOccupySeat(position, true);
+                Clients.Group(GetGameId()).EnableAssignBotToSeat(position, false);
                 //log.Information(botName + " occupied the " + seat[position] + " seat.");
             }
             // if human tries to occupy his own seat, do nothing
@@ -666,6 +677,10 @@ namespace ChatWebApp
                 }
                 else game.Players[position].IsDisconnected = true;
                 Clients.Group(GetGameId()).SeatUnbooked(position);
+                Clients.Group(GetGameId()).EnableSeatOptions(position, true);
+                Clients.Group(GetGameId()).EnableOccupySeat(position, true);
+                Clients.Group(GetGameId()).EnableAssignBotToSeat(position, true);
+                Clients.Group(GetGameId()).EnableVacateSeat(position, false);
                 //string[] seat = { "West", "North", "East", "South" };
                 //log.Information(username + " vacated the " + seat[position] + " seat.");
             }
@@ -765,14 +780,25 @@ namespace ChatWebApp
                 // Update table seats
                 if (game.Players[i].IsHuman)
                 {
-                    if (game.Players[i].Username == Context.User.Identity.Name) Clients.Caller.SeatBooked(i, game.Players[i].Username, true);
-                    else Clients.Caller.SeatBooked(i, game.Players[i].Username, false);
+                    Clients.Caller.EnableOccupySeat(i, false);
+                    if (game.Players[i].Username == Context.User.Identity.Name)
+                    {
+                        Clients.Caller.SeatBooked(i, game.Players[i].Username, true);
+                        Clients.Caller.EnableVacateSeat(i, true);
+                    }
+                    else
+                    {
+                        Clients.Caller.SeatBooked(i, game.Players[i].Username, false);
+                        Clients.Caller.EnableSeatOptions(i, false);
+                        Clients.Caller.EnableAssignBotToSeat(i, false);
+                    }
                 }
                 else if (game.Players[i].Username == botGUID)
                 {
                     string[] seat = { "West", "North", "East", "South" };
-                    Clients.Caller.SeatBooked(i, GetBotName(i),false);
-                    Clients.Caller.SetBotBadge(seat[i], true);
+                    Clients.Caller.SeatBooked(i, GetBotName(i), false);
+                    Clients.Caller.SetBotBadge(i, true);
+                    Clients.Caller.EnableAssignBotToSeat(i, false);
                 }
 
                 // Update table cards
@@ -861,12 +887,7 @@ namespace ChatWebApp
             else if (game.Players.Where(s => s.Username != "").Count() == 4) Clients.Caller.EnableNewGame();
         }
 
-        public async void AddToGroup(string gameId)
-        {
-            await Groups.Add(Context.ConnectionId, gameId);
-        }
-
-        public override Task OnConnected()
+        public override async Task OnConnected()
         {
             log.Information("Entering OnConnected.");
 
@@ -874,9 +895,7 @@ namespace ChatWebApp
 
             allConnections.Add(Context.ConnectionId, gameId);
 
-            AddToGroup(gameId);
-
-            //await Groups.Add(Context.ConnectionId, gameId);
+            await Groups.Add(Context.ConnectionId, gameId);
 
             BelotGame game = GetGame();
 
@@ -897,7 +916,7 @@ namespace ChatWebApp
 
             LoadContext();
             log.Information("Leaving OnConnected.");
-            return base.OnConnected();
+            await base.OnConnected();
         }
         public override Task OnDisconnected(bool stopCalled = true)
         {

@@ -45,16 +45,16 @@
 
 <!-- Team Selector -->
 
-<div class="d-flex flex-column bg-info rounded p-1">
-    <div class="btn-group d-flex flex-grow-1 justify-content-center align-items-center px-sm-5">
+<div class="d-flex flex-column bg-info rounded p-1 m-sm-0">
+    <!--<div class="btn-group d-flex flex-grow-1 justify-content-center align-items-center px-sm-5">
         <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
             <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="wradio" style="font-size:10px">
                 West
-            </button>
-            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="wBotBadge" hidden>
+            </button>-->
+            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="wBotBadge" hidden>
                 <i class="bi bi-robot"></i>
-            </span>
-            <ul class="dropdown-menu border-info">
+            </span>*@
+            <!--<ul class="dropdown-menu border-info">
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)">Occupy Seat</a></li>
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)">Assign to Bot</a></li>
             </ul>
@@ -63,11 +63,11 @@
         <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
             <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="nradio" style="font-size:10px">
                 North
-            </button>
-            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index:1;top: 70%;font-size:18px; color:black" id="nBotBadge" hidden>
+            </button>-->
+            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index:1;top: 70%;font-size:18px; color:black" id="nBotBadge" hidden>
                 <i class="bi bi-robot"></i>
-            </span>
-            <ul class="dropdown-menu border-info">
+            </span>*@
+            <!--<ul class="dropdown-menu border-info">
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)">Occupy Seat</a></li>
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)">Assign to Bot</a></li>
             </ul>
@@ -76,11 +76,11 @@
         <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
             <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="sradio" style="font-size:10px">
                 South
-            </button>
-            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="sBotBadge" hidden>
+            </button>-->
+            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="sBotBadge" hidden>
                 <i class="bi bi-robot"></i>
-            </span>
-            <ul class="dropdown-menu border-info">
+            </span>*@
+            <!--<ul class="dropdown-menu border-info">
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)">Occupy Seat</a></li>
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)">Assign to Bot</a></li>
             </ul>
@@ -89,11 +89,11 @@
         <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
             <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="eradio" style="font-size:10px">
                 East
-            </button>
-            <span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="eBotBadge" hidden>
+            </button>-->
+            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="eBotBadge" hidden>
                 <i class="bi bi-robot"></i>
-            </span>
-            <ul class="dropdown-menu border-info">
+            </span>*@
+            <!--<ul class="dropdown-menu border-info">
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(2)">Occupy Seat</a></li>
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(6)">Assign to Bot</a></li>
             </ul>
@@ -104,9 +104,9 @@
                 Spectator
             </button>
         </div>
-    </div>
+    </div>-->
 
-    <div class="d-flex m-0 p-0 py-2 mt-2 justify-content-between align-items-center px-sm-5">
+    <div class="d-flex m-0 p-0 py-2 justify-content-between align-items-center px-sm-5">
         <input class="btn btn-sm btn-dark px-2" type="button" id="dealBtn" value="Deal" disabled />
         <input class="btn btn-sm btn-dark px-1 m-0" type="button" id="newGameBtn" value="New Game" disabled />
         <button class="btn btn-sm btn-dark px-3 position-relative" type="button" id="chatbtn" value="" data-bs-toggle="offcanvas" data-bs-target="#lobby">
@@ -123,7 +123,7 @@
 <div class="offcanvas offcanvas-end" tabindex="-1" id="lobby">
     <div class="offcanvas-header">
         <!-- Game Invite -->
-        <input class="btn btn-primary m-1" type="button" value="Copy Game Invite" onclick="copyGameInvite()" id="copyGameIdBtn" />
+        <input class="btn btn-primary m-1" style="min-width:50%" type="button" value="Copy Game Invite" onclick="copyGameInvite()" id="copyGameIdBtn" />
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body pt-0">
@@ -203,14 +203,14 @@
 
 <!-- Team Selector Error Modal -->
 
-<div class="modal modal-sm" id="seat-modal" tabindex="-1">
+<!--<div class="modal modal-sm" id="seat-modal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content">-->
             <!--<div class="modal-header">
                 <h5 class="modal-title">Seat is occupied</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>-->
-            <div class="modal-body pb-0">
+            <!--<div class="modal-body pb-0">
                 <p id="seat-modal-body"></p>
             </div>
             <div class="modal-footer p-0">
@@ -218,12 +218,12 @@
             </div>
         </div>
     </div>
-</div>
+</div>-->
 
 <!-- Card Table -->
 
 <div class="container-fluid rounded mt-2">
-    <div class="row tableboard rounded justify-content-center position-relative">
+    <div class="row tableboard rounded justify-content-center position-relative py-4">
 
         <!-- Score Totals -->
         <div class="score-summary d-flex justify-content-center align-items-center">
@@ -256,11 +256,16 @@
             <div class="d-flex flex-column justify-content-center position-relative" id="cardCol1">
 
                 <!-- West -->
-                <div class="d-flex position-relative align-items-center" id="cardWest" style="transition: all 3s ease-in-out">
+                <div class="d-flex position-relative align-items-center" data-bs-toggle="dropdown" id="tablecardslot0">
                     <!-- Player Name Marker -->
-                    <div class="rotate270 z-3">
-                        <span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel0">
+                    <div class="rotate270 position-relative">
+                        @*<span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel0">*@
+                        <span class="badge rounded-pill player-name-marker pnm-west" id="usernamelabel0">
                             <span class="small" style="font-weight: 500" id="usernamelabeltext0">West</span>
+                        </span>
+                        <!-- Bot Badge -->
+                        <span class="badge bot-badge bb-west" id="BotBadge0" hidden>
+                            <i class="bi bi-robot"></i>
                         </span>
                     </div>
                     <!-- Emote -->
@@ -273,15 +278,26 @@
                     <img class="dealer-marker z-3 position-absolute top-0 start-50 translate-middle" src="~/Images/Other/Dealer.svg" id="dealermarker0" hidden>
                     <!-- Card -->
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard0">
+                    <!-- Team Selector -->
+                    <ul class="dropdown-menu border-info" id="teamselector0">
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)" id="occupy0">Occupy Seat</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)" id="assignbot0">Assign to Bot</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate0" hidden>Vacate Seat</a></li>
+                    </ul>
                 </div>
             </div>
             <!-- Flex Column 2 -->
             <div class="d-flex flex-column justify-content-center" id="cardCol2">
                 <!-- North -->
-                <div class="d-flex position-relative justify-content-center align-items-center">
+                <div class="d-flex position-relative justify-content-center align-items-center" data-bs-toggle="dropdown" id="tablecardslot1">
                     <!-- Player Name Marker -->
-                    <span class="badge rounded-pill position-absolute z-3 top-0 start-50 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel1">
+                    @*<span class="badge rounded-pill position-absolute z-3 top-0 start-50 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel1">*@
+                    <span class="badge rounded-pill player-name-marker pnm-north" id="usernamelabel1">
                         <span class="small" style="font-weight: 500; z-index: 2" id="usernamelabeltext1">North</span>
+                    </span>
+                    <!-- Bot Badge -->
+                    <span class="badge bot-badge bb-north" id="BotBadge1" hidden>
+                        <i class="bi bi-robot"></i>
                     </span>
                     <!-- Emote -->
                     <div class="emote bubble-n d-flex justify-content-center align-items-center position-absolute" style="top:15px; visibility: hidden" id="nbubble"></div>
@@ -293,35 +309,55 @@
                     <img class="dealer-marker z-3 position-absolute start-100 translate-middle" style="top:25%" src="~/Images/Other/Dealer.svg" id="dealermarker1" hidden>
                     <!-- Card -->
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard1">
+                    <!-- Team Selector -->
+                    <ul class="dropdown-menu border-info" id="teamselector1">
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)" id="occupy1">Occupy Seat</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)" id="assignbot1">Assign to Bot</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate1" hidden>Vacate Seat</a></li>
+                    </ul>
                 </div>
                 <!-- South -->
-                <div class="d-flex position-relative justify-content-center align-items-center">
-                    <!-- Player Name Marker -->
-                    <span class="badge rounded-pill position-absolute z-3 top-100 start-50 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel3">
-                        <span class="small" style="font-weight:500" id="usernamelabeltext3">South</span>
-                    </span>
-                    <!-- Emote -->
-                    @*<div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="top: 70%; left: 55px; visibility: hidden" id="sbubble"></div>*@
-                    <div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="bottom: 15px; visibility: hidden" id="sbubble"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="3winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker z-3 position-absolute start-0 translate-middle" style="top:75%" src="~/Images/Other/Dealer.svg" id="dealermarker3" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
-                    <!-- Turn Indicator -->
-                    <span class="badge rounded-circle p-1 position-absolute z-3 top-0 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
-                        <i class="bi bi-suit-spade-fill" style="font-size: 2em; color: darkmagenta;" id="turnIndicator"></i>
-                    </span>
+                <div class="dropdown">
+                    <div class="d-flex position-relative justify-content-center align-items-center" data-bs-toggle="dropdown" id="tablecardslot3">
+                        <!-- Player Name Marker -->
+                        @*<span class="badge rounded-pill position-absolute z-3 top-100 start-50 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel3">*@
+                        <span class="badge rounded-pill player-name-marker pnm-south" id="usernamelabel3">
+                            <span class="small" style="font-weight:500" id="usernamelabeltext3">South</span>
+                        </span>
+                        <!-- Bot Badge -->
+                        <span class="badge bot-badge bb-south" id="BotBadge3" hidden>
+                            <i class="bi bi-robot"></i>
+                        </span>
+                        <!-- Emote -->
+                        @*<div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="top: 70%; left: 55px; visibility: hidden" id="sbubble"></div>*@
+                        <div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="bottom: 15px; visibility: hidden" id="sbubble"></div>
+                        <!-- Winner Marker -->
+                        <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="3winnermarker" hidden>
+                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                        </span>
+                        <!-- Dealer Badge -->
+                        <img class="dealer-marker z-3 position-absolute start-0 translate-middle" style="top:75%" src="~/Images/Other/Dealer.svg" id="dealermarker3" hidden>
+                        <!-- Card -->
+                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
+
+                        <!-- Team Selector -->
+                        <ul class="dropdown-menu border-info" id="teamselector3">
+                            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)" id="occupy3">Occupy Seat</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)" id="assignbot3">Assign to Bot</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate3" hidden>Vacate Seat</a></li>
+                        </ul>
+                        <!-- Turn Indicator -->
+                        <span class="badge rounded-circle p-1 position-absolute z-3 top-0 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
+                            <i class="bi bi-suit-spade-fill" style="font-size: 2em; color: darkmagenta;" id="turnIndicator"></i>
+                        </span>
+                    </div>
                 </div>
             </div>
             <!-- Flex Column 3 -->
             <div class="d-flex flex-column justify-content-center position-relative" id="cardCol3">
 
                 <!-- East -->
-                <div class="d-flex position-relative align-items-center">
+                <div class="d-flex position-relative align-items-center" data-bs-toggle="dropdown" id="tablecardslot2">
                     <!-- Winner Marker -->
                     <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="2winnermarker" hidden>
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
@@ -331,13 +367,24 @@
                     <!-- Card -->
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard2">
                     <!-- Player Name Marker -->
-                    <div class="rotate90 z-3">
-                        <span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel2">
+                    <div class="rotate90">
+                        @*<span class="badge rounded-pill position-absolute top-50 start-0 translate-middle px-3 py-0" style="background-color: black" id="usernamelabel2">*@
+                        <span class="badge rounded-pill player-name-marker pnm-east" id="usernamelabel2">
                             <span class="small" style="font-weight:500" id="usernamelabeltext2">East</span>
+                        </span>
+                        <!-- Bot Badge -->
+                        <span class="badge bot-badge bb-east" id="BotBadge2" hidden>
+                            <i class="bi bi-robot"></i>
                         </span>
                     </div>
                     <!-- Emote -->
                     <div class="emote bubble-e d-flex justify-content-center align-items-center position-absolute" style="right: 15px; visibility: hidden" id="ebubble"></div>
+                    <!-- Team Selector -->
+                    <ul class="dropdown-menu border-info" id="teamselector2">
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(2)" id="occupy2">Occupy Seat</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(6)" id="assignbot2">Assign to Bot</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate2" hidden>Vacate Seat</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -539,7 +586,7 @@
 <div class="cont small mt-2">
     <div class="d-flex flex-row align-items-center justify-content-center rounded cardboard position-relative" id="cardboard">
         <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card0">
-        <img class="belot-card2" src="~/Images/Cards/c2-13.png" id="card1">
+        <img class="belot-card2" src="~/Images/Cards/c3-13.png" id="card1">
         <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card2" hidden>
         <img class="belot-card2" src="~/Images/Cards/c1-10.png" id="card3" hidden>
         <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card4" hidden>
@@ -547,12 +594,6 @@
         <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card6" hidden>
         <img class="belot-card2" src="~/Images/Cards/c1-10.png" id="card7" hidden>
     </div>
-</div>
-
-@*<div style="height:100px">
-    </div>*@
-
-<div id="footer">
 </div>
 
 
