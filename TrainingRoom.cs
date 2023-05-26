@@ -599,7 +599,7 @@ namespace ChatWebApp
 
                     int[] validCards = game.ValidCards();
 
-                    card = new AgentBasic().SelectCard(game.Hand[game.Turn], validCards, game.PlayedCards, game.Turn, game.DetermineWinner(), game.RoundSuit, game.TrickSuit, game.EWCalled);
+                    card = new AgentBasic().SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.PlayedCards, game.Turn, game.DetermineWinner(), game.RoundSuit, game.TrickSuit, game.EWCalled);
                     //int choice = game.Players[game.Turn].Agent.PlayCard(GetNNInput(game));
                     //if (validCards[choice] == 0)
                     //{

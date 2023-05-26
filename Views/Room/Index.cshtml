@@ -18,30 +18,27 @@
     </svg>
 
     <script>
-
-        //$(document).ready(function () {
-        //    const w = document.getElementById("cardWest");
-        //    w.style.transition = "all 1s ease-in-out";
-        //    //w.style.left = `${ Math.random() * 200 }px`;
-        //    //w.style.marginTop = "100px";
-        //    window.setTimeout(() => {
-        //        document.getElementById("cardCol3").appendChild(w);
-        //    }, 0);
-        //});
-
         $(document).ready(function () {
-            //var children = document.getElementById("cardboard").children;
-            //for (var i = 0; i < children.length; i++) {
-            //    var child = children[i];
-            //    child.style.transform = "translate(-5%,".concat(0).concat("%) rotate(").concat(-35 + 5 * (8 - children.length) + 10 * i + 1).concat("deg)");
-            //}
             //$('#throw-modal').modal('show');
             //$('#suit-modal').modal('show');
-            rotateCards();
+            //$('#extras-modal').modal('show');
+            bottom = document.getElementById("tableboard").getBoundingClientRect().bottom - 10;
+            document.getElementById("extras-modal-dialog").style.top = bottom + "px";
+            document.getElementById("suit-modal-dialog").style.top = bottom + "px";
+            document.getElementById("summary-modal-dialog").style.top = bottom + "px";
+            document.getElementById("throw-modal-dialog").style.top = bottom + "px";
+            //rotateCards();
         });
-
     </script>
 }
+
+@*<div class="circle" id="circle"></div>
+<div class="line" id="line"></div>
+<div class="line" id="line2"></div>
+<div class="line" id="line3"></div>
+<div class="line" id="line4"></div>
+<div class="line" id="line5"></div>
+<div class="" id="line6"></div>*@
 
 <!-- Team Selector -->
 
@@ -51,49 +48,49 @@
             <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="wradio" style="font-size:10px">
                 West
             </button>-->
-            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="wBotBadge" hidden>
-                <i class="bi bi-robot"></i>
-            </span>*@
-            <!--<ul class="dropdown-menu border-info">
-                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)">Occupy Seat</a></li>
-                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)">Assign to Bot</a></li>
-            </ul>
-        </div>
+    @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="wBotBadge" hidden>
+            <i class="bi bi-robot"></i>
+        </span>*@
+    <!--<ul class="dropdown-menu border-info">
+            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)">Occupy Seat</a></li>
+            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)">Assign to Bot</a></li>
+        </ul>
+    </div>
 
-        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
-            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="nradio" style="font-size:10px">
-                North
-            </button>-->
-            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index:1;top: 70%;font-size:18px; color:black" id="nBotBadge" hidden>
-                <i class="bi bi-robot"></i>
-            </span>*@
-            <!--<ul class="dropdown-menu border-info">
-                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)">Occupy Seat</a></li>
-                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)">Assign to Bot</a></li>
-            </ul>
-        </div>
+    <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+        <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="nradio" style="font-size:10px">
+            North
+        </button>-->
+    @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index:1;top: 70%;font-size:18px; color:black" id="nBotBadge" hidden>
+            <i class="bi bi-robot"></i>
+        </span>*@
+    <!--<ul class="dropdown-menu border-info">
+            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)">Occupy Seat</a></li>
+            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)">Assign to Bot</a></li>
+        </ul>
+    </div>
 
-        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
-            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="sradio" style="font-size:10px">
-                South
-            </button>-->
-            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="sBotBadge" hidden>
-                <i class="bi bi-robot"></i>
-            </span>*@
-            <!--<ul class="dropdown-menu border-info">
-                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)">Occupy Seat</a></li>
-                <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)">Assign to Bot</a></li>
-            </ul>
-        </div>
+    <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+        <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="sradio" style="font-size:10px">
+            South
+        </button>-->
+    @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="sBotBadge" hidden>
+            <i class="bi bi-robot"></i>
+        </span>*@
+    <!--<ul class="dropdown-menu border-info">
+            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)">Occupy Seat</a></li>
+            <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)">Assign to Bot</a></li>
+        </ul>
+    </div>
 
-        <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
-            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="eradio" style="font-size:10px">
-                East
-            </button>-->
-            @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="eBotBadge" hidden>
-                <i class="bi bi-robot"></i>
-            </span>*@
-            <!--<ul class="dropdown-menu border-info">
+    <div class="btn-group d-flex flex-grow-1 justify-content-center" role="group">
+        <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" id="eradio" style="font-size:10px">
+            East
+        </button>-->
+    @*<span class="position-absolute badge p-0 bg-white bg-opacity-50" style="z-index: 1; top: 70%; font-size: 18px; color: black" id="eBotBadge" hidden>
+            <i class="bi bi-robot"></i>
+        </span>*@
+    <!--<ul class="dropdown-menu border-info">
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(2)">Occupy Seat</a></li>
                 <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(6)">Assign to Bot</a></li>
             </ul>
@@ -202,15 +199,14 @@
 </div>
 
 <!-- Team Selector Error Modal -->
-
 <!--<div class="modal modal-sm" id="seat-modal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">-->
-            <!--<div class="modal-header">
-                <h5 class="modal-title">Seat is occupied</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>-->
-            <!--<div class="modal-body pb-0">
+<!--<div class="modal-header">
+    <h5 class="modal-title">Seat is occupied</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>-->
+<!--<div class="modal-body pb-0">
                 <p id="seat-modal-body"></p>
             </div>
             <div class="modal-footer p-0">
@@ -219,11 +215,10 @@
         </div>
     </div>
 </div>-->
-
 <!-- Card Table -->
 
 <div class="container-fluid rounded mt-2">
-    <div class="row tableboard rounded justify-content-center position-relative py-4">
+    <div class="row tableboard rounded justify-content-center position-relative py-4" id="tableboard">
 
         <!-- Score Totals -->
         <div class="score-summary d-flex justify-content-center align-items-center">
@@ -274,6 +269,8 @@
                     <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="0winnermarker" hidden>
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
+                    <!-- Fingerprint -->
+                    <i class="fingerprint bi bi-fingerprint" id="fingerprint0"></i>
                     <!-- Dealer Badge -->
                     <img class="dealer-marker z-3 position-absolute top-0 start-50 translate-middle" src="~/Images/Other/Dealer.svg" id="dealermarker0" hidden>
                     <!-- Card -->
@@ -305,6 +302,8 @@
                     <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="1winnermarker" hidden>
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
+                    <!-- Fingerprint -->
+                    <i class="fingerprint bi bi-fingerprint" id="fingerprint1"></i>
                     <!-- Dealer Badge -->
                     <img class="dealer-marker z-3 position-absolute start-100 translate-middle" style="top:25%" src="~/Images/Other/Dealer.svg" id="dealermarker1" hidden>
                     <!-- Card -->
@@ -335,6 +334,8 @@
                         <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="3winnermarker" hidden>
                             <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                         </span>
+                        <!-- Fingerprint -->
+                        <i class="fingerprint bi bi-fingerprint" id="fingerprint3"></i>
                         <!-- Dealer Badge -->
                         <img class="dealer-marker z-3 position-absolute start-0 translate-middle" style="top:75%" src="~/Images/Other/Dealer.svg" id="dealermarker3" hidden>
                         <!-- Card -->
@@ -362,6 +363,8 @@
                     <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="2winnermarker" hidden>
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
+                    <!-- Fingerprint -->
+                    <i class="fingerprint bi bi-fingerprint" id="fingerprint2"></i>
                     <!-- Dealer Badge -->
                     <img class="dealer-marker z-3 position-absolute top-100 start-50 translate-middle" src="~/Images/Other/Dealer.svg" id="dealermarker2" hidden>
                     <!-- Card -->
@@ -406,7 +409,7 @@
 <!-- Suit Selector Modal -->
 
 <div class="modal modal-sm" id="suit-modal" data-bs-backdrop="static" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-low" id="suit-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title">Make a call</h5>
@@ -423,14 +426,15 @@
                     <svg class="btn m-0 p-0 suitsizeJA" id="suit5" color="darkmagenta">
                         <use xlink:href="#i-notrumps" x="0" y="0" fill="darkmagenta" id="suitfill5"></use>
                     </svg>
-                    <svg class="btn m-0 p-0 suitsizeJA" id="suit6" color="darkmagenta">
+                    <svg class="btn m-0 p-0 suitsizeJA" style="transform: translate(0, -1px)" id="suit6" color="darkmagenta">
                         <use xlink:href="#i-alltrumps" x="0" y="0" fill="darkmagenta" id="suitfill6"></use>
                     </svg>
-                    <i class="btn m-0 p-0 suitsize" style="color: black;" id="suit7">x2</i>
-                    <i class="btn m-0 p-0 suitsize" style="color: black;" id="suit8">x4</i>
+                    <i class="btn m-0 p-0 suitsize" style="color: black" id="suit7">x2</i>
+                    <i class="btn m-0 p-0 suitsize" style="color: black" id="suit8">x4</i>
                 </div>
             </div>
-            <div class="modal-footer py-1">
+            <div class="d-flex justify-content-between modal-footer py-1">
+                <button type="button" id="suit9" class="btn btn-danger" onclick="nominateSuit(this);" disabled>⁹⁄₅</button>
                 <button type="button" id="suit0" class="btn btn-dark" onclick="nominateSuit(this);">Pass</button>
             </div>
         </div>
@@ -440,7 +444,7 @@
 <!-- Throw Cards Modal -->
 
 <div class="modal" id="throw-modal" data-bs-backdrop="static" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-low" id="throw-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title" id="throw-modal-title"></h5>
@@ -505,7 +509,7 @@
 <!-- Extra Points Modal -->
 
 <div class="modal modal-sm" id="extras-modal" data-bs-backdrop="static" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-low" id="extras-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title">Extra points</h5>
@@ -524,7 +528,7 @@
 <!-- Round Summary Modal -->
 
 <div class="modal modal-sm" id="summary-modal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-low" id="summary-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title">Round summary</h5>
@@ -584,7 +588,7 @@
 <!-- User Card Board -->
 
 <div class="cont small mt-2">
-    <div class="d-flex flex-row align-items-center justify-content-center rounded cardboard position-relative" id="cardboard">
+    <div class="d-flex align-items-center justify-content-center rounded cardboard position-relative" id="cardboard">
         <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card0">
         <img class="belot-card2" src="~/Images/Cards/c3-13.png" id="card1">
         <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card2" hidden>

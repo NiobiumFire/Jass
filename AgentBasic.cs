@@ -9,9 +9,11 @@ namespace ChatWebApp
     {
         public static Random rnd = new Random();
 
-        // basic agent ignores extra points in suit nomination (for now)
-        // basic agent doesn't double or redouble
-        // basic agent always accepts all available extras
+        // ignores extra points in suit nomination (for now)
+        // doesn't double or redouble
+        // always accepts all available extras
+        // never throws the cards
+        // never calls five-under-nine
         public int CallSuit(List<string> hand, int[] validCalls)
         {
             int call = 0;
@@ -77,63 +79,93 @@ namespace ChatWebApp
             return call;
         }
 
-        public string SelectCard(List<string> hand, int[] validCards, string[] cardPlayed, int turn, int curWinner, int roundSuit, int trickSuit, bool ewCalled)
+        public string SelectCard(List<string> hand, int[] validCards, int[] winners, string[] cardPlayed, int turn, int curWinner, int roundSuit, int trickSuit, bool ewCalled)
         {
             int choice = Array.IndexOf(validCards, 1);
 
             if (validCards.Sum() > 1)
             {
-
                 int cardsPlayedInTrick = 4 - cardPlayed.Where(c => c == "c0-00").Count();
-                //int cardsPlayedInRound = 8 - hand.Where(c => c == "c0-00").Count();
 
-                if (((ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1)) && cardsPlayedInTrick == 0 && roundSuit != 5) // if we called and I'm the first to play in the trick, try play the Jass
+                if (cardsPlayedInTrick == 0)
                 {
-                    for (int i = 0; i < 8; i++)
+                    if (((ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1)) && roundSuit != 5) // if we called and I'm the first to play in the trick, try play the Jass
                     {
-                        int rank = Int32.Parse(hand[i].Substring(3, 2));
-                        int suit = Int32.Parse(hand[i].Substring(1, 1));
-                        if (rank == 10 && validCards[i] == 1)
+                        for (int i = 0; i < 8; i++)
                         {
+                            int rank = Int32.Parse(hand[i].Substring(3, 2));
+                            int suit = Int32.Parse(hand[i].Substring(1, 1));
+                            if (rank == 10 && validCards[i] == 1)
+                            {
+                                lock (rnd)
+                                {
+                                    if (rnd.Next(100) + 1 > 10 && suit == roundSuit)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
+                                    {
+                                        return hand[i];
+                                    }
+                                    else if (rnd.Next(100) + 1 > 20 && roundSuit == 6)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
+                                    {
+                                        return hand[i];
+                                    }
+                                    else
+                                    {
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //// if my team called and I am the first to play in a trick, for the first 3? tricks, play the highest trump
+                    if (roundSuit < 6) // if I'm the first to play, try play a non-trump Ace (works for no trumps)
+                    {
+                        for (int i = 0; i < 8; i++)
+                        {
+                            int rank = Int32.Parse(hand[i].Substring(3, 2));
+                            int suit = Int32.Parse(hand[i].Substring(1, 1));
                             lock (rnd)
                             {
-                                if (rnd.Next(100) + 1 > 10 && suit == roundSuit)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
+                                if (rank == 13 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
                                 {
                                     return hand[i];
                                 }
-                                else if (rnd.Next(100) + 1 > 20 && roundSuit == 6)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
-                                {
-                                    return hand[i];
-                                }
-                                else
+                                else if (rank == 13 && suit != roundSuit && validCards[i] == 1)
                                 {
 
                                 }
                             }
                         }
                     }
-                }
-                //// if my team called and I am the first to play in a trick, for the first 3? tricks, play the highest trump
-                if (cardsPlayedInTrick == 0 && roundSuit < 6) // if I'm the first to play, try play a non-trump Ace (works for no trumps)
-                {
-                    for (int i = 0; i < 8; i++)
+                    if (winners.Where(w => w == 2).Count() > 0) // If I am to lead a trick, consider playing a nontrump hard winner (works for no- and all trumps)
                     {
-                        int rank = Int32.Parse(hand[i].Substring(3, 2));
-                        int suit = Int32.Parse(hand[i].Substring(1, 1));
-                        lock (rnd)
+                        for (int i = 0; i < 8; i++)
                         {
-                            if (rank == 13 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
+                            int suit = Int32.Parse(hand[i].Substring(1, 1));
+                            lock (rnd)
                             {
-                                return hand[i];
-                            }
-                            else if (rank == 13 && suit != roundSuit && validCards[i] == 1)
-                            {
-
+                                if (winners[i] == 2 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 10) // 90% of the time, I will lead a nontrump hard winner
+                                {
+                                    return hand[i];
+                                }
                             }
                         }
                     }
+                    if (winners.Where(w => w == 1).Count() > 0) // If I am to lead a trick, consider playing a nontrump soft winner (works for no- and all trumps)
+                    {
+                        for (int i = 0; i < 8; i++)
+                        {
+                            int suit = Int32.Parse(hand[i].Substring(1, 1));
+                            lock (rnd)
+                            {
+                                if (winners[i] == 1 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead a nontrump soft winner
+                                {
+                                    return hand[i];
+                                }
+                            }
+                        }
+                    }
+                    //// If I am to lead a trick, consider playing a nontrump soft winner (works for no- and all trumps) if my partner or I called
                 }
-                if (cardsPlayedInTrick == 3 && turn % 2 != curWinner % 2) // if I am the last to play and the other team is winning
+                if (cardsPlayedInTrick > 1 && turn % 2 != curWinner % 2) // if I am 3rd or 4th to play and the other team is winning
                 {
                     bool discard = false;
                     int bestValue = 0;
@@ -156,32 +188,52 @@ namespace ChatWebApp
                         if (validCards[i] == 1)
                         {
                             myCardPower[i] = BelotHelpers.DetermineCardPower(hand[i], roundSuit, trickSuit);
-                            if (myCardPower[i] > bestValue) // if I can win the trick, I will
+                            if (myCardPower[i] > bestValue) // determine if I can win the trick
                             {
                                 winningCards[i] = 1;
                             }
-                            if (myCardPower[i] < minValue) // in case I can't win the trick, track the card with lowest winning power
+                            // in case I can't or don't decide to win the trick, track which card I will discard:
+                            // if card[i] value < minValue - 1, discard card[i] regardless of which are winners
+                            // if card[i] == minValue - 1 or minValue, and card[i] is not a winner or both are winners, discard card[i]
+                            // if card[i] == minValue, and card[i] is a winner and card[choice] is not, discard card[choice]
+                            // if card[i] value = minValue - 1 but it's a winner and card[choice] is not, 50% chance to keep card[i]
+                            // if card[i] value = minValue + 1 but it's not a winner and card[choice] is, 50% chance to discard card[i]
+                            // if card[i] value >= minValue + 2, discard card[choice] regardless of which are winners
+                            lock (rnd)
                             {
-                                minValue = myCardPower[i];
-                                choice = i;
-                                discard = true;
+                                bool discard_i = false;
+                                if (myCardPower[i] < minValue - 1) discard_i = true;
+                                else if ((myCardPower[i] == minValue - 1 || myCardPower[i] == minValue) && (winners[i] == 0 || (winners[i] > 0 && winners[choice] > 0))) discard_i = true;
+                                else if (myCardPower[i] == minValue - 1 && winners[i] > 0 && winners[choice] == 0 && rnd.Next(100) + 1 > 50) discard_i = true;
+                                //else if (myCardPower[i] == minValue && winners[i] > 0 && winners[choice] == 0) discard_i = false;
+                                else if (myCardPower[i] == minValue + 1 && winners[i] == 0 && winners[choice] > 0 && rnd.Next(100) + 1 > 50) discard_i = true;
+                                if (discard_i)
+                                {
+                                    minValue = myCardPower[i];
+                                    choice = i;
+                                    discard = true;
+                                }
                             }
                         }
                     }
 
-                    if (winningCards.Sum() > 0) // if any of my cards can beat the currently best card played in trick, play a random one of them
+                    lock (rnd)
                     {
-                        while (true)
+                        if (winningCards.Sum() > 0 && (cardsPlayedInTrick == 3 || rnd.Next(100) + 1 > 50)) // if any of my cards can beat the currently best card played in trick and I am last to play, play a random one of them. Do the same 50% of the time if I am 3rd to play
                         {
-                            lock (rnd) choice = rnd.Next(winningCards.Count());
-                            if (winningCards[choice] == 1) return hand[choice];
+                            while (true)
+                            {
+                                choice = rnd.Next(winningCards.Count());
+                                if (winningCards[choice] == 1) return hand[choice];
+                            }
                         }
+                        // The below does not account for potential winners, so I may discard something of low value which could win a future trick
+                        else if (discard) return hand[choice]; // if I can't win the trick, then regardless of whether I am playing 4th or 3rd, play the chosen discard
                     }
-                    else if (discard) return hand[choice];
                 }
                 while (true)
                 {
-                    lock(rnd) choice = rnd.Next(validCards.Count());
+                    lock (rnd) choice = rnd.Next(validCards.Count());
                     if (validCards[choice] == 1)
                     {
                         return hand[choice];

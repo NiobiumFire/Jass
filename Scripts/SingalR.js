@@ -31,6 +31,7 @@
         hideThrowBtn();
         //document.getElementById(this.id).hidden = true;
         room.client.hideCard(this.id);
+        room.client.rotateCards();
         card = this.src.substr(this.src.length - 9, 5);
         room.server.hubPlayCard(card);
     };
@@ -57,7 +58,7 @@
 
     room.client.throwCards = function (player, hand) {
         hand = JSON.parse(hand);
-        pos = [ "w", "n", "e", "s"];
+        pos = ["w", "n", "e", "s"];
         document.getElementById("throw-modal-title").innerHTML = player.concat(" throws the cards!");
         for (i = 0; i < 8; i++) {
             for (j = 0; j < 4; j++) {
@@ -82,9 +83,37 @@
         closeThrowModal();
     };
 
-    rotateCards = function () {
+    room.client.rotateCards = function () {
 
-        rotation = 8;
+        var offsets = document.getElementById('cardboard').getBoundingClientRect();
+        var top = offsets.top;
+        var height = document.getElementById("cardboard").clientHeight;
+        var left = offsets.left;
+        var width = document.getElementById("cardboard").clientWidth;
+        var Cx = left;
+        var Cy = top + height / 2.0;
+        var Ax = left + width / 2.0;
+        var Ay = top;
+        var Bx = left + width;
+        var By = top + height / 2.0;
+        var b = Math.sqrt(Math.pow((Ax - Cx), 2.0) + Math.pow((Ay - Cy), 2.0));
+
+        var c = Math.sqrt(Math.pow((Ax - Bx), 2.0) + Math.pow((Ay - By), 2.0));//= b
+        var a = (width);
+
+        var h = height / 2.0;
+
+        var r = (b * c / (2 * h));
+
+        var theta = Math.round(180.0 - (2.0 * Math.atan((2.0 * (r - h)) / a) * 180.0 / Math.PI));
+
+        // subtract half of the card width from the arc length, convert to angle and remove this from theta, for the start and end card (x2)
+        var arc = document.getElementById("card0").clientWidth;
+        
+        var phi = (arc / r)*180/Math.PI;
+        theta = theta - phi;
+
+        rotation = theta / 7;
 
         var children = document.getElementById("cardboard").children;
         var visibleChildren = 8;
@@ -94,19 +123,68 @@
         var count = 0;
         for (var i = 0; i < children.length; i++) {
             if (children[i].hidden == false) {
-                //if (visibleChildren == 4) alert(i);
                 var child = children[i];
-                child.style.transform = "translate(-5%,".concat(0).concat("%) rotate(").concat(-3.5 * rotation + .5 * rotation * (8 - visibleChildren) + rotation * count + 1).concat("deg)");
-                //if (visibleChildren == 4) alert(-35 + 5 * (8 - visibleChildren) + 10 * count);
-                //alert(child.style.transform);
+                child.style.transformOrigin = "center " + Math.round(r) + "px";
+                child.style.transform = "rotate(" + (-3.5 * rotation + .5 * rotation * (8 - visibleChildren) + rotation * count) + "deg)";
                 count++;
             }
         }
+
+
+        //var circle = document.getElementById("circle");
+        //circle.style.top = Math.round(top) + "px";
+        //circle.style.left = Math.round(Ax) + "px";
+        //circle.style.height = Math.round(2 * r) + "px";
+        //circle.style.width = Math.round(2 * r) + "px";
+
+        //var x = 100;
+
+        //var line = document.getElementById("line");
+        //line.style.top = Math.round(top) + "px";
+        //line.style.left = Math.round(Ax) + "px";
+        //line.style.height = Math.round(r) + "px";
+        //line.style.transformOrigin = "center " + Math.round(r) + "px";
+        //line.style.transform = "rotate(-" + theta / 2.0 + "deg)";
+
+        //var line2 = document.getElementById("line2");
+        //line2.style.top = Math.round(top) - x + "px";
+        //line2.style.left = Math.round(Ax) + "px";
+        //line2.style.height = Math.round(r) + x + "px";
+        //line2.style.transformOrigin = "center " + Math.round(r + x) + "px";
+        //line2.style.transform = "rotate(" + theta / 2.0 + "deg)";
+
+        //var line3 = document.getElementById("line3");
+        //line3.style.top = Math.round(top) + "px";
+        //line3.style.left = Math.round(Ax) + "px";
+        //line3.style.height = Math.round(r) + "px";
+
+        //var line4 = document.getElementById("line4");
+        //line4.style.top = Math.round(top) + "px";
+        //line4.style.left = "50%";
+        //line4.style.height = Math.round(r) + "px";
+
+        //var line5 = document.getElementById("line5");
+        //line5.style.top = Math.round(top + r) + "px";
+        //line5.style.left = "50%";
+        //line5.style.height = Math.round(r) + "px";
+        //line5.style.borderColor = "gold";
+
+        //var line6 = document.getElementById("line6");
+        //line6.style.transformOrigin = "center center";
+        //line6.style.transform = "translateX(0) !important";
+        //line6.style.top = Math.round(top + h) + "px";
+        //line6.style.left = Math.round(left) + "px";
+        //line6.style.height = "2px";
+        //line6.style.width = Math.round(width) + "px";
+        //line6.style.borderColor = "gold";
+        //line6.style.zIndex= "500";
+        //line6.style.position= "absolute";
+        //line6.style.border = "1px solid black";
     };
 
     room.client.hideCard = function (cardId) {
         document.getElementById(cardId).hidden = true;
-        rotateCards();
+        //rotateCards();
     };
 
     room.client.showCard = function (cardId) {
@@ -343,7 +421,7 @@
             //document.getElementById("card".concat(i)).hidden = false;
             room.client.showCard("card".concat(i));
         };
-        rotateCards();
+        //room.client.rotateCards();
     };
 
     // -------------------- Extra Points --------------------
@@ -379,6 +457,7 @@
                 document.getElementById("extras").appendChild(dv);
             };
             $('#extras-modal').modal('show');
+            //document.getElementById("extras-modal").style.display = "flex";
         }
         else {
             var belot = false;
@@ -422,7 +501,7 @@
 
     // -------------------- Suit Selection --------------------
 
-    room.client.showSuitModal = function (validCalls) {
+    room.client.showSuitModal = function (validCalls, fiveUnderNine = false) {
         for (i = 0; i < 8; i++) {
             if (validCalls[i] == 1) {
                 setSuitIconOn(i + 1);
@@ -431,6 +510,8 @@
                 setSuitIconOff(i + 1);
             };
         };
+        if (fiveUnderNine) document.getElementById("suit9").disabled = false;
+        else document.getElementById("suit9").disabled = true;
         $('#lobby').offcanvas('hide');
         //window.scrollTo(0, 99999);
         $('#suit-modal').modal('show');
@@ -486,6 +567,9 @@
                 break;
             case 8:
                 document.getElementById(seat).innerHTML = "Redouble!!";
+                break;
+            case 9:
+                document.getElementById(seat).innerHTML = "⁹⁄₅";
                 break;
         };
     };
@@ -593,6 +677,7 @@
         //}
         for (i = 0; i < 4; i++) {
             document.getElementById("tablecardslot".concat(i)).disabled = true;
+            document.getElementById("fingerprint".concat(i)).hidden = true;
         }
     };
 
@@ -604,6 +689,7 @@
         //}
         for (i = 0; i < 4; i++) {
             document.getElementById("tablecardslot".concat(i)).disabled = false;
+            document.getElementById("fingerprint".concat(i)).hidden = false;
         }
     };
 
@@ -616,7 +702,7 @@
         //    document.getElementById("tablecardslot".concat(pos)).dropdown('toggle');
         //}
         //document.getElementById("teamselector".concat(pos)).show = true;
-        
+
     };
 
     room.client.enableOccupySeat = function (pos, setting) {
@@ -686,14 +772,14 @@
         $('#seat-modal').modal('show');
     };
 
-    room.client.setRadio = function (pos) {
-        document.getElementById("wradio").classList.remove("active");
-        document.getElementById("nradio").classList.remove("active");
-        document.getElementById("sradio").classList.remove("active");
-        document.getElementById("eradio").classList.remove("active");
-        document.getElementById("xradio").classList.remove("active");
-        document.getElementById(pos.charAt(0).toLocaleLowerCase().concat("radio")).classList.add("active");
-    };
+    //room.client.setRadio = function (pos) {
+    //    document.getElementById("wradio").classList.remove("active");
+    //    document.getElementById("nradio").classList.remove("active");
+    //    document.getElementById("sradio").classList.remove("active");
+    //    document.getElementById("eradio").classList.remove("active");
+    //    document.getElementById("xradio").classList.remove("active");
+    //    document.getElementById(pos.charAt(0).toLocaleLowerCase().concat("radio")).classList.add("active");
+    //};
 
     room.client.setBotBadge = function (pos, isBot) {
         document.getElementById("BotBadge".concat(pos)).hidden = !isBot;
@@ -716,7 +802,7 @@
         //alert(inputEl.value);
         document.getElementById("lobby").appendChild(inputEl);
         inputEl.select();
-        inputEl.setSelectionRange(0,inputEl.value.length);
+        inputEl.setSelectionRange(0, inputEl.value.length);
         document.execCommand('copy');
         document.getElementById("lobby").removeChild(inputEl);
         document.getElementById("copyGameIdBtn").disabled = true;

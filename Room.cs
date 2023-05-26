@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
-using Microsoft.AspNet.Identity;
-using ChatWebApp.Models;
 using System.Web.Script.Serialization;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Collections.Concurrent;
 using Serilog;
 using System.Configuration;
 
@@ -24,16 +20,10 @@ namespace ChatWebApp
 
         public static int scoreTarget = 1501;
         public static string botGUID = "7eae0694-38c9-48c0-9016-40e7d9ab962c";
-        //public static int winnerDelay = 400;
-        //public static int botDelay = 800;
-        //public static int roundSummaryDelay = 6000;
-        //public static bool waitDeal, waitCall, waitCard;
 
         public static AgentBasic basic = new AgentBasic();
 
         public static Serilog.Core.Logger log = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
-
-        //public static logPath
 
         public ChatRoom()
         {
@@ -52,12 +42,6 @@ namespace ChatWebApp
                 Clients.Group(GetGameId()).DisableNewGame();
                 Clients.Group(GetGameId()).CloseModalsAndButtons();
                 Clients.Group(GetGameId()).DisableRadios();
-                //game = new BelotGame(players, Guid.NewGuid().ToString(), true);
-                game.SetLogger();
-                game.WaitDeal = false;
-                game.WaitCall = false;
-                game.WaitCard = false;
-                game.IsNewRound = true;
                 game.NewGame();
                 Clients.Group(GetGameId()).NewGame(); // reset score table (offcanvas), reset score totals (card table), hide winner markers
             }
@@ -80,16 +64,11 @@ namespace ChatWebApp
                 game.NewRound();
                 Clients.Group(GetGameId()).SetTurnIndicator(game.Turn); // show dealer
                 Clients.Group(GetGameId()).SetDealerMarker(game.Turn);
-                //log.Information("Disabling Deal Button.");
-                //Clients.Group(GetGameId()).DisableDealBtn();
-                //log.Information("Deal Button Disabled.");
                 Clients.Group(GetGameId()).NewRound(); // reset table, reset board, disable cards, reset suit selection 
                 if (game.Players[game.Turn].IsHuman)
                 {
                     game.WaitDeal = true;
-                    //log.Information("Enabling Deal Button.");
                     Clients.Client(game.Players[game.Turn].ConnectionId).EnableDealBtn();
-                    //log.Information("Deal Button Enabled.");
                     return;
                 }
                 else
@@ -104,7 +83,11 @@ namespace ChatWebApp
                 game.Deal(5);
                 for (int i = 0; i < 4; i++)
                 {
-                    if (game.Players[i].IsHuman) Clients.Client(game.Players[i].ConnectionId).Deal(new JavaScriptSerializer().Serialize(game.Hand[i]));
+                    if (game.Players[i].IsHuman)
+                    {
+                        Clients.Client(game.Players[i].ConnectionId).Deal(new JavaScriptSerializer().Serialize(game.Hand[i]));
+                        Clients.Client(game.Players[i].ConnectionId).RotateCards();
+                    }
                 }
             }
 
@@ -122,6 +105,7 @@ namespace ChatWebApp
                 SysAnnounce("No suit chosen.");
                 game.IsNewRound = true;
             }
+            else if (game.RoundSuit == 9) game.IsNewRound = true;
             else if (game.RoundSuit != 0 && !game.WaitCall)
             {
                 if (game.NumCardsPlayed == 0)
@@ -132,7 +116,11 @@ namespace ChatWebApp
                     game.Deal(3);
                     for (int i = 0; i < 4; i++)
                     {
-                        if (game.Players[i].IsHuman) Clients.Client(game.Players[i].ConnectionId).Deal(new JavaScriptSerializer().Serialize(game.Hand[i]));
+                        if (game.Players[i].IsHuman)
+                        {
+                            Clients.Client(game.Players[i].ConnectionId).Deal(new JavaScriptSerializer().Serialize(game.Hand[i]));
+                            Clients.Client(game.Players[i].ConnectionId).RotateCards();
+                        }
                     }
                     if (game.RoundSuit != 5)
                     {
@@ -178,7 +166,9 @@ namespace ChatWebApp
             }
             else if (game.Players[game.Turn].IsHuman)
             {
-                Clients.Client(game.Players[game.Turn].ConnectionId).ShowSuitModal(validCalls);
+                bool fiveUnderNine = false;
+                if (game.SuitCall.Count < 4) fiveUnderNine = BelotHelpers.FiveUnderNine(game.Hand[game.Turn]);
+                Clients.Client(game.Players[game.Turn].ConnectionId).ShowSuitModal(validCalls, fiveUnderNine);
                 game.WaitCall = true;
             }
             else // bot
@@ -225,7 +215,7 @@ namespace ChatWebApp
                 }
                 else
                 {
-                    string card = new AgentBasic().SelectCard(game.Hand[game.Turn], validCards, game.PlayedCards, game.Turn, game.DetermineWinner(), game.RoundSuit, game.TrickSuit, game.EWCalled);
+                    string card = new AgentBasic().SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.PlayedCards, game.Turn, game.DetermineWinner(), game.RoundSuit, game.TrickSuit, game.EWCalled);
 
                     game.PlayCard(card);
 
@@ -362,9 +352,13 @@ namespace ChatWebApp
                 {
                     message = username + " doubled!";
                 }
-                else
+                else if (suit == 8)
                 {
                     message = username + " redoubled!!";
+                }
+                else
+                {
+                    message = username + " called five-under-nine.";
                 }
             }
 
@@ -405,7 +399,7 @@ namespace ChatWebApp
                     extras.Add("Carre: " + BelotHelpers.GetCardRankFromNumber(game.Carres[game.Turn][i].Rank));
                 }
             }
-            game.CurrentExtras = extras;
+            game.CurrentExtras = extras; // store extras in case client disconnects after playing card, before declaring extras
             Clients.Caller.DeclareExtras(new JavaScriptSerializer().Serialize(extras));
             log.Information("Leaving HubPlayCard.");
         }
@@ -589,7 +583,7 @@ namespace ChatWebApp
                     UnbookSeat();
                     game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
                     UpdateConnectedUsers();
-                    Clients.Caller.SetRadio("x");
+                    //Clients.Caller.SetRadio("x");
                 }
                 return;
             }
@@ -620,7 +614,7 @@ namespace ChatWebApp
                 Clients.Caller.EnableVacateSeat(position, true);
 
                 Clients.Group(GetGameId()).SetBotBadge(position, false);
-                Clients.Caller.SetRadio(seat[position]);
+                //Clients.Caller.SetRadio(seat[position]);
                 //log.Information(requestor + " occupied the " + seat[position] + " seat.");
             }
             else if (occupier == "" && position > 3) // empty seat requested by bot
@@ -645,7 +639,7 @@ namespace ChatWebApp
                 game.Players[position] = new Player(botGUID, "", false);
                 UpdateConnectedUsers();
                 Clients.Group(GetGameId()).SeatBooked(position, botName, false);
-                Clients.Caller.SetRadio("x");
+                //Clients.Caller.SetRadio("x");
                 Clients.Group(GetGameId()).SetBotBadge(position, true);
                 Clients.Group(GetGameId()).EnableOccupySeat(position, true);
                 Clients.Group(GetGameId()).EnableAssignBotToSeat(position, false);
@@ -850,6 +844,7 @@ namespace ChatWebApp
                             Clients.Caller.HideCard("card" + i);
                         }
                     }
+                    Clients.Caller.RotateCards();
 
                     if (game.Turn == pos)
                     {
@@ -862,7 +857,9 @@ namespace ChatWebApp
                         else if (game.Hand[pos].Count == 5)
                         {
                             int[] validCalls = game.ValidCalls();
-                            Clients.Caller.ShowSuitModal(validCalls);
+                            bool fiveUnderNine = false;
+                            if (game.SuitCall.Count < 4) fiveUnderNine = BelotHelpers.FiveUnderNine(game.Hand[game.Turn]);
+                            Clients.Caller.ShowSuitModal(validCalls, fiveUnderNine);
                         }
                         // if the connecting user must declare extras
                         else if (game.PlayedCards[game.Turn] != "c0-00")

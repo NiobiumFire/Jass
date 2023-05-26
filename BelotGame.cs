@@ -14,8 +14,6 @@ namespace ChatWebApp
         {
             Players = players;
             GameId = gameId;
-            //IsNewGame = true;
-            //IsNewRound = true;
             Spectators = new List<Spectator>();
             EnableLogging = enableLogging;
         }
@@ -80,10 +78,15 @@ namespace ChatWebApp
         }
         public void NewGame()
         {
+            SetLogger();
             if (EnableLogging) Log.Information("Resetting for a new game. The players are {0}, {1}, {2}, {3}.", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
             //Random rnd = new Random();
             lock (rnd) FirstPlayer = rnd.Next(4);
             //FirstPlayer = 0;
+            WaitDeal = false;
+            WaitCall = false;
+            WaitCard = false;
+            IsNewRound = true;
             EWTotal = 0;
             NSTotal = 0;
             ScoreHistory = new List<int[]>();
@@ -149,14 +152,14 @@ namespace ChatWebApp
                 masterDeck.RemoveAt(p);
             }
 
-            //Deck = new List<string> {"c1-10", "c1-10", "c1-10", "c1-10", "c1-10",
-            //    "c2-07", "c3-07", "c4-07", "c2-08", "c2-08",
-            //    "c3-08", "c4-08", "c2-09", "c2-09", "c3-09",
-            //    "c4-09", "c3-10", "c2-10", "c3-09", "c4-06",
-            //    "c1-10", "c1-10", "c1-10",
+            //Deck = new List<string> {"c1-06", "c1-07", "c2-07", "c3-06", "c4-07",
+            //    "c1-08", "c1-07", "c2-07", "c3-06", "c4-07",
+            //    "c1-06", "c1-07", "c2-07", "c3-06", "c4-07",
+            //    "c1-06", "c1-07", "c2-07", "c3-06", "c4-07",
+            //    "c1-10", "c1-11", "c1-12",
             //    "c4-11", "c4-12", "c2-12",
             //    "c3-12", "c4-12", "c4-06",
-            //    "c2-06", "c3-06", "c4-06" };
+            //    "c2-06", "c3-07", "c4-06" };
 
             if (EnableLogging) Log.Information("Shuffled deck: " + String.Join(",", Deck) + ".");
         }
@@ -253,7 +256,8 @@ namespace ChatWebApp
                 if (suit > 0 && suit < 7) Log.Information(GetDisplayName(Turn) + " called " + BelotHelpers.GetSuitNameFromNumber(suit) + ".");
                 else if (suit == 7) Log.Information(GetDisplayName(Turn) + " doubled.");
                 else if (suit == 8) Log.Information(GetDisplayName(Turn) + " redoubled.");
-                else Log.Information(GetDisplayName(Turn) + " passed.");
+                else if (suit == 0) Log.Information(GetDisplayName(Turn) + " passed.");
+                else Log.Information(GetDisplayName(Turn) + " called five-under-nine.");
             }
 
             SuitCall.Add(suit);
@@ -262,7 +266,7 @@ namespace ChatWebApp
             {
                 EWCalled = Turn == 0 || Turn == 2;
                 Caller = Turn;
-                if (suit < 7)
+                if (suit < 7 || suit == 9)
                 {
                     RoundSuit = suit;
                     Multiplier = 1;
@@ -271,7 +275,7 @@ namespace ChatWebApp
                 {
                     Multiplier = 2;
                 }
-                else
+                else if (suit == 8)
                 {
                     Multiplier = 4;
                 }
@@ -280,17 +284,11 @@ namespace ChatWebApp
 
         public bool SuitDecided()
         {
+            if (RoundSuit == 9) return true;
             if (SuitCall.Count > 3)
             {
                 if (string.Join("", SuitCall.GetRange(SuitCall.Count - 3, 3).ToArray()) == "000")
                 {
-                    //if (SuitCall[SuitCall.Count - 4] == 0)
-                    //{
-                    //    for (int i = 0; i < 4; i++) // 4 passes
-                    //    {
-                    //        Hand[i] = new List<string>();
-                    //    }
-                    //}
                     return true;
                 }
             }

@@ -5,8 +5,8 @@
 
 @media only screen and (max-width: 767px) {
     :root {
-        --card-height: 100px;
-        --card-width: 70px;
+        --card-height: 120px;
+        --card-width: 84px;
         --emote-font-size: 0.7em;
     }
 }
@@ -169,6 +169,16 @@ td:first-child {
     transform: rotate(180deg) translate(0, -62%);
 }
 
+.fingerprint {
+    position: absolute;
+    top: 75%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 3em;
+    color: darkblue;
+    opacity: 30%;
+}
+
 .dealer-marker {
     height: 2em;
     width: 2em;
@@ -217,6 +227,15 @@ td:first-child {
     font-weight: 500;
     /*visibility: hidden;*/
     overflow: hidden;
+}
+
+.modal-low {
+    position: absolute;
+    transform: translate(-50%, -100%) !important;
+    left: 50%;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 300px !important;
 }
 
 .round-btn-pulse {
@@ -425,6 +444,28 @@ td:first-child {
 
 /* ----- Cards ----- */
 
+/*.circle {
+    z-index:0;
+    position: absolute;
+    top: 0;*/
+    /*width: 50px;
+    height: 50px;*/
+    /*-webkit-border-radius: 25px;
+    -moz-border-radius: 25px;*/
+    /*border-radius: 50%;
+    border: 3px solid black;*/
+    /*background: red;*/
+    /*transform: translateX(-50%);
+}
+
+.line {
+    z-index: 500;
+    position: absolute;
+    transform: translateX(-50%);
+    width: 1px;
+    border: 1px solid black;
+}*/
+
 .miniboard-lr {
     height: auto;
     width: calc(0.5*1.3*var(--card-height)) !important;
@@ -447,7 +488,7 @@ td:first-child {
     top: 0%;
     height: var(--card-height);
     width: var(--card-width);
-    transform-origin: center 350%;
+    /*transform-origin: center 350%;*/
 }
 
 .mini-belot-card {

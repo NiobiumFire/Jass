@@ -152,7 +152,7 @@ namespace ChatWebApp
 
         public static int DetermineCardPower(string card, int roundSuit, int trickSuit)
         {
-            int value = 0;
+            int value;
 
             int[] offNonTrumpSuit = { 1, 2, 3, 7, 4, 5, 6, 8 }; // to help bots choose a card when losing
             int[] offTrumpSuit = { 1, 2, 7, 5, 8, 3, 4, 6 }; // to help bots choose a card when losing
@@ -200,6 +200,17 @@ namespace ChatWebApp
             }
 
             return value;
+        }
+
+        public static bool FiveUnderNine(List<string> hand)
+        {
+            int underNine = 0;
+            for (int i = 0; i < hand.Count(); i++)
+            {
+                if (Int32.Parse(hand[i].Substring(3, 2)) < 8) underNine++;
+            }
+            if (underNine == 5) return true;
+            return false;
         }
     }
 }
