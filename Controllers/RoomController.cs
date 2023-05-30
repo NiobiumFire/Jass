@@ -5,7 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace ChatWebApp.Controllers
+namespace BelotWebApp.Controllers
 {
 
     public static class URLHelper
@@ -37,7 +37,7 @@ namespace ChatWebApp.Controllers
                 //return Redirect(Request.Url.ToString().Substring(0, Request.Url.ToString().Length - 3) + id);
                 return Redirect(URLHelper.BuildURL(Request, id));
             }
-            else if (ChatRoom.games.Where(g => g.GameId == id).Count() > 0)
+            else if (ChatRoom.games.Where(g => g.RoomId == id).Count() > 0)
             {
                 ChatRoom.log.Information("Entering room: " + id);
                 return View();

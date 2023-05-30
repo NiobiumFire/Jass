@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatWebApp", "ChatWebApp.csproj", "{8F4678AB-10DA-47EA-A544-F7508E9F57BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BelotWebApp", "BelotWebApp.csproj", "{8F4678AB-10DA-47EA-A544-F7508E9F57BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

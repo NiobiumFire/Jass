@@ -5,14 +5,14 @@ using System.Web;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using Microsoft.AspNet.Identity;
-using ChatWebApp.Models;
+using BelotWebApp.Models;
 using System.Web.Script.Serialization;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Concurrent;
 using Serilog;
 
-namespace ChatWebApp
+namespace BelotWebApp
 {
     [HubName("trainingroom")] // Attribute -> client-side name for the class may differ from server-side name
     public class TrainingRoom : Hub
@@ -328,7 +328,7 @@ namespace ChatWebApp
                     if (games[i].Players[0].Agent == agents[0] || games[i].Players[1].Agent == agents[0] ||
                         games[i].Players[2].Agent == agents[0] || games[i].Players[3].Agent == agents[0])
                     {
-                        bestGuid = games[i].GameId;
+                        bestGuid = games[i].RoomId;
                         break;
                     }
                 }

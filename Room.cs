@@ -9,7 +9,7 @@ using System.Threading;
 using Serilog;
 using System.Configuration;
 
-namespace ChatWebApp
+namespace BelotWebApp
 {
     [HubName("room")] // Attribute -> client-side name for the class may differ from server-side name
     public class ChatRoom : Hub
@@ -39,11 +39,11 @@ namespace ChatWebApp
             if (game.IsNewGame)
             {
                 game.IsNewGame = false;
-                Clients.Group(GetGameId()).DisableNewGame();
-                Clients.Group(GetGameId()).CloseModalsAndButtons();
-                Clients.Group(GetGameId()).DisableRadios();
+                Clients.Group(GetRoomId()).DisableNewGame();
+                Clients.Group(GetRoomId()).CloseModalsAndButtons();
+                Clients.Group(GetRoomId()).DisableRadios();
                 game.NewGame();
-                Clients.Group(GetGameId()).NewGame(); // reset score table (offcanvas), reset score totals (card table), hide winner markers
+                Clients.Group(GetRoomId()).NewGame(game.GameId); // reset score table (offcanvas), reset score totals (card table), hide winner markers, set game id
             }
             while (((game.EWTotal < scoreTarget && game.NSTotal < scoreTarget) || game.EWTotal == game.NSTotal || game.Capot) && !game.WaitDeal && !game.WaitCall & !game.WaitCard)
             {
@@ -62,9 +62,9 @@ namespace ChatWebApp
             {
                 game.IsNewRound = false;
                 game.NewRound();
-                Clients.Group(GetGameId()).SetTurnIndicator(game.Turn); // show dealer
-                Clients.Group(GetGameId()).SetDealerMarker(game.Turn);
-                Clients.Group(GetGameId()).NewRound(); // reset table, reset board, disable cards, reset suit selection 
+                Clients.Group(GetRoomId()).SetTurnIndicator(game.Turn); // show dealer
+                Clients.Group(GetRoomId()).SetDealerMarker(game.Turn);
+                Clients.Group(GetRoomId()).NewRound(); // reset table, reset board, disable cards, reset suit selection 
                 if (game.Players[game.Turn].IsHuman)
                 {
                     game.WaitDeal = true;
@@ -95,7 +95,7 @@ namespace ChatWebApp
             {
                 while (!game.SuitDecided() && !game.WaitCall)
                 {
-                    Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
+                    Clients.Group(GetRoomId()).SetTurnIndicator(game.Turn);
                     CallController();
                 }
             }
@@ -112,7 +112,7 @@ namespace ChatWebApp
                 {
                     SysAnnounce("The round will be played in " + BelotHelpers.GetSuitNameFromNumber(game.RoundSuit) + ".");
                     game.Turn = game.FirstPlayer;
-                    Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
+                    Clients.Group(GetRoomId()).SetTurnIndicator(game.Turn);
                     game.Deal(3);
                     for (int i = 0; i < 4; i++)
                     {
@@ -132,20 +132,20 @@ namespace ChatWebApp
                 }
                 while (game.NumCardsPlayed < 32 && !game.WaitCard)
                 {
-                    Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
+                    Clients.Group(GetRoomId()).SetTurnIndicator(game.Turn);
                     TrickController();
                 }
                 if (game.NumCardsPlayed == 32)
                 {
-                    Clients.Group(GetGameId()).NewRound();
+                    Clients.Group(GetRoomId()).NewRound();
                     SysAnnounce(game.FinalisePoints());
                     //HubFinalisePoints();
                     game.ScoreHistory.Add(new int[] { game.EWRoundPoints, game.NSRoundPoints });
-                    Clients.Group(GetGameId()).AppendScoreHistory(game.EWRoundPoints, game.NSRoundPoints);
-                    Clients.Group(GetGameId()).UpdateScoreTotals(game.EWTotal, game.NSTotal);
-                    Clients.Group(GetGameId()).ShowRoundSummary(game.TrickPoints, game.DeclarationPoints, game.BelotPoints, game.Result, game.EWRoundPoints, game.NSRoundPoints);
+                    Clients.Group(GetRoomId()).AppendScoreHistory(game.EWRoundPoints, game.NSRoundPoints);
+                    Clients.Group(GetRoomId()).UpdateScoreTotals(game.EWTotal, game.NSTotal);
+                    Clients.Group(GetRoomId()).ShowRoundSummary(game.TrickPoints, game.DeclarationPoints, game.BelotPoints, game.Result, game.EWRoundPoints, game.NSRoundPoints);
                     Thread.Sleep(game.RoundSummaryDelay);
-                    Clients.Group(GetGameId()).HideRoundSummary();
+                    Clients.Group(GetRoomId()).HideRoundSummary();
                     game.IsNewRound = true;
                 }
             }
@@ -205,9 +205,9 @@ namespace ChatWebApp
                     game.WaitCard = true;
                     if (game.PlayedCards.Where(c => c != "c0-00").Count() == 0)
                     {
-                        if (game.GetWinners(game.Turn).Where(w => w == 2).Count() == game.Hand[game.Turn].Where(c => c != "c0-00").Count())
+                        if (game.GetWinners(game.Turn).Where(w => w == 2).Count() == game.Hand[game.Turn].Where(c => c != "c0-00").Count() && game.NumCardsPlayed > 4)
                         {
-                            Clients.Client(game.Players[game.Turn].ConnectionId).ShowThrowBtn(); ;
+                            Clients.Client(game.Players[game.Turn].ConnectionId).ShowThrowBtn();
                         }
                     }
                     Clients.Client(game.Players[game.Turn].ConnectionId).enableCards(validCards);
@@ -256,12 +256,12 @@ namespace ChatWebApp
                     game.NSWonATrick = true;
                 }
 
-                Clients.Group(GetGameId()).ShowTrickWinner(winner);
+                Clients.Group(GetRoomId()).ShowTrickWinner(winner);
                 Thread.Sleep(1000);
 
                 if (game.NumCardsPlayed < 32)
                 {
-                    Clients.Group(GetGameId()).ResetTable();
+                    Clients.Group(GetRoomId()).ResetTable();
                     game.Turn = winner;
                     game.PlayedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
                 }
@@ -281,22 +281,22 @@ namespace ChatWebApp
             if (game.EWTotal > game.NSTotal) winner = "E/W";
             SysAnnounce(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + ".");
 
-            Clients.Group(GetGameId()).SetDealerMarker(4);
-            Clients.Group(GetGameId()).NewRound();
-            Clients.Group(GetGameId()).SetTurnIndicator(4);
+            Clients.Group(GetRoomId()).SetDealerMarker(4);
+            Clients.Group(GetRoomId()).NewRound();
+            Clients.Group(GetRoomId()).SetTurnIndicator(4);
             // fancy animation and modal to indicate winning team
             if (game.EWTotal > game.NSTotal)
             {
-                Clients.Group(GetGameId()).ShowGameWinner(0);
-                Clients.Group(GetGameId()).ShowGameWinner(2);
+                Clients.Group(GetRoomId()).ShowGameWinner(0);
+                Clients.Group(GetRoomId()).ShowGameWinner(2);
             }
             else
             {
-                Clients.Group(GetGameId()).ShowGameWinner(1);
-                Clients.Group(GetGameId()).ShowGameWinner(3);
+                Clients.Group(GetRoomId()).ShowGameWinner(1);
+                Clients.Group(GetRoomId()).ShowGameWinner(3);
             }
-            Clients.Group(GetGameId()).EnableNewGame();
-            Clients.Group(GetGameId()).EnableRadios();
+            Clients.Group(GetRoomId()).EnableNewGame();
+            Clients.Group(GetRoomId()).EnableRadios();
             game.IsNewGame = true;
             game.CloseLog();
             log.Information("Leaving EndGame.");
@@ -342,8 +342,8 @@ namespace ChatWebApp
 
             if (suit > 0)
             {
-                Clients.Group(GetGameId()).SuitNominated(suit);
-                Clients.Group(GetGameId()).setCallerIndicator(game.Turn);
+                Clients.Group(GetRoomId()).SuitNominated(suit);
+                Clients.Group(GetRoomId()).setCallerIndicator(game.Turn);
                 if (suit < 7)
                 {
                     message = username + " called " + BelotHelpers.GetSuitNameFromNumber(suit) + ".";
@@ -364,7 +364,7 @@ namespace ChatWebApp
 
             SysAnnounce(message);
             string[] seatPos = new string[] { "w", "n", "e", "s" };
-            Clients.Group(GetGameId()).EmoteSuit(suit, seatPos[game.Turn]);
+            Clients.Group(GetRoomId()).EmoteSuit(suit, seatPos[game.Turn]);
             Emote(seatPos[game.Turn], game.BotDelay);
             log.Information("Leaving AnnounceSuit.");
         }
@@ -408,10 +408,10 @@ namespace ChatWebApp
         {
             log.Information("Entering CardPlayEnd.");
             BelotGame game = GetGame();
-            Clients.Group(GetGameId()).SetTableCard(game.Turn, game.PlayedCards[game.Turn]);
+            Clients.Group(GetRoomId()).SetTableCard(game.Turn, game.PlayedCards[game.Turn]);
             Thread.Sleep(game.BotDelay);
             if (game.NumCardsPlayed % 4 != 0) if (--game.Turn == -1) game.Turn = 3;
-            if (game.NumCardsPlayed < 32) Clients.Group(GetGameId()).SetTurnIndicator(game.Turn);
+            if (game.NumCardsPlayed < 32) Clients.Group(GetRoomId()).SetTurnIndicator(game.Turn);
             log.Information("Leaving CardPlayEnd.");
         }
 
@@ -468,7 +468,7 @@ namespace ChatWebApp
             if (emotes.Count > 0)
             {
                 string[] seatPos = new string[] { "w", "n", "e", "s" };
-                Clients.Group(GetGameId()).SetExtrasEmote(new JavaScriptSerializer().Serialize(emotes), seatPos[game.Turn]);
+                Clients.Group(GetRoomId()).SetExtrasEmote(new JavaScriptSerializer().Serialize(emotes), seatPos[game.Turn]);
                 Emote(seatPos[game.Turn], game.BotDelay);
             }
             log.Information("Leaving AnnounceExtras.");
@@ -477,9 +477,9 @@ namespace ChatWebApp
         public void Emote(string seat, int duration)
         {
             log.Information("Entering Emote.");
-            Clients.Group(GetGameId()).ShowEmote(seat);
+            Clients.Group(GetRoomId()).ShowEmote(seat);
             Thread.Sleep(duration);
-            Clients.Group(GetGameId()).HideEmote(seat);
+            Clients.Group(GetRoomId()).HideEmote(seat);
             log.Information("Leaving Emote.");
         }
 
@@ -512,9 +512,9 @@ namespace ChatWebApp
             game.NumCardsPlayed = 32;
             game.WaitCard = false;
 
-            Clients.Group(GetGameId()).throwCards(GetDisplayName(game.Turn), new JavaScriptSerializer().Serialize(game.Hand));
+            Clients.Group(GetRoomId()).throwCards(GetDisplayName(game.Turn), new JavaScriptSerializer().Serialize(game.Hand));
             Thread.Sleep(3500);
-            Clients.Group(GetGameId()).CloseThrowModal();
+            Clients.Group(GetRoomId()).CloseThrowModal();
 
             GameController();
 
@@ -604,16 +604,19 @@ namespace ChatWebApp
                 if (game.Spectators.Where(s => s.Username == requestor).Count() == 1) game.Spectators.Remove(game.Spectators.Where(s => s.Username == requestor).First());
                 game.Players[position] = new Player(requestor, Context.ConnectionId, true);
                 UpdateConnectedUsers();
-                Clients.OthersInGroup(GetGameId()).SeatBooked(position, requestor, false);
+                Clients.OthersInGroup(GetRoomId()).SeatBooked(position, requestor, false);
                 Clients.Caller.SeatBooked(position, requestor, true);
+                Clients.Caller.EnableRotation(true);
+                string[] scoreSummary = { "Us", "Them" };
+                Clients.Caller.SetScoreTitles(scoreSummary[(position + 1) % 2], scoreSummary[position % 2]);
 
-                Clients.OthersInGroup(GetGameId()).EnableSeatOptions(position, false);
-                Clients.Group(GetGameId()).EnableOccupySeat(position, false);
-                Clients.OthersInGroup(GetGameId()).EnableAssignBotToSeat(position, false);
+                Clients.OthersInGroup(GetRoomId()).EnableSeatOptions(position, false);
+                Clients.Group(GetRoomId()).EnableOccupySeat(position, false);
+                Clients.OthersInGroup(GetRoomId()).EnableAssignBotToSeat(position, false);
                 Clients.Caller.EnableAssignBotToSeat(position, true);
                 Clients.Caller.EnableVacateSeat(position, true);
 
-                Clients.Group(GetGameId()).SetBotBadge(position, false);
+                Clients.Group(GetRoomId()).SetBotBadge(position, false);
                 //Clients.Caller.SetRadio(seat[position]);
                 //log.Information(requestor + " occupied the " + seat[position] + " seat.");
             }
@@ -623,9 +626,9 @@ namespace ChatWebApp
                 string botName = GetBotName(position);
                 game.Players[position] = new Player(botGUID, "", false);
                 UpdateConnectedUsers();
-                Clients.Group(GetGameId()).SeatBooked(position, botName, false);
-                Clients.Group(GetGameId()).SetBotBadge(position, true);
-                Clients.Group(GetGameId()).EnableAssignBotToSeat(position, false);
+                Clients.Group(GetRoomId()).SeatBooked(position, botName, false);
+                Clients.Group(GetRoomId()).SetBotBadge(position, true);
+                Clients.Group(GetRoomId()).EnableAssignBotToSeat(position, false);
                 Clients.Caller.EnableVacateSeat(position, false);
                 //log.Information(botName + " occupied the " + seat[position] + " seat.");
             }
@@ -638,11 +641,11 @@ namespace ChatWebApp
                 game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
                 game.Players[position] = new Player(botGUID, "", false);
                 UpdateConnectedUsers();
-                Clients.Group(GetGameId()).SeatBooked(position, botName, false);
+                Clients.Group(GetRoomId()).SeatBooked(position, botName, false);
                 //Clients.Caller.SetRadio("x");
-                Clients.Group(GetGameId()).SetBotBadge(position, true);
-                Clients.Group(GetGameId()).EnableOccupySeat(position, true);
-                Clients.Group(GetGameId()).EnableAssignBotToSeat(position, false);
+                Clients.Group(GetRoomId()).SetBotBadge(position, true);
+                Clients.Group(GetRoomId()).EnableOccupySeat(position, true);
+                Clients.Group(GetRoomId()).EnableAssignBotToSeat(position, false);
                 //log.Information(botName + " occupied the " + seat[position] + " seat.");
             }
             // if human tries to occupy his own seat, do nothing
@@ -651,7 +654,7 @@ namespace ChatWebApp
                 Clients.Caller.SeatAlreadyBooked(occupier);
             }
 
-            if (game.Players.Where(s => s.Username != "").Count() == 4) Clients.Group(GetGameId()).EnableNewGame();
+            if (game.Players.Where(s => s.Username != "").Count() == 4) Clients.Group(GetRoomId()).EnableNewGame();
             log.Information("Leaving BookSeat.");
         }
 
@@ -666,15 +669,17 @@ namespace ChatWebApp
                 int position = Array.IndexOf(game.Players, game.Players.Where(p => p.Username == username).First());
                 if (game.IsNewGame)
                 {
-                    Clients.Group(GetGameId()).DisableNewGame();
+                    Clients.Group(GetRoomId()).DisableNewGame();
                     game.Players[position] = new Player();
                 }
                 else game.Players[position].IsDisconnected = true;
-                Clients.Group(GetGameId()).SeatUnbooked(position);
-                Clients.Group(GetGameId()).EnableSeatOptions(position, true);
-                Clients.Group(GetGameId()).EnableOccupySeat(position, true);
-                Clients.Group(GetGameId()).EnableAssignBotToSeat(position, true);
-                Clients.Group(GetGameId()).EnableVacateSeat(position, false);
+                Clients.Caller.EnableRotation(false);
+                Clients.Caller.SetScoreTitles("N/S", "E/W");
+                Clients.Group(GetRoomId()).SeatUnbooked(position);
+                Clients.Group(GetRoomId()).EnableSeatOptions(position, true);
+                Clients.Group(GetRoomId()).EnableOccupySeat(position, true);
+                Clients.Group(GetRoomId()).EnableAssignBotToSeat(position, true);
+                Clients.Group(GetRoomId()).EnableVacateSeat(position, false);
                 //string[] seat = { "West", "North", "East", "South" };
                 //log.Information(username + " vacated the " + seat[position] + " seat.");
             }
@@ -692,14 +697,14 @@ namespace ChatWebApp
         [HubMethodName("announce")] //client-side name for the method may differ from server-side name
         public void Announce(string message)
         {
-            Clients.Group(GetGameId()).Announce(MsgHead() + " >> " + message);
-            Clients.Group(GetGameId()).showChatNotification();
+            Clients.Group(GetRoomId()).Announce(MsgHead() + " >> " + message);
+            Clients.Group(GetRoomId()).showChatNotification();
         }
 
         public void SysAnnounce(string message)
         {
             //log.Information(message);
-            Clients.Group(GetGameId()).Announce(GetServerDateTime() + " >> " + message);
+            Clients.Group(GetRoomId()).Announce(GetServerDateTime() + " >> " + message);
         }
 
         // -------------------- Get Stuff --------------------
@@ -740,16 +745,16 @@ namespace ChatWebApp
             }
         }
 
-        public string GetGameId()
+        public string GetRoomId()
         {
-            allConnections.TryGetValue(Context.ConnectionId, out string gameId);
-            return gameId;
+            allConnections.TryGetValue(Context.ConnectionId, out string roomId);
+            return roomId;
         }
 
         public BelotGame GetGame()
         {
-            allConnections.TryGetValue(Context.ConnectionId, out string gameId);
-            return games.Where(i => i.GameId == gameId).First();
+            allConnections.TryGetValue(Context.ConnectionId, out string roomId);
+            return games.Where(i => i.RoomId == roomId).First();
         }
 
         // -------------------- Connection --------------------
@@ -761,7 +766,7 @@ namespace ChatWebApp
             Array.Sort(playerNames);
             string[] specNames = game.Spectators.Select(s => s.Username).ToArray();
             Array.Sort(specNames);
-            Clients.Group(GetGameId()).ConnectedUsers(playerNames, specNames);
+            Clients.Group(GetRoomId()).ConnectedUsers(playerNames, specNames);
             //Clients.Caller.ConnectedUsers(playerNames, specNames);
         }
 
@@ -828,6 +833,10 @@ namespace ChatWebApp
                 {
                     int pos = Array.IndexOf(game.Players, game.Players.Where(p => p.Username == GetCallerUsername()).First());
 
+                    Clients.Caller.EnableRotation(true);
+                    string[] scoreSummary = { "Us", "Them" };
+                    Clients.Caller.SetScoreTitles(scoreSummary[(pos + 1) % 2], scoreSummary[pos % 2]);
+
                     Clients.Caller.Deal(new JavaScriptSerializer().Serialize(game.Hand[pos]));
 
                     for (int i = 0; i < 8; i++)
@@ -888,13 +897,17 @@ namespace ChatWebApp
         {
             log.Information("Entering OnConnected.");
 
-            var gameId = Context.Headers["Referer"].Substring(Context.Headers["Referer"].Length - 36, 36);
+            var roomId = Context.Headers["Referer"].Substring(Context.Headers["Referer"].Length - 36, 36);
 
-            allConnections.Add(Context.ConnectionId, gameId);
+            Clients.Caller.SetRoomId(roomId);
 
-            await Groups.Add(Context.ConnectionId, gameId);
+            allConnections.Add(Context.ConnectionId, roomId);
+
+            await Groups.Add(Context.ConnectionId, roomId);
 
             BelotGame game = GetGame();
+
+            Clients.Caller.SetGameId(game.GameId);
 
             string username = GetCallerUsername();
             IEnumerable<Player> players = game.Players.Where(p => p.Username == username);
@@ -904,7 +917,7 @@ namespace ChatWebApp
                 players.First().ConnectionId = Context.ConnectionId;
                 players.First().IsDisconnected = false;
                 int pos = Array.IndexOf(game.Players, players.First());
-                Clients.OthersInGroup(GetGameId()).SeatBooked(pos, username, false);
+                Clients.OthersInGroup(GetRoomId()).SeatBooked(pos, username, false);
             }
             UpdateConnectedUsers();
 
@@ -915,6 +928,7 @@ namespace ChatWebApp
             log.Information("Leaving OnConnected.");
             await base.OnConnected();
         }
+
         public override Task OnDisconnected(bool stopCalled = true)
         {
             log.Information("Entering OnDisconnected.");

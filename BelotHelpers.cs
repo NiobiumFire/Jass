@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace ChatWebApp
+namespace BelotWebApp
 {
     public class Spectator // don't technically need a connection Id because nothing is pushed to spectators exclusively, but it may be needed for Groups when multiple different rooms are implemented
     {

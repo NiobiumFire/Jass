@@ -3,6 +3,14 @@
     --small-card-width: 66.5px;
 }
 
+@media (hover: none) {
+    .btn.nohover:hover {
+        color: rgb(255, 255, 255) !important;
+        background-color: rgb(33, 37, 41) !important;
+        border-color: rgb(33, 37, 41) !important;
+    }
+}
+
 @media only screen and (max-width: 767px) {
     :root {
         --card-height: 120px;
@@ -33,14 +41,14 @@
 /* ----- Icons ----- */
 
 .i-alltrumps {
-    content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="162.000000pt" height="164.000000pt" viewBox="0 0 162.000000 164.000000" preserveAspectRatio="xMidYMid meet"> <g transform="translate(0.000000,164.000000) scale(0.100000,-0.100000)" fill="rgb(139 0 139)" stroke="none"> <path d="M1348 1569 c-15 -11 -54 -30 -85 -41 -89 -32 -201 -28 -414 16 -203 41 -284 45 -362 16 -114 -43 -197 -149 -197 -253 0 -69 19 -111 63 -137 45 -28 89 -25 126 6 41 35 44 92 5 131 -23 23 -31 25 -75 20 -43 -5 -49 -4 -49 12 0 27 63 79 105 87 48 9 100 -1 215 -37 100 -33 214 -42 295 -26 l39 9 -62 -47 c-116 -87 -176 -179 -188 -287 l-6 -57 -31 16 c-41 21 -145 29 -190 14 -38 -13 -117 -66 -117 -79 0 -4 7 -15 15 -26 13 -18 16 -18 56 -2 61 25 111 14 165 -36 39 -36 85 -121 72 -133 -3 -3 -24 2 -48 10 -58 21 -119 19 -184 -6 -63 -23 -70 -31 -62 -64 6 -22 10 -24 80 -23 63 0 83 -4 126 -28 150 -81 217 -294 124 -388 -38 -37 -93 -42 -194 -16 -106 27 -163 23 -227 -16 -48 -30 -93 -94 -108 -156 -6 -23 -3 -28 19 -34 21 -5 32 0 55 25 37 40 70 40 186 1 49 -17 109 -30 134 -30 107 0 254 72 384 188 103 91 166 189 199 308 20 73 21 104 23 399 1 297 2 324 22 376 23 64 77 152 135 221 l39 47 -20 20 c-26 26 -29 26 -63 0z m-181 -199 c-47 -56 -82 -123 -108 -210 -21 -69 -23 -102 -28 -425 -6 -345 -6 -351 -30 -400 -30 -59 -80 -116 -127 -144 l-35 -21 25 33 c56 74 59 93 66 487 7 382 11 415 58 505 36 71 81 124 143 170 34 25 63 45 66 45 2 0 -11 -18 -30 -40z" /> </g> </svg>');
+    content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="137pt" height="151pt" viewBox="0 0 137 151" preserveAspectRatio="xMidYMid meet"> <g transform="translate(0.000000,164.000000) scale(0.100000,-0.100000)" fill="rgb(139 0 139)" stroke="none"> <path d="M1348 1569 c-15 -11 -54 -30 -85 -41 -89 -32 -201 -28 -414 16 -203 41 -284 45 -362 16 -114 -43 -197 -149 -197 -253 0 -69 19 -111 63 -137 45 -28 89 -25 126 6 41 35 44 92 5 131 -23 23 -31 25 -75 20 -43 -5 -49 -4 -49 12 0 27 63 79 105 87 48 9 100 -1 215 -37 100 -33 214 -42 295 -26 l39 9 -62 -47 c-116 -87 -176 -179 -188 -287 l-6 -57 -31 16 c-41 21 -145 29 -190 14 -38 -13 -117 -66 -117 -79 0 -4 7 -15 15 -26 13 -18 16 -18 56 -2 61 25 111 14 165 -36 39 -36 85 -121 72 -133 -3 -3 -24 2 -48 10 -58 21 -119 19 -184 -6 -63 -23 -70 -31 -62 -64 6 -22 10 -24 80 -23 63 0 83 -4 126 -28 150 -81 217 -294 124 -388 -38 -37 -93 -42 -194 -16 -106 27 -163 23 -227 -16 -48 -30 -93 -94 -108 -156 -6 -23 -3 -28 19 -34 21 -5 32 0 55 25 37 40 70 40 186 1 49 -17 109 -30 134 -30 107 0 254 72 384 188 103 91 166 189 199 308 20 73 21 104 23 399 1 297 2 324 22 376 23 64 77 152 135 221 l39 47 -20 20 c-26 26 -29 26 -63 0z m-181 -199 c-47 -56 -82 -123 -108 -210 -21 -69 -23 -102 -28 -425 -6 -345 -6 -351 -30 -400 -30 -59 -80 -116 -127 -144 l-35 -21 25 33 c56 74 59 93 66 487 7 382 11 415 58 505 36 71 81 124 143 170 34 25 63 45 66 45 2 0 -11 -18 -30 -40z" /> </g> </svg>');
     display: block;
     height: 1em;
     width: 1em;
 }
 
 .i-notrumps {
-    content: url('data:image/svg+xml;utf8,<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="137.000000pt" height="151.000000pt" viewBox="0 0 137.000000 151.000000" preserveAspectRatio="xMidYMid meet"> <g transform="translate(0.000000,151.000000) scale(0.100000,-0.100000)" fill="rgb(139 0 139)" stroke="none"> <path d="M581 1468 c-75 -10 -186 -54 -251 -99 -61 -42 -127 -126 -159 -202 -23 -54 -26 -76 -26 -172 0 -153 20 -200 131 -313 l84 -85 -52 -71 c-139 -189 -178 -262 -178 -335 0 -67 46 -100 101 -71 24 13 24 23 -2 86 -31 73 -22 88 44 81 65 -6 151 -45 276 -122 84 -52 96 -57 115 -45 12 7 85 62 163 122 78 59 144 108 147 108 2 0 8 -21 11 -47 4 -27 15 -66 24 -88 19 -43 82 -105 107 -105 17 0 234 179 234 193 0 9 -25 37 -34 37 -3 0 -21 -11 -41 -24 -44 -30 -62 -25 -74 23 -12 44 -35 856 -25 908 10 61 47 116 96 142 23 13 44 25 46 26 10 8 -13 55 -27 55 -24 0 -109 -52 -162 -98 l-45 -40 -50 34 c-65 45 -188 92 -271 104 -78 11 -94 11 -182 -2z m163 -183 c32 -8 66 -20 77 -26 19 -10 18 -11 -6 -44 l-26 -34 -47 15 c-131 39 -261 -14 -308 -125 -31 -73 -8 -115 35 -64 14 17 36 35 48 42 28 14 100 13 136 -2 l29 -12 -132 -180 c-72 -99 -137 -186 -144 -193 -21 -21 -108 65 -148 146 -29 59 -33 76 -32 147 0 60 6 92 22 127 74 164 297 255 496 203z m201 -105 c18 -20 20 -39 23 -241 l4 -219 -221 0 -221 0 78 108 c307 422 290 404 337 352z m35 -684 l0 -65 -101 -75 c-83 -62 -104 -74 -122 -67 -39 16 -402 173 -405 176 -2 2 10 24 28 49 l31 46 284 0 285 0 0 -64z"/> </g> </svg>');
+    content: url('data:image/svg+xml;utf8,<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="137pt" height="151pt" viewBox="0 0 137 151" preserveAspectRatio="xMidYMid meet"> <g transform="translate(0.000000,151.000000) scale(0.100000,-0.100000)" fill="rgb(139 0 139)" stroke="none"> <path d="M581 1468 c-75 -10 -186 -54 -251 -99 -61 -42 -127 -126 -159 -202 -23 -54 -26 -76 -26 -172 0 -153 20 -200 131 -313 l84 -85 -52 -71 c-139 -189 -178 -262 -178 -335 0 -67 46 -100 101 -71 24 13 24 23 -2 86 -31 73 -22 88 44 81 65 -6 151 -45 276 -122 84 -52 96 -57 115 -45 12 7 85 62 163 122 78 59 144 108 147 108 2 0 8 -21 11 -47 4 -27 15 -66 24 -88 19 -43 82 -105 107 -105 17 0 234 179 234 193 0 9 -25 37 -34 37 -3 0 -21 -11 -41 -24 -44 -30 -62 -25 -74 23 -12 44 -35 856 -25 908 10 61 47 116 96 142 23 13 44 25 46 26 10 8 -13 55 -27 55 -24 0 -109 -52 -162 -98 l-45 -40 -50 34 c-65 45 -188 92 -271 104 -78 11 -94 11 -182 -2z m163 -183 c32 -8 66 -20 77 -26 19 -10 18 -11 -6 -44 l-26 -34 -47 15 c-131 39 -261 -14 -308 -125 -31 -73 -8 -115 35 -64 14 17 36 35 48 42 28 14 100 13 136 -2 l29 -12 -132 -180 c-72 -99 -137 -186 -144 -193 -21 -21 -108 65 -148 146 -29 59 -33 76 -32 147 0 60 6 92 22 127 74 164 297 255 496 203z m201 -105 c18 -20 20 -39 23 -241 l4 -219 -221 0 -221 0 78 108 c307 422 290 404 337 352z m35 -684 l0 -65 -101 -75 c-83 -62 -104 -74 -122 -67 -39 16 -402 173 -405 176 -2 2 10 24 28 49 l31 46 284 0 285 0 0 -64z"/> </g> </svg>');
     display: block;
     height: 1em;
     width: 1em;
@@ -88,6 +96,14 @@ td:first-child {
     outline: none;
 }
 
+.z--1 {
+    z-index: -1;
+}
+
+.z-1 {
+    z-index: 1;
+}
+
 .z-2 {
     z-index: 2;
 }
@@ -96,10 +112,18 @@ td:first-child {
     z-index: 3;
 }
 
+.z-4 {
+    z-index: 4;
+}
+
 /* ----- Card table ----- */
 
 .tableboard {
     background-color: rgba(13, 110, 253, 0.25);
+}
+
+.seatTransition {
+    transition: 1s ease-in-out !important;
 }
 
 .score-summary {
@@ -121,27 +145,28 @@ td:first-child {
     width: calc(50% - var(--card-width)*0.5) !important;
 }
 
+.player-marker {
+    display: flex;
+    position: absolute;
+    height: var(--card-height);
+    width: var(--card-width);
+    justify-content: center;
+    align-items: center;
+    /*    top: 0%;*/
+    /*left: 50%;*/
+    /* transform: translate(-250%, -50%) !important;*/
+    /*transform: translate(-100%,-100%);*/
+    /*z-index: 1;*/
+    /*background-color: red;*/
+}
+
 .player-name-marker {
     padding: 0 0.7rem 0 0.7rem !important;
     position: absolute;
     background-color: black;
-}
-
-.pnm-west {
-    transform: translate(-50%, -100%);
-}
-
-.pnm-north {
-    top: 0;
-    transform: translate(0, -105%);
-}
-
-.pnm-east {
-    transform: translate(-50%, -105%);
-}
-
-.pnm-south {
-    top: 99%;
+    width: auto;
+    font-size: 0.875em;
+    font-weight: 500 !important;
 }
 
 .bot-badge {
@@ -149,39 +174,109 @@ td:first-child {
     position: absolute;
     font-size: 18px !important;
     color: black !important;
+    transform: translate(0,-55%);
 }
 
-.bb-west {
-    transform: translate(-50%, -165%);
+.pnm-south span {
+    transform: rotate(180deg);
 }
 
-.bb-north {
-    top: 0;
-    transform: translate(0, -170%);
-}
-
-.bb-east {
-    transform: translate(-50%, -170%);
-}
-
-.bb-south {
-    top: 99%;
-    transform: rotate(180deg) translate(0, -62%);
+.winner-marker {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: black;
 }
 
 .fingerprint {
     position: absolute;
-    top: 75%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    font-size: 3em;
+    font-size: 3em !important;
     color: darkblue;
-    opacity: 30%;
+    opacity: 20%;
+    z-index: 3;
+    /*transition: 1s ease-in-out;*/
+}
+
+.fingerprint0 {
+    transform: translate(calc(-50% - 0.5*var(--card-width)), calc(-50% + 0.2*var(--card-height)));
+}
+
+.fingerprint1 {
+    transform: translate(calc(-50% + 0.5*var(--card-width)), calc(-50% - 0.3*var(--card-height)));
+}
+
+.fingerprint2 {
+    transform: translate(calc(-50% + 1.5*var(--card-width)), calc(-50% + 0.2*var(--card-height)));
+}
+
+.fingerprint3 {
+    transform: translate(calc(-50% + 0.5*var(--card-width)), calc(-50% + 0.7*var(--card-height)));
 }
 
 .dealer-marker {
     height: 2em;
     width: 2em;
+    transform: translate(-50%,-50%);
+    z-index: 3;
+    position: absolute;
+    /*transition: 1s ease-in-out;*/
+}
+
+.throw {
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    position: absolute;
+    margin: 0 !important;
+    padding: 0 !important;
+    /*padding-top: 1.5em !important;*/
+    padding-top: calc(0.12*var(--card-height)) !important;
+    padding-right: calc(0.3*var(--card-width)) !important;
+    height: calc(0.4*var(--card-height)) !important;
+    /*width: calc(4.8*var(--card-width)) !important;*/
+    z-index: 3;
+}
+
+.throw0 {
+    transform-origin: center bottom;
+    transform: translate(-50%, -100%) rotate(90deg);
+    top: 50% !important;
+    left: 0%;
+}
+
+.throw1 {
+    transform: translate(-50%, 0) rotate(180deg);
+    /*bottom: 100% !important;*/
+    left: 50%;
+}
+
+.throw2 {
+    transform-origin: center bottom;
+    transform: translate(50%, -100%) rotate(270deg);
+    top: 50% !important;
+    right: 0;
+}
+
+.throw3 {
+    transform: translate(-50%,0);
+    bottom: 0 !important;
+    left: 50%;
+}
+
+.mini-belot-card2 {
+    height: calc(0.6*var(--card-height)) !important;
+    width: calc(0.6*var(--card-width)) !important;
+    margin: 0 calc(-0.25*var(--card-width)) 0 0;
+}
+
+.mini-belot-card {
+    height: calc(0.5*var(--card-height)) !important;
+    width: calc(0.5*var(--card-width)) !important;
+    margin: 0 calc(-0.3*var(--card-width)) 0 0;
+    border: 1px solid gray;
+    border-radius: 12%;
 }
 
 .throw-cards-ctnr {
@@ -287,6 +382,7 @@ td:first-child {
 .cardboard {
     text-align: right;
     /*overflow-y: clip;*/
+    overflow: hidden;
     min-height: calc(1.3*var(--card-height));
     width: auto;
     background-color: rgba(25, 135, 84, 0.55);
@@ -314,39 +410,14 @@ td:first-child {
     }
 }
 
-/* ----- Mini Card board ----- */
-
-.mini-cardboard {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /*text-align: right;*/
-    overflow-y: clip;
-    overflow-x: visible;
-    height: calc(0.5*1.3*var(--card-height)) !important;
-    width: auto;
-    /*background-color: rgba(25, 135, 84, 0.55);*/
-    margin-right: 0;
-}
-
-.mini-cardboard-left {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /*text-align: right;*/
-    overflow-y: clip;
-    overflow-x: visible;
-    height: calc(0.5*1.3*var(--card-height));
-    width: auto;
-    /*background-color: rgba(25, 135, 84, 0.55);*/
-    margin-right: 0;
-}
-
 /* ----- Emotes ----- */
 
 .emote {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     --emote-color: #e6e830;
-    position: relative;
+    position: absolute;
     background: var(--emote-color);
     border-radius: .4em;
     /*height: 10px !important;*/
@@ -364,6 +435,7 @@ td:first-child {
 }
 
 .bubble-w {
+    left: 15px;
     font-size: var(--emote-font-size);
 }
 
@@ -383,6 +455,7 @@ td:first-child {
     }
 
 .bubble-n {
+    top: 15px;
     font-size: var(--emote-font-size);
 }
 
@@ -390,7 +463,7 @@ td:first-child {
         white-space: pre-wrap;
         content: '';
         position: absolute;
-        left: 50%;
+        left: 50% !important;
         top: 0;
         bottom: 40%;
         width: 0;
@@ -403,6 +476,7 @@ td:first-child {
     }
 
 .bubble-e {
+    right: 15px;
     font-size: var(--emote-font-size);
 }
 
@@ -423,6 +497,7 @@ td:first-child {
     }
 
 .bubble-s {
+    bottom: 15px;
     font-size: var(--emote-font-size);
 }
 
@@ -448,14 +523,14 @@ td:first-child {
     z-index:0;
     position: absolute;
     top: 0;*/
-    /*width: 50px;
+/*width: 50px;
     height: 50px;*/
-    /*-webkit-border-radius: 25px;
+/*-webkit-border-radius: 25px;
     -moz-border-radius: 25px;*/
-    /*border-radius: 50%;
+/*border-radius: 50%;
     border: 3px solid black;*/
-    /*background: red;*/
-    /*transform: translateX(-50%);
+/*background: red;*/
+/*transform: translateX(-50%);
 }
 
 .line {
@@ -466,19 +541,13 @@ td:first-child {
     border: 1px solid black;
 }*/
 
-.miniboard-lr {
-    height: auto;
-    width: calc(0.5*1.3*var(--card-height)) !important;
-}
-
-.miniboard-ud {
+.miniboard {
     height: calc(2*0.5*1.3*var(--card-height)) !important;
-    width: calc(200% - 2*0.5*1.3*var(--card-height));
 }
 
 .belot-card {
     position: relative;
-    z-index: 1;
+    /*z-index: -1;*/
     height: var(--card-height);
     width: var(--card-width);
 }
@@ -489,12 +558,7 @@ td:first-child {
     height: var(--card-height);
     width: var(--card-width);
     /*transform-origin: center 350%;*/
-}
-
-.mini-belot-card {
-    height: calc(0.5*var(--card-height)) !important;
-    width: calc(0.5*var(--card-width)) !important;
-    margin: 0 calc(-0.3*var(--card-width)) 0 0;
+    transition: 0.4s ease-in-out;
 }
 
 .deal-pulse {
@@ -521,24 +585,63 @@ td:first-child {
 
 /* ----- Training room ----- */
 
-.training-tableboard {
+.throw-t {
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    position: absolute;
+    margin: 0 !important;
+    padding: 0 !important;
+    /*padding-top: 1.5em !important;*/
+    padding-top: calc(0.01*var(--card-height)) !important;
+    padding-right: calc(0.3*var(--card-width)) !important;
+    height: calc(0.4*var(--card-height)) !important;
+    /*width: calc(4.8*var(--card-width)) !important;*/
+    z-index: 3;
+}
+
+.throw-t0 {
+    transform-origin: center bottom;
+    transform: translate(-50%, -100%) rotate(90deg);
+    top: 50% !important;
+    left: 0% !important;
+}
+
+.throw-t1 {
+    transform: translate(-50%, 0);
+    left: 50%;
+}
+
+.throw-t2 {
+    transform-origin: center bottom;
+    transform: translate(50%, -100%) rotate(270deg);
+    top: 50% !important;
+    right: 0;
+}
+
+.throw-t3 {
+    transform: translate(-50%,0);
+    bottom: 0 !important;
+    left: 50%;
+}
+
+.replay-tableboard {
+    display: flex;
+    flex-grow: 1;
     background-color: rgba(13, 110, 253, 0.25);
 }
 
-.training-cardboard {
-    /*padding: 50px 0px;*/
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    /*align-items: center;*/
-    text-align: right;
-    overflow-y: clip;
-    overflow-x: visible;
-    /*height: var(--small-card-height);*/
-    height: var(--small-card-width);
-    width: auto;
+.replay-cardboard-horizontal {
+    position: relative;
+    height: calc(0.4*var(--card-height)) !important;
     background-color: rgba(25, 135, 84, 0.55);
-    margin-right: 0;
+}
+
+.replay-cardboard-vertical {
+    position: relative;
+    width: calc(0.4*var(--card-height)) !important;
+    background-color: rgba(25, 135, 84, 0.55);
 }
 
 .training-cardboard-side {
@@ -558,11 +661,11 @@ td:first-child {
 }
 
 .training-card {
-    /*margin: 0 calc(((75% / 25) - 1px)-2%);*/
-    margin: 0 -10px 0 -10px;
+    margin: 0 calc(-0.3*var(--card-width)) 0 0;
     height: var(--small-card-height);
     width: var(--small-card-width);
-    /*margin-top: 5px;*/
+    border: 1px solid gray;
+    border-radius: 0.7em;
 }
 
 .training-card-side {

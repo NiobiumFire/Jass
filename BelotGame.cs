@@ -6,19 +6,20 @@ using System.Configuration;
 using System.Linq;
 using System.Web;
 
-namespace ChatWebApp
+namespace BelotWebApp
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players, string gameId, bool enableLogging)
+        public BelotGame(Player[] players, string roomId, bool enableLogging)
         {
             Players = players;
-            GameId = gameId;
+            RoomId = roomId;
             Spectators = new List<Spectator>();
             EnableLogging = enableLogging;
         }
 
-        public string GameId { get; set; }
+        public string RoomId { get; set; }
+        public string GameId { get; set; } = "";
         public Player[] Players { get; set; }
         public List<Spectator> Spectators { get; set; }
         public List<string> Deck { get; set; }
@@ -59,7 +60,6 @@ namespace ChatWebApp
         public bool WaitDeal { get; set; }
         public bool WaitCall { get; set; }
         public bool WaitCard { get; set; }
-        public string LogPath { get; set; }
         public Serilog.Core.Logger Log { get; set; }
         public bool EnableLogging { get; set; }
 
@@ -73,14 +73,14 @@ namespace ChatWebApp
         {
             if (EnableLogging)
             {
-                Log = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + Guid.NewGuid().ToString() + ".txt").CreateLogger();
+                Log = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + GameId + ".txt").CreateLogger();
             }
         }
         public void NewGame()
         {
+            GameId = Guid.NewGuid().ToString();
             SetLogger();
-            if (EnableLogging) Log.Information("Resetting for a new game. The players are {0}, {1}, {2}, {3}.", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
-            //Random rnd = new Random();
+            if (EnableLogging) Log.Information("Players: {0}, {1}, {2}, {3}", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
             lock (rnd) FirstPlayer = rnd.Next(4);
             //FirstPlayer = 0;
             WaitDeal = false;
@@ -96,7 +96,7 @@ namespace ChatWebApp
         {
             Rounds++;
             Turn = FirstPlayer;
-            if (EnableLogging) Log.Information("The dealer is " + GetDisplayName(Turn) + ".");
+            if (EnableLogging) Log.Information("Dealer: {0}", Turn);
 
             if (--FirstPlayer == -1) FirstPlayer = 3;
             Deck = new List<string>();
@@ -161,7 +161,7 @@ namespace ChatWebApp
             //    "c3-12", "c4-12", "c4-06",
             //    "c2-06", "c3-07", "c4-06" };
 
-            if (EnableLogging) Log.Information("Shuffled deck: " + String.Join(",", Deck) + ".");
+            if (EnableLogging) Log.Information("Deck: {0}", String.Join(",", Deck));
         }
 
         public List<string> OrderCardsForHand(List<string> hand)
@@ -218,7 +218,7 @@ namespace ChatWebApp
                     Hand[Turn].Add(Deck[CardsDealt++]);
                 }
                 Hand[Turn] = OrderCardsForHand(Hand[Turn]);
-                if (EnableLogging) Log.Information(GetDisplayName(Turn) + " is dealt: " + String.Join(",", Hand[Turn]) + ".");
+                if (EnableLogging) Log.Information("Hand {0}: {1}", Turn, String.Join(",", Hand[Turn]));
                 if (--Turn == -1) Turn = 3;
             }
         }
@@ -251,14 +251,7 @@ namespace ChatWebApp
 
         public void NominateSuit(int suit)
         {
-            if (EnableLogging)
-            {
-                if (suit > 0 && suit < 7) Log.Information(GetDisplayName(Turn) + " called " + BelotHelpers.GetSuitNameFromNumber(suit) + ".");
-                else if (suit == 7) Log.Information(GetDisplayName(Turn) + " doubled.");
-                else if (suit == 8) Log.Information(GetDisplayName(Turn) + " redoubled.");
-                else if (suit == 0) Log.Information(GetDisplayName(Turn) + " passed.");
-                else Log.Information(GetDisplayName(Turn) + " called five-under-nine.");
-            }
+            //if (EnableLogging) Log.Information("Call {0}: {1}", Turn, suit);
 
             SuitCall.Add(suit);
 
@@ -284,13 +277,10 @@ namespace ChatWebApp
 
         public bool SuitDecided()
         {
-            if (RoundSuit == 9) return true;
-            if (SuitCall.Count > 3)
+            if (RoundSuit == 9 || (SuitCall.Count > 3 && string.Join("", SuitCall.GetRange(SuitCall.Count - 3, 3).ToArray()) == "000"))
             {
-                if (string.Join("", SuitCall.GetRange(SuitCall.Count - 3, 3).ToArray()) == "000")
-                {
-                    return true;
-                }
+                Log.Information("Call: {0}", String.Join(",", SuitCall));
+                return true;
             }
             return false;
         }
@@ -478,12 +468,12 @@ namespace ChatWebApp
             if (RoundSuit < 5)
             {
                 if (Belots[Turn].Where(s => s.Suit == RoundSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == RoundSuit).First().Declared = declared;
-                if (EnableLogging && Belots[Turn].Where(s => s.Suit == RoundSuit).Where(d => d.Declared).Count() > 0) Log.Information(GetDisplayName(Turn) + " declares a Belot.");
+                if (EnableLogging && declared) Log.Information("Belot {0}: {1}", Turn, RoundSuit);
             }
             else if (RoundSuit == 6)
             {
                 if (Belots[Turn].Where(s => s.Suit == TrickSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == TrickSuit).First().Declared = declared;
-                if (EnableLogging && Belots[Turn].Where(s => s.Suit == TrickSuit).Where(d => d.Declared).Count() > 0) Log.Information(GetDisplayName(Turn) + " declares a Belot.");
+                if (EnableLogging && declared) Log.Information("Belot {0}: {1}", Turn, TrickSuit);
             }
         }
 
@@ -495,7 +485,7 @@ namespace ChatWebApp
                 {
                     if (declared == null) Runs[Turn][i].Declared = true;
                     else Runs[Turn][i].Declared = declared[i];
-                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information(GetDisplayName(Turn) + " declares a " + BelotHelpers.GetRunNameFromLength(Runs[Turn][i].Length) + ".");
+                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information("Run {0}: {1}", Turn, BelotHelpers.GetRunNameFromLength(Runs[Turn][i].Length));
                 }
             }
         }
@@ -506,14 +496,14 @@ namespace ChatWebApp
             {
                 if (declared == null) Carres[Turn][i].Declared = true;
                 else Carres[Turn][i].Declared = declared[i];
-                if (EnableLogging && Carres[Turn][i].Declared) Log.Information(GetDisplayName(Turn) + " declares a Carre.");
+                if (EnableLogging && Carres[Turn][i].Declared) Log.Information("Carre {0}", Turn);
             }
         }
 
         public void PlayCard(string card)
         {
             PlayedCards[Turn] = card;
-            if (EnableLogging) Log.Information(GetDisplayName(Turn) + " plays " + card + ".");
+            //if (EnableLogging) Log.Information("Play {0}, {1}", Turn, card);
 
             Hand[Turn][Hand[Turn].IndexOf(card)] = "c0-00";
 
@@ -690,7 +680,8 @@ namespace ChatWebApp
             }
             if (EnableLogging && PlayedCards.Where(c => c == "c0-00").Count() == 0)
             {
-                Log.Information(GetDisplayName(winner) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
+                Log.Information("Play: {0}", String.Join(",", PlayedCards));
+                Log.Information("Trick: {0}", winner);
             }
             return winner;
         }
@@ -887,7 +878,7 @@ namespace ChatWebApp
             EWTotal += EWRoundPoints;
             NSTotal += NSRoundPoints;
             if (EnableLogging) Log.Information(String.Join(" ", message) + ".");
-            if (EnableLogging) Log.Information("E/W win {0} points. N/S win {1} points.", EWRoundPoints, NSRoundPoints);
+            if (EnableLogging) Log.Information("Round: {0},{1}", NSRoundPoints, EWRoundPoints);
             return String.Join(" ", message) + ".";
         }
 

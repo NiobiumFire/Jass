@@ -1,8 +1,8 @@
 ﻿using Microsoft.Owin;
 using Owin;
 
-[assembly: OwinStartupAttribute(typeof(ChatWebApp.Startup))]
-namespace ChatWebApp
+[assembly: OwinStartupAttribute(typeof(BelotWebApp.Startup))]
+namespace BelotWebApp
 {
     public partial class Startup
     {

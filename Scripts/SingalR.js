@@ -108,9 +108,10 @@
         var theta = Math.round(180.0 - (2.0 * Math.atan((2.0 * (r - h)) / a) * 180.0 / Math.PI));
 
         // subtract half of the card width from the arc length, convert to angle and remove this from theta, for the start and end card (x2)
-        var arc = document.getElementById("card0").clientWidth;
-        
-        var phi = (arc / r)*180/Math.PI;
+        var arc = document.getElementById("tablecard0").clientWidth;
+        //alert(getComputedStyle(document.documentElement).getPropertyValue("--card-width"));
+
+        var phi = (arc / r) * 180 / Math.PI;
         theta = theta - phi;
 
         rotation = theta / 7;
@@ -125,7 +126,7 @@
             if (children[i].hidden == false) {
                 var child = children[i];
                 child.style.transformOrigin = "center " + Math.round(r) + "px";
-                child.style.transform = "rotate(" + (-3.5 * rotation + .5 * rotation * (8 - visibleChildren) + rotation * count) + "deg)";
+                child.style.transform = "rotate(" + (-3.5 * rotation + 0.5 * rotation * (8 - visibleChildren) + rotation * count) + "deg)";
                 count++;
             }
         }
@@ -184,6 +185,7 @@
 
     room.client.hideCard = function (cardId) {
         document.getElementById(cardId).hidden = true;
+        document.getElementById(cardId).style.transform = "rotate(0deg)";
         //rotateCards();
     };
 
@@ -274,7 +276,8 @@
 
     resetBoard = function () {
         for (i = 0; i < 8; i++) {
-            document.getElementById("card".concat(i)).hidden = true;
+            //document.getElementById("card".concat(i)).hidden = true;
+            room.client.hideCard("card" + i);
         };
     };
 
@@ -290,7 +293,7 @@
         room.server.gameController();
     });
 
-    room.client.newGame = function () {
+    room.client.newGame = function (gameId) {
 
         var table = document.getElementById("scoreTable");
         while (table.rows.length > 2) {
@@ -306,15 +309,25 @@
         document.getElementById("1winnermarker").hidden = true;
         document.getElementById("2winnermarker").hidden = true;
         document.getElementById("3winnermarker").hidden = true;
+
+        room.client.setGameId(gameId);
+    };
+
+    room.client.setRoomId = function (roomId) {
+        document.getElementById("roomId").innerHTML = "Room Id: " + roomId;
+    };
+
+    room.client.setGameId = function (gameId) {
+        document.getElementById("gameId").innerHTML = "Game Id: " + gameId;
     };
 
     room.client.showTrickWinner = function (winner) {
 
         document.getElementById("tablecard".concat(winner)).classList.add("winning-card-pulse");
-        document.getElementById("tablecard".concat(winner)).style.zIndex = 2;
+        document.getElementById("tablecardslot".concat(winner)).style.zIndex = 3;
         setTimeout(function () {
             document.getElementById("tablecard".concat(winner)).classList.remove("winning-card-pulse", "z-2");
-            document.getElementById("tablecard".concat(winner)).style.zIndex = 1;
+            document.getElementById("tablecardslot".concat(winner)).style.zIndex = "auto";
         }, 1000);
     };
 
@@ -343,6 +356,15 @@
         table.rows[1].cells[0].innerHTML = nsPoints;
         table.rows[1].cells[1].innerHTML = ewPoints;
 
+    };
+
+    room.client.setScoreTitles = function (nsTitle, ewTitle) {
+        document.getElementById("scoreSummaryNSTitle").innerHTML = nsTitle;
+        document.getElementById("scoreSummaryEWTitle").innerHTML = ewTitle;
+        document.getElementById("roundSummaryNSTitle").innerHTML = nsTitle;
+        document.getElementById("roundSummaryEWTitle").innerHTML = ewTitle;
+        document.getElementById("scoreHistoryNSTitle").innerHTML = nsTitle;
+        document.getElementById("scoreHistoryEWTitle").innerHTML = ewTitle;
     };
 
     room.client.appendScoreHistory = function (ewPoints, nsPoints) {
@@ -421,7 +443,6 @@
             //document.getElementById("card".concat(i)).hidden = false;
             room.client.showCard("card".concat(i));
         };
-        //room.client.rotateCards();
     };
 
     // -------------------- Extra Points --------------------
@@ -694,9 +715,9 @@
     };
 
     room.client.enableSeatOptions = function (pos, setting) {
-        if (document.getElementById("tablecardslot".concat(pos)).classList.contains("show"))
-            $("#tablecardslot".concat(pos)).dropdown("toggle");
-        document.getElementById("teamselector".concat(pos)).hidden = !setting;
+        if (document.getElementById("fingerprint" + pos).classList.contains("show"))
+            $("#fingerprint" + pos).dropdown("toggle");
+        document.getElementById("teamselector" + pos).hidden = !setting;
         /*document.getElementById("tablecardslot".concat(pos)).dropdown('toggle');*/
         //if (!document.getElementById("tablecardslot".concat(pos)).find('.dropdown-menu').is(":hidden")) {
         //    document.getElementById("tablecardslot".concat(pos)).dropdown('toggle');
@@ -755,7 +776,7 @@
 
     room.client.seatBooked = function (position, username, isSelf) {
         //var seat = getSeatNameByNumber(position);
-        document.getElementById("usernamelabeltext".concat(position)).innerHTML = username;
+        document.getElementById("usernamelabel".concat(position)).innerHTML = username;
         var colour = "#0d6efd";
         if (isSelf) colour = "darkmagenta";
         room.client.setSeatColour(position, colour);
@@ -763,7 +784,7 @@
 
     room.client.seatUnbooked = function (position) {
         var seat = getSeatNameByNumber(position);
-        document.getElementById("usernamelabeltext".concat(position)).innerHTML = seat;
+        document.getElementById("usernamelabel".concat(position)).innerHTML = seat;
         room.client.setSeatColour(position, "black");
     };
 
@@ -771,15 +792,6 @@
         document.getElementById("seat-modal-body").innerHTML = "This seat is already occupied by ".concat(occupier).concat(".");
         $('#seat-modal').modal('show');
     };
-
-    //room.client.setRadio = function (pos) {
-    //    document.getElementById("wradio").classList.remove("active");
-    //    document.getElementById("nradio").classList.remove("active");
-    //    document.getElementById("sradio").classList.remove("active");
-    //    document.getElementById("eradio").classList.remove("active");
-    //    document.getElementById("xradio").classList.remove("active");
-    //    document.getElementById(pos.charAt(0).toLocaleLowerCase().concat("radio")).classList.add("active");
-    //};
 
     room.client.setBotBadge = function (pos, isBot) {
         document.getElementById("BotBadge".concat(pos)).hidden = !isBot;
@@ -791,15 +803,156 @@
         w.style.left = 0;
     };
 
+    // -------------------- Seat Rotation --------------------
+
+    room.client.enableRotation = function (setting) {
+        document.getElementById("rotateSeatsClockwiseBtn").disabled = !setting;
+        document.getElementById("rotateSeatsAntiClockwiseBtn").disabled = !setting;
+    };
+
+    $("#rotateSeatsClockwiseBtn").on("click", function () {
+        rotateSeats(1);
+    });
+
+    $("#rotateSeatsAntiClockwiseBtn").on("click", function () {
+        rotateSeats(-1);
+    });
+
+    rotateSeats = function (direction) {
+
+        r = getRotation(document.getElementById("wnescallindicator"));
+
+        document.getElementById("wnescallindicator").style.transform = "rotate(" + (r + 90 * direction) + "deg)";
+        document.getElementById("turnIndicator").style.transform = "rotate(" + (r + 90 * direction) + "deg)";
+
+        tableCardSlotPos = ["inWest", "inNorth", "inEast", "inSouth"];
+
+        //tableCardTranslate = [["0px, 0px", "100%, -50%", "200%, 0px", "100%, 50%"],
+        //["0px, 0px", "100%, 50%", "0px, 100%", "-100%, 50%"],
+        //["0px, 0px", "-100%, 50%", "-200%, 0px", "-100%, -50%"],
+        //["0px, 0px", "-100%, -50%", "0px, -100%", "100%, -50%"]];
+
+        tableCardTranslate = [["0px, 0px", "100%, -50%", "200%, 0px", "100%, 50%"],
+        ["-100%, 50%", "0px, 0px", "100%, 50%", "0px, 100%"],
+        ["-200%, 0px", "-100%, -50%", "0px, 0px", "-100%, 50%"],
+        ["-100%, -50%", "0px, -100%", "100%, -50%", "0px, 0px"]];
+
+        markerTranslate = ["translate(-57%, 0px)", "translate(0px, -56%)", "translate(58%, 0px)", "translate(0px, 55%)"];
+
+        dealerTop = ["0%", "25%", "100%", "75%"];
+        dealerLeft = ["50%", "100%", "50%", "0%"];
+
+        dropdowns = [" dropend", " dropdown-center", " dropstart", " dropup dropup-center"];
+
+        emotes = ["w", "n", "e", "s"];
+
+        for (i = 0; i < 4; i++) {
+            card = document.getElementById("tablecardslot" + i);
+            marker = document.getElementById("player-marker" + i);
+            dealer = document.getElementById("dealermarker" + i);
+            fingerprint = document.getElementById("fingerprint" + i);
+            if (fingerprint.classList.contains("show")) $("#fingerprint" + i).dropdown("toggle");
+            for (j = 0; j < 4; j++) {
+                if (card.classList.contains(tableCardSlotPos[j])) {
+                    card.classList.remove(tableCardSlotPos[j]);
+                    var d = j + direction;
+                    if (d == 4) d = 0;
+                    if (d == -1) d = 3;
+                    card.classList.add(tableCardSlotPos[d]);
+                    card.style.transform = "translate(" + tableCardTranslate[i][d] + ")";
+
+                    marker.style.transform = markerTranslate[d] + " rotate(" + (getRotation(marker) + 90 * direction) + "deg)";
+                    if (d == 3) marker.classList.add("pnm-south");
+                    else marker.classList.remove("pnm-south");
+
+                    dealer.style.top = dealerTop[d];
+                    dealer.style.left = dealerLeft[d];
+
+                    fingerprint.classList.remove("fingerprint0", "fingerprint1", "fingerprint2", "fingerprint3");
+                    fingerprint.classList.add("fingerprint" + d);
+                    fingerprint.parentNode.classList = "dropdown" + dropdowns[d];
+
+                    document.getElementById(emotes[i] + "bubble").classList = "emote bubble-" + emotes[d];
+
+                    document.getElementById("throwBoard" + i).classList = "throw throw" + d;
+                    break;
+                };
+            };
+        };
+    };
+
+    getRotation = function (el) {
+        var r = el.style.transform;
+        if (r == "") r = 0;
+        else {
+            s = r.search("rotate") + "rotate(".length;
+            e = r.search("deg");
+            r = r.substring(s, e);
+        }
+        return parseInt(r);
+    };
+
+    getTranslation = function (el) {
+        //t = el.style.transform;
+        //if (t.search(" rotate") > -1) return t.substring(0, t.search(" rotate"));
+        //else return 0;
+    };
+
+    rotateSeatsOld = function (direction) {
+
+        //r = getRotation(document.getElementById("seatPanel"));
+
+        //document.getElementById("seatPanel").style.transform = "rotate(" + (r + 90 * direction) + "deg)";
+        //document.getElementById("wnescallindicator").style.transform = "rotate(" + (r + 90 * direction) + "deg)";
+
+        //dealerTransformsTop = ["0%", "25%", "100%", "75%"];
+        //dealerTransformsLeft = ["50%", "100%", "50%", "0%"];
+        ////transforms = ["translate(-57%, 0px) rotate(270deg)", "translate(0px, -56%) rotate(360deg)", "translate(58%, 0px) rotate(90deg)", "translate(0px, 55%) rotate(180deg)"];
+        //transforms = ["translate(-57%, 0px)", "translate(0px, -56%)", "translate(58%, 0px)", "translate(0px, 55%)"];
+        //translateX_array = [28, 0, - 29, 0];
+        //translateY_array = [0, -20, 0, 20];
+
+        //for (i = 0; i < 4; i++) {
+        //    northOrSouth = false;
+
+        //    marker = document.getElementById("player-marker" + i);
+        //    for (j = 0; j < 4; j++) {
+        //        if (getTranslation(marker) == transforms[j]) {
+        //            d = j + direction;
+        //            if (d == 4) d = 0;
+        //            else if (d == -1) d = 3;
+        //            document.getElementById("dealermarker" + i).style.top = dealerTransformsTop[d];
+        //            document.getElementById("dealermarker" + i).style.left = dealerTransformsLeft[d];
+        //            marker.classList = "player-marker";
+        //            //if (i == 1) alert(getRotation(marker));
+        //            //if (i == 1) alert(getRotation(marker) + 90 * direction);
+        //            //alert((getRotation(marker) + parseInt(90 * direction)));
+
+        //            marker.style.transform = transforms[d] + " rotate(" + (getRotation(marker) + 90 * direction) + "deg)";
+        //            if (d == 1 || d == 3) northOrSouth = true;
+        //            if (d == 3) marker.classList.add("pnm-south");
+        //            else marker.classList.remove("pnm-south");
+
+        //            break;
+        //        };
+        //    };
+
+        //    translateX = 0;
+        //    translateY = translateY_array[i];
+        //    if (northOrSouth) {
+        //        translateX = translateX_array[i];
+        //        translateY = 0;
+        //    };
+        //    document.getElementById("tablecardslot" + i).style.transform = "translate(" + translateX + "%, " + translateY + "%) rotate(" + (-1 * (r + parseInt(90 * direction))) + "deg)";
+        //}
+    };
 
     // -------------------- Chat Log --------------------
 
     copyGameInvite = function () {
-        //navigator.clipboard.writeText(document.URL);
         var inputEl = document.createElement("input");
         inputEl.type = "text";
         inputEl.value = document.URL;
-        //alert(inputEl.value);
         document.getElementById("lobby").appendChild(inputEl);
         inputEl.select();
         inputEl.setSelectionRange(0, inputEl.value.length);

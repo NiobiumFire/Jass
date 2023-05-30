@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace ChatWebApp
+namespace BelotWebApp
 {
     public class AgentBasic
     {
@@ -87,9 +87,9 @@ namespace ChatWebApp
             {
                 int cardsPlayedInTrick = 4 - cardPlayed.Where(c => c == "c0-00").Count();
 
-                if (cardsPlayedInTrick == 0)
+                if (cardsPlayedInTrick == 0) // if I'm to lead
                 {
-                    if (((ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1)) && roundSuit != 5) // if we called and I'm the first to play in the trick, try play the Jass
+                    if (((ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1)) && roundSuit != 5) // if we called, try play the Jass
                     {
                         for (int i = 0; i < 8; i++)
                         {
@@ -116,7 +116,7 @@ namespace ChatWebApp
                         }
                     }
                     //// if my team called and I am the first to play in a trick, for the first 3? tricks, play the highest trump
-                    if (roundSuit < 6) // if I'm the first to play, try play a non-trump Ace (works for no trumps)
+                    if (roundSuit < 6) // Try play a non-trump Ace (works for no trumps)
                     {
                         for (int i = 0; i < 8; i++)
                         {
@@ -135,35 +135,40 @@ namespace ChatWebApp
                             }
                         }
                     }
-                    if (winners.Where(w => w == 2).Count() > 0) // If I am to lead a trick, consider playing a nontrump hard winner (works for no- and all trumps)
+                    bool hardNontrumpWinner = false;
+                    bool softNontrumpWinner = false;
+                    if (winners.Where(w => w > 0).Count() > 0)
                     {
                         for (int i = 0; i < 8; i++)
                         {
                             int suit = Int32.Parse(hand[i].Substring(1, 1));
-                            lock (rnd)
+                            if (suit != roundSuit && validCards[i] == 1)
                             {
-                                if (winners[i] == 2 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 10) // 90% of the time, I will lead a nontrump hard winner
-                                {
-                                    return hand[i];
-                                }
+                                if (winners[i] == 2) hardNontrumpWinner = true;
+                                if (winners[i] == 1) softNontrumpWinner = true;
+                                if (hardNontrumpWinner && softNontrumpWinner) break;
                             }
                         }
                     }
-                    if (winners.Where(w => w == 1).Count() > 0) // If I am to lead a trick, consider playing a nontrump soft winner (works for no- and all trumps)
+                    lock (rnd)
                     {
-                        for (int i = 0; i < 8; i++)
+                        if (hardNontrumpWinner && rnd.Next(100) + 1 > 10) // 90% of the time, I will lead a nontrump hard winner
                         {
-                            int suit = Int32.Parse(hand[i].Substring(1, 1));
-                            lock (rnd)
+                            while (true)
                             {
-                                if (winners[i] == 1 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead a nontrump soft winner
-                                {
-                                    return hand[i];
-                                }
+                                choice = rnd.Next(8);
+                                if (winners[choice] == 2 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit) return hand[choice];
+                            }
+                        }
+                        if (softNontrumpWinner && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead a nontrump soft winner
+                        {
+                            while (true)
+                            {
+                                choice = rnd.Next(8);
+                                if (winners[choice] == 1 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit) return hand[choice];
                             }
                         }
                     }
-                    //// If I am to lead a trick, consider playing a nontrump soft winner (works for no- and all trumps) if my partner or I called
                 }
                 if (cardsPlayedInTrick > 1 && turn % 2 != curWinner % 2) // if I am 3rd or 4th to play and the other team is winning
                 {

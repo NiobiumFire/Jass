@@ -5,9 +5,9 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Google;
 using Owin;
-using ChatWebApp.Models;
+using BelotWebApp.Models;
 
-namespace ChatWebApp
+namespace BelotWebApp
 {
     public partial class Startup
     {

@@ -6,10 +6,10 @@ using System.Web.Mvc;
 
 namespace BelotWebApp.Controllers
 {
-    //[Authorize]
-    public class TrainingController : Controller
+    [Authorize]
+    public class ReplayController : Controller
     {
-        // GET: Training
+        // GET: Replay
         public ActionResult Index()
         {
             return View();

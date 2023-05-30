@@ -1,0 +1,298 @@
+﻿
+@section scripts{
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/js"></script>
+    <script src="~/Scripts/TrainingRoom.js"></script>
+    <script>
+        //$(document).ready(function () {
+
+        //});
+    </script>
+}
+
+<!-- Control Panel -->
+
+<div class="d-flex flex-column bg-info rounded p-1">
+    <div class="d-flex justify-content-between align-items-center" style="min-width:0">
+        <div class="d-flex">
+            <input class="form-control m-1" type="text" id="gameGUID" placeholder="Game GUID" />
+            <input class="btn btn-primary m-1" type="button" value="Load" id="load-game" />
+        </div>
+        <button class="btn btn-primary py-0 px-2" type="button" id="pause-game" disabled><i class="bi bi-pause-circle-fill" id="pause-icon" style="font-size:1.5em"></i></button>
+        <div class="d-flex">
+            <input class="form-control m-1" type="text" id="speed-value" value="600" style="width: 100px" />
+            <input class="btn btn-primary m-1" type="button" value="Set Game Speed" id="game-speed-btn" />
+        </div>
+    </div>
+</div>
+
+<!-- Training Metrics -->
+
+<div class="accordion accordian-flush mt-1" id="roomAccordion">
+
+    <!-- User List -->
+
+    <div class="accordion-item">
+        <h2 class="accordion-header" style="outline: none">
+            <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#connectedUsersAccordian">
+                My Games
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse show bg-info bg-opacity-75" id="connectedUsersAccordian" data-bs-parent="#accordionExample">
+            <div class="accordion-body p-0">
+                <table class="table table-responsive m-0">
+                    <thead>
+                        <tr>
+                            <th>West</th>
+                            <th>North</th>
+                            <th>East</th>
+                            <th>South</th>
+                            <th>Game Id</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Card Table -->
+<!-- 3 vertical slots -->
+<div class="small mt-2 mb-2">
+    <div class="replay-cardboard-horizontal rounded-top" style="height: calc(0.4*var(--card-height)) !important" id="cardboard">
+        <div class="throw-t throw-t1" id="cardboard">
+            <img class="training-card" src="~/Images/Cards/c4-10.png" id="ncard0">
+            <img class="training-card" src="~/Images/Cards/c3-10.png" id="ncard1">
+            <img class="training-card" src="~/Images/Cards/c2-10.png" id="ncard2">
+            <img class="training-card" src="~/Images/Cards/c1-10.png" id="ncard3">
+            <img class="training-card" src="~/Images/Cards/c4-13.png" id="ncard4">
+            <img class="training-card" src="~/Images/Cards/c3-13.png" id="ncard5">
+            <img class="training-card" src="~/Images/Cards/c2-13.png" id="ncard6">
+            <img class="training-card" src="~/Images/Cards/c1-13.png" id="ncard7">
+        </div>
+    </div>
+
+    <!-- 3 horizontal slots -->
+    <div class="d-flex justify-content-center p-0 position-relative">
+        <div class="replay-cardboard-vertical">
+            <div class="throw-t throw-t0">
+                <img class="training-card" src="~/Images/Cards/c4-10.png" id="wcard0">
+                <img class="training-card" src="~/Images/Cards/c3-10.png" id="wcard1">
+                <img class="training-card" src="~/Images/Cards/c2-10.png" id="wcard2">
+                <img class="training-card" src="~/Images/Cards/c1-10.png" id="wcard3">
+                <img class="training-card" src="~/Images/Cards/c4-13.png" id="wcard4">
+                <img class="training-card" src="~/Images/Cards/c3-13.png" id="wcard5">
+                <img class="training-card" src="~/Images/Cards/c2-13.png" id="wcard6">
+                <img class="training-card" src="~/Images/Cards/c1-13.png" id="wcard7">
+            </div>
+        </div>
+
+        <div class="p-3 d-flex replay-tableboard justify-content-center position-relative">
+
+            <!-- Score Totals -->
+            <div class="d-flex justify-content-center align-items-center score-summary">
+                <table class="table table-sm m-0" id="scoreTotals" style="width: auto;  border-style:hidden">
+                    <thead>
+                        <tr>
+                            <th class="py-0 px-2" style="text-align:center;" scope="col">N/S</th>
+                            <th class="py-0 px-2" style="text-align:center" scope="col">E/W</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="py-0" style="text-align: center;font-weight:400">0</td>
+                            <td class="py-0" style="text-align:center">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Selected Suit Indicator -->
+            <div class="d-flex selected-suit p-0 m-0 justify-content-center align-items-center" style="width:auto;">
+                <i class="bi bi-arrows-move" style="font-size: 25px; color: dimgrey;" id="wnescallindicator"></i>
+                <div class="position-relative">
+                    <i class="bi bi-suit-spade-fill" style="font-size: 25px; color: dimgrey;" id="selectedsuit"></i>
+                    <span class="position-absolute" style="top: 40%; left: 60%; font-size:20px;font-weight:500;" id="selectedmultiplier"></span>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center my-3 position-relative">
+                <!-- Flex Column 1 -->
+                <div class="d-flex flex-column justify-content-center position-relative" id="cardCol1">
+
+                    <!-- West -->
+                    <div class="d-flex position-relative align-items-center" id="cardWest" style="transition: all 3s ease-in-out">
+                        <!-- Player Name Marker -->
+                        <div class="rotate270 position-relative">
+                            <span class="badge rounded-pill player-name-marker pnm-west" id="usernamelabel0">
+                                <span class="small" style="font-weight: 500" id="usernamelabeltext0">West</span>
+                            </span>
+                            <!-- Bot Badge -->
+                            <span class="badge bot-badge bb-west" id="BotBadge0" hidden>
+                                <i class="bi bi-robot"></i>
+                            </span>
+                        </div>
+                        <!-- Emote -->
+                        <div class="emote bubble-w d-flex justify-content-center align-items-center position-absolute" style="left:15px; visibility:hidden" id="wbubble"></div>
+                        <!-- Winner Marker -->
+                        <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="0winnermarker" hidden>
+                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                        </span>
+                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard0">
+                    </div>
+                </div>
+                <!-- Flex Column 2 -->
+                <div class="d-flex flex-column justify-content-center" id="cardCol2">
+                    <!-- North -->
+                    <div class="d-flex position-relative justify-content-center align-items-center">
+                        <!-- Player Name Marker -->
+                        <span class="badge rounded-pill player-name-marker pnm-north" id="usernamelabel1">
+                            <span class="small" style="font-weight: 500; z-index: 2" id="usernamelabeltext1">North</span>
+                        </span>
+                        <!-- Emote -->
+                        <div class="emote bubble-n d-flex justify-content-center align-items-center position-absolute" style="top:15px; visibility: hidden" id="nbubble"></div>
+                        <!-- Winner Marker -->
+                        <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="1winnermarker" hidden>
+                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                        </span>
+                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard1">
+                    </div>
+                    <!-- South -->
+                    <div class="d-flex position-relative justify-content-center align-items-center">
+                        <!-- Player Name Marker -->
+                        <span class="badge rounded-pill player-name-marker pnm-south" id="usernamelabel3">
+                            <span class="small" style="font-weight:500" id="usernamelabeltext3">South</span>
+                        </span>
+                        <!-- Emote -->
+                        @*<div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="top: 70%; left: 55px; visibility: hidden" id="sbubble"></div>*@
+                        <div class="emote bubble-s d-flex justify-content-center align-items-center position-absolute" style="bottom: 15px; visibility: hidden" id="sbubble"></div>
+                        <!-- Winner Marker -->
+                        <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="3winnermarker" hidden>
+                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                        </span>
+                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
+
+                        <!-- Turn Indicator -->
+                        <span class="badge rounded-circle p-1 position-absolute z-3 top-0 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
+                            <i class="bi bi-suit-spade-fill" style="font-size: 2em; color: darkmagenta;" id="turnIndicator"></i>
+                        </span>
+                    </div>
+                </div>
+                <!-- Flex Column 3 -->
+                <div class="d-flex flex-column justify-content-center position-relative" id="cardCol3">
+
+                    <!-- East -->
+                    <div class="d-flex position-relative align-items-center">
+                        <!-- Winner Marker -->
+                        <span class="badge rounded-circle p-1 position-absolute top-50 start-50 translate-middle bg-black" id="2winnermarker" hidden>
+                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
+                        </span>
+                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard2">
+                        <!-- Player Name Marker -->
+                        <div class="rotate90">
+                            <span class="badge rounded-pill player-name-marker pnm-east" id="usernamelabel2">
+                                <span class="small" style="font-weight:500" id="usernamelabeltext2">East</span>
+                            </span>
+                            <!-- Bot Badge -->
+                            <span class="badge bot-badge bb-east" id="BotBadge2" hidden>
+                                <i class="bi bi-robot"></i>
+                            </span>
+                        </div>
+                        <!-- Emote -->
+                        <div class="emote bubble-e d-flex justify-content-center align-items-center position-absolute" style="right: 15px; visibility: hidden" id="ebubble"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="replay-cardboard-vertical">
+            <div class="throw-t throw-t2">
+                <img class="training-card" src="~/Images/Cards/c4-10.png" id="ecard0">
+                <img class="training-card" src="~/Images/Cards/c3-10.png" id="ecard1">
+                <img class="training-card" src="~/Images/Cards/c2-10.png" id="ecard2">
+                <img class="training-card" src="~/Images/Cards/c1-10.png" id="ecard3">
+                <img class="training-card" src="~/Images/Cards/c4-13.png" id="ecard4">
+                <img class="training-card" src="~/Images/Cards/c3-13.png" id="ecard5">
+                <img class="training-card" src="~/Images/Cards/c2-13.png" id="ecard6">
+                <img class="training-card" src="~/Images/Cards/c1-13.png" id="ecard7">
+            </div>
+        </div>
+    </div>
+
+    <div class="replay-cardboard-horizontal rounded-bottom">
+        <div class="throw-t throw-t3" id="cardboard">
+            <img class="training-card" src="~/Images/Cards/c4-10.png" id="scard0">
+            <img class="training-card" src="~/Images/Cards/c3-10.png" id="scard1">
+            <img class="training-card" src="~/Images/Cards/c2-10.png" id="scard2">
+            <img class="training-card" src="~/Images/Cards/c1-10.png" id="scard3">
+            <img class="training-card" src="~/Images/Cards/c4-13.png" id="scard4">
+            <img class="training-card" src="~/Images/Cards/c3-13.png" id="scard5">
+            <img class="training-card" src="~/Images/Cards/c2-13.png" id="scard6">
+            <img class="training-card" src="~/Images/Cards/c1-13.png" id="scard7">
+        </div>
+    </div>
+</div>
+
+<!-- Round Summary Modal -->
+
+<div class="modal modal-sm" id="summary-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-1">
+                <h5 class="modal-title">Round summary</h5>
+            </div>
+            <div class="modal-body py-1">
+                <div class="d-flex flex-column m-0 p-0 justify-content-around align-items-center" style="min-width:0">
+                    <table class="table table-sm table-striped table-responsive">
+                        <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col">N/S</th>
+                                <th scope="col">E/W</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Belotes</th>
+                                <td id="summary-belot-NS">0</td>
+                                <td id="summary-belot-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Declaration</th>
+                                <td id="summary-dec-NS">0</td>
+                                <td id="summary-dec-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Tricks</th>
+                                <td id="summary-tr-NS">0</td>
+                                <td id="summary-tr-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Sum</th>
+                                <td id="summary-sum-NS">0</td>
+                                <td id="summary-sum-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Game</th>
+                                <td id="summary-game-NS">0</td>
+                                <td id="summary-game-EW">0</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Total</th>
+                                <td id="summary-total-NS">0</td>
+                                <td id="summary-total-EW">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()

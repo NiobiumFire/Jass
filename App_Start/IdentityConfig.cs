@@ -10,9 +10,9 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using ChatWebApp.Models;
+using BelotWebApp.Models;
 
-namespace ChatWebApp
+namespace BelotWebApp
 {
     public class EmailService : IIdentityMessageService
     {
