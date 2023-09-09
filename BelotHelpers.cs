@@ -39,6 +39,7 @@ namespace BelotWebApp
         }
 
     }
+
     public class BelotCard
     {
         public int Suit { get; set; } // 1=C, 2=D, 3=H, 4=S

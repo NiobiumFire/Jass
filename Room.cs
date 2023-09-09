@@ -39,6 +39,7 @@ namespace BelotWebApp
             if (game.IsNewGame)
             {
                 game.IsNewGame = false;
+                Clients.Group(GetRoomId()).HideDeck(true);
                 Clients.Group(GetRoomId()).DisableNewGame();
                 Clients.Group(GetRoomId()).CloseModalsAndButtons();
                 Clients.Group(GetRoomId()).DisableRadios();
@@ -280,6 +281,7 @@ namespace BelotWebApp
             string winner = "N/S";
             if (game.EWTotal > game.NSTotal) winner = "E/W";
             SysAnnounce(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + ".");
+            game.Log.Information(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + ".");
 
             Clients.Group(GetRoomId()).SetDealerMarker(4);
             Clients.Group(GetRoomId()).NewRound();
@@ -806,6 +808,8 @@ namespace BelotWebApp
 
             if (!game.IsNewGame)
             {
+                Clients.Caller.HideDeck(true);
+
                 int dealer = game.FirstPlayer + 1;
                 if (dealer == 4) dealer = 0;
 
@@ -884,10 +888,10 @@ namespace BelotWebApp
                 }
                 else
                 {
-                    for (int i = 0; i < 8; i++)
-                    {
-                        Clients.Caller.HideCard("card" + i);
-                    }
+                    //for (int i = 0; i < 8; i++)
+                    //{
+                    //    Clients.Caller.HideCard("card" + i);
+                    //}
                 }
             }
             else if (game.Players.Where(s => s.Username != "").Count() == 4) Clients.Caller.EnableNewGame();
@@ -959,6 +963,7 @@ namespace BelotWebApp
                 if (game.Spectators.Count() + game.Players.Where(h => h.IsHuman == true).Where(d => d.IsDisconnected == false).Count() == 0)
                 {
                     games.Remove(game);
+                    game.CloseLog();
                     game = null;
 
                     //game.Players = new Player[] { new Player(), new Player(), new Player(), new Player() };

@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Helpers;
 using System.Web.Mvc;
+using System.Web.Script.Serialization;
+using System.Web.Services;
 
 namespace BelotWebApp.Controllers
 {
@@ -10,7 +14,7 @@ namespace BelotWebApp.Controllers
     {
         public ActionResult Index()
         {
-            ViewBag.numGames = ChatRoom.games.Count();
+            ViewBag.numGames = GetNumRooms();
             return View();
         }
 
@@ -26,6 +30,22 @@ namespace BelotWebApp.Controllers
             ViewBag.Message = "Your contact page.";
 
             return View();
+        }
+
+        public int GetNumRooms()
+        {
+            return ChatRoom.games.Count();
+        }
+
+        // Belot lobby
+        public string PopulateLobby()
+        {
+            List<BelotLobbyGame> games = new List<BelotLobbyGame>();
+            foreach (BelotGame game in ChatRoom.games)
+            {
+                games.Add(new BelotLobbyGame(game));
+            }
+            return new JavaScriptSerializer().Serialize(games);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Web;
+using System.IO;
 
 namespace BelotWebApp
 {
@@ -76,11 +77,12 @@ namespace BelotWebApp
                 Log = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + GameId + ".txt").CreateLogger();
             }
         }
+
         public void NewGame()
         {
             GameId = Guid.NewGuid().ToString();
             SetLogger();
-            if (EnableLogging) Log.Information("Players: {0}, {1}, {2}, {3}", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
+            if (EnableLogging) Log.Information("Players: {0},{1},{2},{3}", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
             lock (rnd) FirstPlayer = rnd.Next(4);
             //FirstPlayer = 0;
             WaitDeal = false;
@@ -378,6 +380,7 @@ namespace BelotWebApp
             }
             return validcards;
         }
+
         public bool PlayerHasCardsOfSuit(int suit)
         {
             foreach (string card in Hand[Turn])
@@ -389,6 +392,7 @@ namespace BelotWebApp
             }
             return false;
         }
+
         public int[] RemoveCardsNotOfSuit(int[] validcards, int suit)
         {
             for (int i = 0; i < 8; i++)
@@ -404,6 +408,7 @@ namespace BelotWebApp
             }
             return validcards;
         }
+
         public bool PlayerHasHigherTrump()
         {
             foreach (string card in Hand[Turn])
@@ -415,6 +420,7 @@ namespace BelotWebApp
             }
             return false;
         }
+
         public int[] RemoveLowerTrumps(int[] validcards)
         {
             for (int i = 0; i < 8; i++)
@@ -430,6 +436,7 @@ namespace BelotWebApp
             }
             return validcards;
         }
+
         public int TrumpStrength(string card)
         {
             int trumpstrength = 0;
@@ -902,7 +909,46 @@ namespace BelotWebApp
 
         public void CloseLog()
         {
-            Log.Dispose();
+            if (Log != null)
+            {
+                Log.Dispose();
+                if (!IsNewGame)
+                {
+                    string source = ConfigurationManager.AppSettings["logfilepath"] + GameId + ".txt";
+                    string destination = ConfigurationManager.AppSettings["logfilepath"] + "Incomplete\\" + GameId + ".txt";
+                    if (File.Exists(source) && !File.Exists(destination))
+                    {
+                        try
+                        {
+                            File.Move(source, destination);
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
+                }
+            }
         }
     }
+
+    public class BelotLobbyGame
+    {
+        public BelotLobbyGame(BelotGame g)
+        {
+            West = g.Players[0].Username != "" ? g.GetDisplayName(0) : "Empty";
+            North = g.Players[1].Username != "" ? g.GetDisplayName(1) : "Empty";
+            East = g.Players[2].Username != "" ? g.GetDisplayName(2) : "Empty";
+            South = g.Players[3].Username != "" ? g.GetDisplayName(3) : "Empty";
+            Started = !g.IsNewGame;
+            RoomId = g.RoomId;
+        }
+        public string West { get; set; }
+        public string North { get; set; }
+        public string East { get; set; }
+        public string South { get; set; }
+        public bool Started { get; set; }
+        public string RoomId { get; set; }
+    }
+
 }

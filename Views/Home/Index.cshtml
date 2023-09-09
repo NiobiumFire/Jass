@@ -1,4 +1,15 @@
-﻿
+﻿@section scripts{
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <script src="~/Scripts/z-BelotLobby.js"></script>
+    <script>
+        //$(document).ready(function () {
+
+        //});
+    </script>
+}
+
+
+
 <div class="bg-info p-5 rounded mb-5 mt-5">
     <h1>NiobiumFire Web App</h1>
     <p class="lead">ASP.NET</p>
@@ -7,31 +18,51 @@
 <div class="row">
     <div class="col-md-6">
         <h2>Belot</h2>
-        <p>Klaverjassen rooms: @ViewBag.numGames</p>
+        <p id="numRooms">Klaverjassen rooms: @ViewBag.numGames</p>
         <p><button type="button" onclick="location.href='/Room/Index/new'" class="btn btn-primary" style="width: 30%">Create &raquo;</button></p>
-        <div class="input-group mb-3">
-            <button class="btn btn-primary" type="button" onclick="joinRoomByGuid()" id="button-addon2" style="width: 30%">Join &raquo;</button>
-            <input type="text" class="form-control" style="font-size:10px" placeholder="Game Id" id="gameId">
-        </div>
-        <p style="color: red" id="joinGameError"></p>
+
+        <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 30%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join &raquo;</button></p>
+
         <p><button type="button" onclick="location.href='/Replay/Index'" class="btn btn-primary" style="width: 30%">Replay &raquo;</button></p>
     </div>
     <div class="col-md-6">
         <h2>Train Advanced Agent</h2>
         <p>Control room. Keep out.</p>
-        <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary">Training center &raquo;</button></p>
+        <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" disabled>Training center &raquo;</button></p>
     </div>
 </div>
 
-<script>
-    joinRoomByGuid = function () {
-        s = document.getElementById("gameId").value;
-        if (s.length == 36) {
-            window.location.href = "/Room/Index/".concat(document.getElementById("gameId").value);
-        }
-        else {
-            document.getElementById("joinGameError").innerHTML = "Invalid Game Id";
-        };
-        //window.location.href = "/Room/Index".concat(document.getElementById(gameId).innerText);
-    };
-</script>
+<div class="modal" tabindex="-1" id="belot-lobby-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Belot Lobby</h5>
+                <div class="d-flex justify-content-center align-items-center">
+                    <i class="bi bi-arrow-repeat me-2" style="transform: rotate(25deg); font-size: 1.5em; color:black" onclick="populateLobby()"></i>
+                    <button type="button" class="btn-close" style="opacity:initial" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+            <div class="modal-body">
+
+                <div class="d-flex justify-content-center">
+                    <table class="table table-responsive m-0">
+                        <thead>
+                            <tr>
+                                <th>Started</th>
+                                <th>West</th>
+                                <th>North</th>
+                                <th>East</th>
+                                <th>South</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody class="replay-table" id="lobby-table"></tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>

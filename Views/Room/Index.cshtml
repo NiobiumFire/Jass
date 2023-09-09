@@ -2,7 +2,7 @@
 @section scripts{
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/js"></script>
-    <script src="~/Scripts/SingalR.js"></script>
+    <script src="~/Scripts/z-BelotRoom.js"></script>
 
     <svg style="display:none">
         <symbol id="i-alltrumps" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 162.000000 164.000000" preserveAspectRatio="xMidYMid meet">
@@ -22,6 +22,8 @@
             //$('#throw-modal').modal('show');
             //$('#suit-modal').modal('show');
             //$('#extras-modal').modal('show');
+            //document.getElementById("throw-cards-btn").hidden = false;
+            //document.getElementById("make-call-btn").hidden = false;
             bottom = document.getElementById("tableboard").getBoundingClientRect().bottom - 10;
             document.getElementById("extras-modal-dialog").style.top = bottom + "px";
             document.getElementById("suit-modal-dialog").style.top = bottom + "px";
@@ -41,9 +43,9 @@
     <div class="" id="line6"></div>*@
 
 <!-- Control Panel -->
-<div class="d-flex flex-column bg-info rounded p-1 m-sm-0 position-relative z-2">
+<div class="d-flex flex-column bg-info rounded p-1 mt-2 position-relative z-2">
     <div class="d-flex m-0 p-0 py-2 justify-content-between align-items-center px-sm-5">
-        <input class="btn btn-sm btn-dark px-2" type="button" id="dealBtn" value="Deal" disabled />
+        <input class="btn btn-sm btn-dark px-2" type="button" id="dealBtn" value="Deal" style="visibility:hidden" disabled />
         <button class="nohover btn btn-sm btn-dark px-2" type="button" id="rotateSeatsAntiClockwiseBtn" disabled>
             <i class="bi bi-arrow-counterclockwise"></i>
         </button>
@@ -192,17 +194,16 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker seatTransition" style="top:0;left:50%" src="~/Images/Other/Dealer.svg" id="dealermarker0" hidden>
+                    <img class="dealer-marker dealer0 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker0" hidden>
                     <!-- Card -->
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard0">
-
                 </div>
             </div>
             <!-- Fingerprints -->
             <!-- West -->
             <div class="dropdown dropend">
                 <i class="fingerprint0 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint0"></i>
-                <ul class="test dropdown-menu test border-info" id="teamselector0">
+                <ul class="test dropdown-menu border-info" id="teamselector0">
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)" id="occupy0">Occupy Seat</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)" id="assignbot0">Assign to Bot</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate0" hidden>Vacate Seat</a></li>
@@ -211,7 +212,7 @@
             <!-- North -->
             <div class="dropdown dropdown-center">
                 <i class="fingerprint1 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint1"></i>
-                <ul class="test dropdown-menu test border-info" id="teamselector1">
+                <ul class="test dropdown-menu border-info" id="teamselector1">
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)" id="occupy1">Occupy Seat</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)" id="assignbot1">Assign to Bot</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate1" hidden>Vacate Seat</a></li>
@@ -220,7 +221,7 @@
             <!-- East -->
             <div class="dropdown dropstart">
                 <i class="fingerprint2 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint2"></i>
-                <ul class="test dropdown-menu test border-info" id="teamselector2">
+                <ul class="test dropdown-menu border-info" id="teamselector2">
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(2)" id="occupy2">Occupy Seat</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(6)" id="assignbot2">Assign to Bot</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate2" hidden>Vacate Seat</a></li>
@@ -229,7 +230,7 @@
             <!-- South-->
             <div class="dropdown dropup dropup-center">
                 <i class="fingerprint3 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint3"></i>
-                <ul class="test dropdown-menu test border-info" id="teamselector3">
+                <ul class="test dropdown-menu border-info" id="teamselector3">
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)" id="occupy3">Occupy Seat</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)" id="assignbot3">Assign to Bot</a></li>
                     <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate3" hidden>Vacate Seat</a></li>
@@ -253,7 +254,7 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker seatTransition" style="top:25%;left:100%" src="~/Images/Other/Dealer.svg" id="dealermarker1" hidden>
+                    <img class="dealer-marker dealer1 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker1" hidden>
                     <!-- Card -->
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard1">
                 </div>
@@ -273,7 +274,7 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker seatTransition" style="top:75%;left:0%" src="~/Images/Other/Dealer.svg" id="dealermarker3" hidden>
+                    <img class="dealer-marker dealer3 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker3" hidden>
                     <!-- Card -->
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
                 </div>
@@ -284,7 +285,6 @@
             </span>
             <!-- Flex Column 3 -->
             <div class="d-flex flex-column justify-content-center position-relative" id="cardCol3">
-
                 <!-- East -->
                 <div class="inEast d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot2">
                     <!-- Player Marker -->
@@ -301,7 +301,7 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker seatTransition" style="top:100%;left:50%" src="~/Images/Other/Dealer.svg" id="dealermarker2" hidden>
+                    <img class="dealer-marker dealer2 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker2" hidden>
                     <!-- Card -->
                     <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard2">
                 </div>
@@ -497,7 +497,7 @@
 
 <!-- User Card Board -->
 
-<div class="cont small mt-2">
+<div class="small mt-2 position-relative">
     <div class="d-flex align-items-center justify-content-center rounded cardboard position-relative" id="cardboard">
         <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card0" hidden>
         <img class="belot-card2" src="~/Images/Cards/c3-13.png" id="card1" hidden>
@@ -508,7 +508,8 @@
         <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card6" hidden>
         <img class="belot-card2" src="~/Images/Cards/c1-10.png" id="card7" hidden>
     </div>
+    <div class="shimmer" id="deck-shimmer" hidden></div>
+    <img class="deck" src="~/Images/Other/Deck.png" id="deck" />
 </div>
-
 
 @Html.AntiForgeryToken()

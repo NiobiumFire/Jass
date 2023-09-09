@@ -215,8 +215,10 @@
     // -------------------- Turn Indicator --------------------
 
     room.client.setTurnIndicator = function (turn) {
-        const icons = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-suit-spade-fill"];
-        document.getElementById("turnIndicator").classList = icons[turn];
+        const icons = ["bi-arrow-left-circle-fill", "bi-arrow-up-circle-fill", "bi-arrow-right-circle-fill", "bi-arrow-down-circle-fill", "bi-suit-spade-fill"];
+        document.getElementById("turnIndicator").classList.remove("bi-arrow-left-circle-fill", "bi-arrow-up-circle-fill", "bi-arrow-right-circle-fill", "bi-arrow-down-circle-fill", "bi-suit-spade-fill");
+        document.getElementById("turnIndicator").classList.add(icons[turn]);
+        //document.getElementById("turnIndicator").classList = icons[turn];
     };
 
     // -------------------- Emote --------------------
@@ -261,7 +263,7 @@
         $('#extras-modal').modal('hide');
         $('#suit-modal').modal('hide');
         $('#summary-modal').modal('hide');
-        document.getElementById("dealBtn").classList.remove("deal-pulse");
+        //document.getElementById("dealBtn").classList.remove("deal-pulse");
         document.getElementById("make-call-btn").hidden = true;
         document.getElementById("make-call-btn").onclick = "";
     }
@@ -282,8 +284,7 @@
     };
 
     resetSuitSelection = function () {
-        document.getElementById("wnescallindicator").classList = "bi bi-arrows-move";
-        document.getElementById("wnescallindicator").style.color = "dimgrey";
+        room.client.setCallerIndicator(4);
         document.getElementById("selectedsuit").classList = "bi bi-suit-spade-fill";
         document.getElementById("selectedsuit").style.color = "dimgrey";
         document.getElementById("selectedmultiplier").innerHTML = "";
@@ -402,13 +403,22 @@
         resetTable();
     };
 
+    room.client.hideDeck = function (hidden) {
+        document.getElementById("deck").hidden = hidden;
+    };
+
     room.client.disableDealBtn = function () {
-        document.getElementById("dealBtn").disabled = true;
+        //document.getElementById("dealBtn").disabled = true;
+        room.client.hideDeck(true);
+        document.getElementById("deck-shimmer").hidden = true;
     };
 
     room.client.enableDealBtn = function () {
-        document.getElementById("dealBtn").disabled = false;
-        document.getElementById("dealBtn").classList.add("deal-pulse");
+        document.getElementById("deck").onclick = beginDeal;
+        //document.getElementById("dealBtn").disabled = false;
+        //document.getElementById("dealBtn").classList.add("deal-pulse");
+        room.client.hideDeck(false);
+        document.getElementById("deck-shimmer").hidden = false;
     };
 
     room.client.newRound = function () {
@@ -420,12 +430,21 @@
 
     // -------------------- Deal Cards --------------------
 
-    $("#dealBtn").on("click", function () {
-        document.getElementById("dealBtn").disabled = true;
-        document.getElementById("dealBtn").classList.remove("deal-pulse");
-        resetTable();
+    beginDeal = function () {
+        document.getElementById("deck").onclick = "";
+        room.client.hideDeck(true);
+        document.getElementById("deck-shimmer").hidden = true;
+        //resetTable();
         room.server.hubShuffle();
-    });
+    };
+
+    //$("#dealBtn").on("click", function () {
+    //    //document.getElementById("dealBtn").disabled = true;
+    //    //document.getElementById("dealBtn").classList.remove("deal-pulse");
+    //    room.client.hideDeck(true);
+    //    resetTable();
+    //    room.server.hubShuffle();
+    //});
 
     room.client.setDealerMarker = function (dealer) {
         for (i = 0; i < 4; i++) {
@@ -669,19 +688,17 @@
     };
 
     room.client.setCallerIndicator = function (turn) {
-        if (turn == 0) {
-            document.getElementById("wnescallindicator").classList = "bi bi-arrow-left";
-        }
-        else if (turn == 1) {
-            document.getElementById("wnescallindicator").classList = "bi bi-arrow-up";
-        }
-        else if (turn == 2) {
-            document.getElementById("wnescallindicator").classList = "bi bi-arrow-right";
+        icons = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
+
+        document.getElementById("wnescallindicator").classList.remove("bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move");
+        document.getElementById("wnescallindicator").classList.add(icons[turn]);
+
+        if (turn < 4) {
+            document.getElementById("wnescallindicator").style.color = "black";
         }
         else {
-            document.getElementById("wnescallindicator").classList = "bi bi-arrow-down";
-        };
-        document.getElementById("wnescallindicator").style.color = "black";
+            document.getElementById("wnescallindicator").style.color = "dimgrey";
+        }
     };
 
     // -------------------- Seat Management --------------------
@@ -839,9 +856,6 @@
 
         markerTranslate = ["translate(-57%, 0px)", "translate(0px, -56%)", "translate(58%, 0px)", "translate(0px, 55%)"];
 
-        dealerTop = ["0%", "25%", "100%", "75%"];
-        dealerLeft = ["50%", "100%", "50%", "0%"];
-
         dropdowns = [" dropend", " dropdown-center", " dropstart", " dropup dropup-center"];
 
         emotes = ["w", "n", "e", "s"];
@@ -865,8 +879,8 @@
                     if (d == 3) marker.classList.add("pnm-south");
                     else marker.classList.remove("pnm-south");
 
-                    dealer.style.top = dealerTop[d];
-                    dealer.style.left = dealerLeft[d];
+                    dealer.classList.remove("dealer0", "dealer1", "dealer2", "dealer3");
+                    dealer.classList.add("dealer" + d);
 
                     fingerprint.classList.remove("fingerprint0", "fingerprint1", "fingerprint2", "fingerprint3");
                     fingerprint.classList.add("fingerprint" + d);

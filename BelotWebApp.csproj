@@ -302,6 +302,8 @@
     <Content Include="Images\NiobiumCrystal.ico" />
     <Content Include="Images\NiobiumCrystal.png" />
     <Content Include="Images\Other\Dealer.svg" />
+    <Content Include="Images\Other\Deck.png" />
+    <Content Include="Scripts\z-BelotLobby.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -357,7 +359,7 @@
     <Content Include="Scripts\popper-utils.min.js" />
     <Content Include="Scripts\popper.js" />
     <Content Include="Scripts\popper.min.js" />
-    <Content Include="Scripts\SingalR.js" />
+    <Content Include="Scripts\z-BelotRoom.js" />
     <Content Include="Scripts\src\index.js" />
     <Content Include="Scripts\src\methods\defaults.js" />
     <Content Include="Scripts\src\methods\destroy.js" />
@@ -421,8 +423,8 @@
     <Content Include="Scripts\src\utils\setAttributes.js" />
     <Content Include="Scripts\src\utils\setStyles.js" />
     <Content Include="Scripts\src\utils\setupEventListeners.js" />
-    <Content Include="Scripts\TrainingRoom.js" />
-    <Content Include="Scripts\ReplayRoom.js" />
+    <Content Include="Scripts\z-TrainingRoom.js" />
+    <Content Include="Scripts\z-ReplayRoom.js" />
     <Content Include="Scripts\umd\popper-utils.js" />
     <Content Include="Scripts\umd\popper-utils.min.js" />
     <Content Include="Scripts\umd\popper.js" />

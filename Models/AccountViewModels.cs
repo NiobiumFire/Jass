@@ -71,6 +71,7 @@ namespace BelotWebApp.Models
     {
 
         [Required]
+        [StringLength(15, ErrorMessage = "The {0} must be at most {1} characters long.")]
         [Display(Name = "Username")]
         public string Username { get; set; }
 

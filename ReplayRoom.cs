@@ -12,13 +12,14 @@ using System.Threading;
 using System.Collections.Concurrent;
 using Serilog;
 using System.Configuration;
+using System.IO;
 
 namespace BelotWebApp
 {
     [HubName("replayroom")] // Attribute -> client-side name for the class may differ from server-side name
     public class ReplayRoom : Hub
     {
-        public static List<BelotReplay> replays;
+        public static List<BelotReplay> replays = new List<BelotReplay>();
 
         public static List<int> dealers;
         public static List<List<string>> decks;
@@ -41,380 +42,274 @@ namespace BelotWebApp
         public static bool pause = false;
         //public static double pauseTime = 0.0;
 
-        public static int punishment = 5000;
-        public static int reward = 1;
-        public static int maxRounds = 50;
-
         public ReplayRoom()
         {
-            //log.Information("Creating new Chat Room");
+
+        }
+
+        // -------------------- Find Player's Replays --------------------
+
+        public void FindReplays()
+        {
+            List<string[]> myReplays = new List<string[]>();
+            string[] allFiles = Directory.GetFiles(ConfigurationManager.AppSettings["logfilepath"], "*.txt");
+
+            foreach (string log in allFiles)
+            {
+                try
+                {
+                    if (!log.Contains("BelotServerLog"))
+                    {
+                        string line = File.ReadLines(log).First();
+                        if (line.Contains(Context.User.Identity.Name))
+                        {
+                            int l = log.IndexOf(ConfigurationManager.AppSettings["logfilepath"]) + ConfigurationManager.AppSettings["logfilepath"].Length;
+                            string[] names = GetPlayers(line);
+                            string creation = File.GetCreationTime(log).ToString("yyMMdd-HH");
+                            string id = log.Substring(l, 36);
+                            myReplays.Add(new string[] { creation, names[0], names[1], names[2], names[3], id });
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
+            Clients.Caller.AppendReplayList(new JavaScriptSerializer().Serialize(myReplays));
         }
 
         // -------------------- Load Replay --------------------
 
-        public void ResetReplay()
-        {
-            dealers = new List<int>();
-            decks = new List<List<string>>();
-            calls = new List<List<int>>();
-            callList = new List<int>();
-            plays = new List<List<string>>();
-            playList = new List<string>();
-            declarations = new List<List<List<string>>>();
-            declarePlays = new List<List<string>>();
-            declareList = new List<string>();
-            points = new List<int[]>();
-            round = 0;
-            callTracker = 0;
-            playTracker = 0;
-            declareTracker = 0;
-        }
-
         public async Task LoadGame(string guid)
         {
-            ResetReplay();
+            BelotReplayState currentState = new BelotReplayState(new int[] { 0, 0 }, 4, 0, 4, 4, new string[] { "", "", "", "" },
+                new string[] { "c0-00", "c0-00", "c0-00", "c0-00" }, new string[][] { new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" },
+                new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" }, new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" },
+                new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" } }, false);
+            BelotReplay replay = GetReplay();
+            replay.States = new List<BelotReplayState>();
+            replay.States.Add(new BelotReplayState(currentState));
+
             string path = ConfigurationManager.AppSettings["logfilepath"] + guid + ".txt";
             string[] lines = new string[] { "" };
             try
             {
-                lines = System.IO.File.ReadAllLines(path);
+                lines = File.ReadAllLines(path);
             }
             catch (Exception e)
             {
                 return;
             }
-            SetPlayers(lines[0]);
+
+            string[] names = GetPlayers(lines[0]);
+
+            for (int i = 0; i < 4; i++)
+            {
+                replay.Players[i] = new Player(names[i], "", false);
+            }
+
+            Clients.Caller.SetPlayers(new string[] { names[0], names[1], names[2], names[3] });
+
+            int handsDealt = 0;
 
             for (int i = 1; i < lines.Length; i++)
             {
-                if (lines[i].IndexOf("The dealer is ") > -1)
+                if (lines[i].IndexOf("Dealer:") > -1)
                 {
-                    AddDealer(lines[i]);
-                    if (callList.Count > 0)
+                    currentState.Dealer = GetDealer(lines[i]);
+                    //currentState.Turn = dealer;
+                    //replay.States.Add(new BelotReplayState(currentState));
+                }
+                else if (lines[i].IndexOf("Hand ") > -1)
+                {
+                    int pos = GetHandPos(lines[i]);
+                    currentState.Hand[pos] = GetHand(lines[i]);
+                    handsDealt++;
+                    if (handsDealt == 4)
                     {
-                        calls.Add(callList);
-                        callList = new List<int>();
-                        plays.Add(playList);
-                        playList = new List<string>();
-                        declarations.Add(declarePlays);
-                        declarePlays = new List<List<string>>();
-                        points.Add(new int[] { 0, 0 });
+                        currentState.Turn = currentState.Dealer;
+                        replay.States.Add(new BelotReplayState(currentState));
+                        //if (--currentState.Turn == -1) currentState.Turn = 3;
+                        handsDealt = 0;
                     }
                 }
-                if (lines[i].IndexOf("E/W win ") > -1)
+                else if (lines[i].IndexOf("Call: ") > -1)
                 {
-                    AddPoints(lines[i]);
-                    if (callList.Count > 0)
+                    int[] calls = GetCalls(lines[i]);
+                    //if (calls == new int[] { 0, 0, 0, 0 })
+                    if (string.Join("", calls.ToArray()) == "0000")
                     {
-                        calls.Add(callList);
-                        callList = new List<int>();
-                        plays.Add(playList);
-                        playList = new List<string>();
-                        declarations.Add(declarePlays);
-                        declarePlays = new List<List<string>>();
-                        //points.Add(new int[] { 0, 0 });
+                        currentState.Emotes = new string[] { "Pass", "Pass", "Pass", "Pass" };
+                        //currentState.Turn = currentState.Dealer;
+                        replay.States.Add(new BelotReplayState(currentState));
                     }
-                }
-                else if (lines[i].IndexOf("Shuffled deck: ") > -1)
-                {
-                    AddDeck(lines[i]);
-                }
-                else if (lines[i].IndexOf("passed.") > -1)
-                {
-                    callList.Add(0);
-                }
-                else if (lines[i].IndexOf("called Clubs") > -1)
-                {
-                    callList.Add(1);
-                }
-                else if (lines[i].IndexOf("called Diamonds") > -1)
-                {
-                    callList.Add(2);
-                }
-                else if (lines[i].IndexOf("called Hearts") > -1)
-                {
-                    callList.Add(3);
-                }
-                else if (lines[i].IndexOf("called Spades") > -1)
-                {
-                    callList.Add(4);
-                }
-                else if (lines[i].IndexOf("called No Trumps") > -1)
-                {
-                    callList.Add(5);
-                }
-                else if (lines[i].IndexOf("called All Trumps") > -1)
-                {
-                    callList.Add(6);
-                }
-                else if (lines[i].IndexOf(" doubled") > -1)
-                {
-                    callList.Add(7);
-                }
-                else if (lines[i].IndexOf("redoubled") > -1)
-                {
-                    callList.Add(8);
-                }
-                else if (lines[i].IndexOf("plays ") > -1)
-                {
-                    if (playList.Count > 0)
+                    else
                     {
-                        declarePlays.Add(declareList);
-                        declareList = new List<string>();
-                    }
-                    AddPlay(lines[i]);
+                        foreach (int call in calls)
+                        {
+                            if (--currentState.Turn == -1) currentState.Turn = 3;
+                            if (call > 0)
+                            {
+                                currentState.Caller = currentState.Turn;
+                                currentState.RoundSuit = call;
+                            }
+                            currentState.Emotes = BuildEmotes(currentState.Turn, call);
+                            replay.States.Add(new BelotReplayState(currentState));
 
+                        }
+                    }
+                    currentState.Turn = currentState.Dealer;
+                    currentState.Emotes = new string[] { "", "", "", "" };
+                    //replay.States.Add(new BelotReplayState(currentState));
+                    if (--currentState.Turn == -1) currentState.Turn = 3;
                 }
-                else if (lines[i].IndexOf("declares a ") > -1)
+                else if (lines[i].IndexOf("Play: ") > -1)
                 {
-                    AddDeclaration(lines[i]);
+                    string[] plays = GetPlays(lines[i]);
+                    for (int j = 0; j < 4; j++)
+                    {
+                        if (!replay.States[replay.States.Count - 1].ShowTrickWinner) if (--currentState.Turn == -1) currentState.Turn = 3;
+                        currentState.TableCards[currentState.Turn] = plays[currentState.Turn];
+                        int card = Array.IndexOf(currentState.Hand[currentState.Turn], currentState.Hand[currentState.Turn].Where(c => c == plays[currentState.Turn]).First());
+                        currentState.Hand[currentState.Turn][card] = "c0-00";
+                        replay.States.Add(new BelotReplayState(currentState));
+                    }
+                    //replay.States.Add(new BelotReplayState(currentState));
+                }
+                else if (lines[i].IndexOf("Trick: ") > -1)
+                {
+                    currentState.ShowTrickWinner = true;
+                    currentState.Turn = GetWinner(lines[i]);
+                    replay.States.Add(new BelotReplayState(currentState));
+                    currentState.TableCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
+                    currentState.ShowTrickWinner = false;
+                    //replay.States.Add(new BelotReplayState(currentState));
+                }
+                else if (lines[i].IndexOf("Round: ") > -1)
+                {
+                    int[] points = GetPoints(lines[i]);
+                    currentState.Scores[0] += points[0];
+                    currentState.Scores[1] += points[1];
+                    replay.States.Add(new BelotReplayState(current: currentState));
                 }
             }
-            Clients.Caller.TogglePauseEnabled();
-            botDelay = 600;
+            replay.CurrentState = 0;
+            replay.Paused = true;
+            replay.Speed = 1000;
+            Clients.Caller.SetState(new JavaScriptSerializer().Serialize(replay.States[replay.CurrentState]), replay.Speed);
+            Clients.Caller.EnablePauseBtn(true);
+            Clients.Caller.EnableFwdBtn(true);
+            Clients.Caller.EnableBackBtn(false);
 
-            await Task.Run(() =>
-            {
-                //GameController(game);
-            });
+            //await Task.Run(() =>
+            //{
+            //    GameController(game);
+            //});
         }
 
-        public void SetPlayers(string line)
+        public string[] GetPlayers(string line)
         {
-            int s = line.IndexOf("Players : ") + "Players : ".Length;
-            line = line.Substring(s, line.Length - 1);
-            string[] names = line.Split(new[] { ", " }, StringSplitOptions.None);
-            for (int i = 0; i < 4; i++)
-            {
-                Clients.Caller.SetPlayers(names[i]);
-            }
+            int s = line.IndexOf("Players: ") + "Players: ".Length;
+            line = line.Substring(s);
+            string[] names = line.Split(new[] { "," }, StringSplitOptions.None);
+            return names;
         }
 
-        public void AddDealer(string line)
+        public int GetDealer(string line)
         {
-            int i = line.IndexOf("The dealer is ") + "The dealer is ".Length;
-            line = line.Substring(i);
-            line = line.Substring(0, line.Length - 1);
-            //dealers.Add(players.ToList().FindIndex(n => n.Username == line));
+            int l = line.IndexOf("Dealer: ") + "Dealer: ".Length;
+            line = line.Substring(l, 1);
+            return int.Parse(line);
         }
 
-        public void AddDeck(string line)
+        public int GetHandPos(string line)
         {
-            int i = line.IndexOf("Shuffled deck: ") + "Shuffled deck: ".Length;
-            line = line.Substring(i);
-            line = line.Substring(0, line.Length - 1);
+            int l = line.IndexOf("Hand ") + "Hand ".Length;
+            line = line.Substring(l, 1);
+            return int.Parse(line);
+        }
+
+        public string[] GetHand(string line)
+        {
+            int l = line.IndexOf("Hand ") + "Hand ".Length + 3;
+            line = line.Substring(l);
+            string[] hand = { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" };
             string[] cards = line.Split(',');
-            List<string> deck = new List<string>();
-            foreach (string card in cards)
+            for (int i = 0; i < cards.Count(); i++)
             {
-                deck.Add(card);
+                hand[i] = cards[i];
             }
-            decks.Add(deck);
+            return hand;
         }
 
-        public void AddPlay(string line)
+        public int[] GetCalls(string line)
         {
-            int i = line.IndexOf("plays ") + "plays ".Length;
-            line = line.Substring(i);
-            line = line.Substring(0, line.Length - 1);
-            playList.Add(line);
+            int l = line.IndexOf("Call: ") + "Call: ".Length;
+            line = line.Substring(l);
+            int[] calls = Array.ConvertAll(line.Split(','), c => int.Parse(c));
+            return calls;
         }
 
-        public void AddDeclaration(string line)
+        public string[] BuildEmotes(int pos, int call)
         {
-            int i = line.IndexOf("declares a ") + "declares a ".Length;
-            line = line.Substring(i);
-            line = line.Substring(0, line.Length - 1);
-            declareList.Add(line);
+            string[] emotes = { "", "", "", "" };
+            string[] calls = { "Pass", "Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps", "Double!", "Redouble!", "⁹⁄₅" };
+            emotes[pos] = calls[call];
+            return emotes;
         }
 
-        public void AddPoints(string line)
+        public string[] GetPlays(string line)
         {
-            int[] p = { 0, 0 };
-            int i = line.IndexOf("E/W win ") + "E/W win ".Length;
-            int j = line.IndexOf(" points");
-            p[0] = Int32.Parse(line.Substring(i, j - i));
-
-            int k = line.IndexOf("N/S win ") + "N/S win ".Length;
-            int l = line.IndexOf(" points", j + 1);
-            p[1] = Int32.Parse(line.Substring(k, l - k));
-
-            points.Add(p);
+            int l = line.IndexOf("Play: ") + "Play: ".Length;
+            line = line.Substring(l);
+            string[] plays = line.Split(',');
+            return plays;
         }
+
+        public int GetWinner(string line)
+        {
+            int l = line.IndexOf("Trick: ") + "Trick: ".Length;
+            line = line.Substring(l, 1);
+            return int.Parse(line);
+        }
+
+        public int[] GetPoints(string line)
+        {
+            int l = line.IndexOf("Round: ") + "Round: ".Length;
+            line = line.Substring(l);
+            int[] points = Array.ConvertAll(line.Split(','), p => int.Parse(p));
+            return points;
+        }
+
 
         // -------------------- Main --------------------
 
         public async Task GameController()
         {
             BelotReplay replay = GetReplay();
-            int roundsCount = 0;
 
-            // Rounds
-            while (replay.CurrentRound < roundsCount && !replay.Paused)
+            while (replay.CurrentState < replay.States.Count && !replay.Paused)
             {
-                Clients.Caller.SetScores(replay.Scores[replay.CurrentRound][0], replay.Scores[replay.CurrentRound][1]); // NS, EW
-                Clients.Caller.SetCaller(-1); // blank
-                Clients.Caller.SetSuit(-1); // blank
-                // show five card hands
-                // Calls
-                if (replay.CurrentlyCalling && !replay.Paused)
+                await Task.Run(() =>
                 {
-                    while (replay.CurrentCall < replay.Calls[replay.CurrentRound].Count() && !replay.Paused)
-                    {
-                        // show next call
-                        Thread.Sleep(replay.Speed);
-                        replay.CurrentCall++;
-                    }
-                    if (replay.CurrentCall == replay.Calls[replay.CurrentRound].Count()) replay.CurrentlyCalling = false;
-                }
-                // Tricks
-                if (!replay.CurrentlyCalling && !replay.Paused)
-                {
-                    while (replay.CurrentTrick < 8 && !replay.Paused)
-                    {
-                        while (replay.CurrentCard < 4 && !replay.Paused)
-                        {
-                            // show next card
-                            Clients.Caller.RenderState(replay.State[replay.CurrentRound][replay.CurrentTrick, replay.CurrentCard]);
-                            Thread.Sleep(replay.Speed);
-                            replay.CurrentCard++;
-                        }
-                        if (replay.CurrentCard == 4 && !replay.Paused)
-                        {
-                            replay.CurrentCard = 0;
-                            replay.CurrentTrick++;
-                        }
-                    }
-                }
-
-                if (!replay.Paused)
-                {
-                    replay.CurrentlyCalling = true;
-                    replay.CurrentCall = 0;
-                    replay.CurrentTrick = 0;
-                    replay.CurrentRound++;
-                }
+                    Clients.Caller.SetState(new JavaScriptSerializer().Serialize(replay.States[replay.CurrentState]), replay.Speed);
+                    replay.CurrentState++;
+                    if (replay.CurrentState < replay.States.Count) Thread.Sleep(replay.Speed);
+                });
 
             }
-        }
-
-        // -------------------- Reset --------------------
-
-
-
-        public void EndGame(BelotGame game)
-        {
-            //log.Debug("Entering EndGame.");
-            Clients.Caller.SetDealerMarker(4);
-            Clients.Caller.NewRound();
-            Clients.Caller.SetTurnIndicator(4);
-            // fancy animation and modal to indicate winning team
-
-            bool deleteLog = true;
-
-            if (game.EWTotal > game.NSTotal)
+            if (replay.CurrentState == replay.States.Count)
             {
-                Clients.Caller.ShowGameWinner(0);
-                Clients.Caller.ShowGameWinner(2);
+                replay.CurrentState--;
+                replay.Paused = true;
+                Clients.Caller.SetPausedTrue();
+                Clients.Caller.EnableBackBtn(true);
+                Clients.Caller.EnableFwdBtn(false);
+                Clients.Caller.EnablePauseBtn(false);
+                //Clients.Caller.PauseReplay(true);
             }
-            else
-            {
-                Clients.Caller.ShowGameWinner(1);
-                Clients.Caller.ShowGameWinner(3);
-            }
-            Clients.Caller.TogglePauseEnabled();
-            if (game.EnableLogging) game.CloseLog();
-            if (game.EnableLogging && deleteLog) System.IO.File.Delete(System.Web.Hosting.HostingEnvironment.MapPath("~/Logs/" + game.GameId + ".txt"));
-            //log.Debug("Leaving EndGame.");
         }
-
-        // -------------------- Setup --------------------
-
-        // -------------------- Suit Nomination --------------------
-
-        public void AnnounceSuit(List<int> suitCall, int turn)
-        {
-            //log.Debug("Entering AnnounceSuit.");
-
-            int suit = suitCall[suitCall.Count - 1];
-
-            if (suit > 0)
-            {
-                Clients.Caller.SuitNominated(suit);
-                Clients.Caller.setCallerIndicator(turn);
-            }
-
-            string[] seatPos = new string[] { "w", "n", "e", "s" };
-            Clients.Caller.EmoteSuit(suit, seatPos[turn]);
-            Emote(seatPos[turn], botDelay);
-            //log.Debug("Leaving AnnounceSuit.");
-        }
-
-        // -------------------- Gameplay --------------------
-
-        public void CardPlayEnd(BelotGame game)
-        {
-            //log.Debug("Entering CardPlayEnd.");
-            Clients.Caller.SetTableCard(game.Turn, game.PlayedCards[game.Turn]);
-            Thread.Sleep(botDelay);
-            if (game.NumCardsPlayed % 4 != 0) if (--game.Turn == -1) game.Turn = 3;
-            if (game.NumCardsPlayed < 32) Clients.Caller.SetTurnIndicator(game.Turn);
-            //log.Debug("Leaving CardPlayEnd.");
-        }
-
-        // -------------------- Visual Replay --------------------
-
-        public void AnnounceExtras(int turn)
-        {
-            //log.Debug("Entering AnnounceExtras.");
-            string[] seatPos = new string[] { "w", "n", "e", "s" };
-            Clients.Caller.SetExtrasEmote(new JavaScriptSerializer().Serialize(declarations[round][playTracker]), seatPos[turn]);
-            Emote(seatPos[turn], botDelay);
-            //log.Debug("Leaving AnnounceExtras.");
-        }
-
-        public void AnnounceExtras(BelotGame game, bool belotDeclared)
-        {
-            //log.Debug("Entering AnnounceExtras.");
-            List<string> emotes = new List<string>();
-            if (belotDeclared) emotes.Add("Belot");
-            if (game.NumCardsPlayed < 5)
-            {
-                foreach (Run run in game.Runs[game.Turn])
-                {
-                    if (run.Declared) emotes.Add(BelotHelpers.GetRunNameFromLength(run.Length));
-                }
-                foreach (Carre carre in game.Carres[game.Turn])
-                {
-                    if (carre.Declared) emotes.Add("Carre");
-                }
-            }
-            if (emotes.Count > 0)
-            {
-                string[] seatPos = new string[] { "w", "n", "e", "s" };
-                Clients.Caller.SetExtrasEmote(new JavaScriptSerializer().Serialize(emotes), seatPos[game.Turn]);
-                Emote(seatPos[game.Turn], botDelay);
-            }
-            //log.Debug("Leaving AnnounceExtras.");
-        }
-
-        public void Emote(string seat, int duration)
-        {
-            //log.Debug("Entering Emote.");
-            Clients.Caller.ShowEmote(seat);
-            Thread.Sleep(duration);
-            Clients.Caller.HideEmote(seat);
-            //log.Debug("Leaving Emote.");
-        }
-
-        // -------------------- Points --------------------
-
-        // -------------------- Get Stuff --------------------
-
-        //public string GetDisplayName(int pos)
-        //{
-        //    return players[pos].Username;
-        //}
 
         public void SetReplaySpeed(int speed) // delay in ms
         {
@@ -423,7 +318,61 @@ namespace BelotWebApp
 
         public void PauseReplay(bool paused)
         {
-            GetReplay().Paused = paused;
+            BelotReplay replay = GetReplay();
+            replay.Paused = paused;
+            if (paused && replay.CurrentState > 0)
+            {
+                replay.CurrentState--;
+                if (replay.CurrentState > 0) Clients.Caller.EnableBackBtn(true);
+            }
+            if (paused && replay.CurrentState < replay.States.Count() - 1)
+            {
+                Clients.Caller.EnableFwdBtn(true);
+            }
+            if (paused && replay.CurrentState == replay.States.Count())
+            {
+                replay.CurrentState--;
+                Clients.Caller.EnableBackBtn(true);
+            }
+            if (!paused)
+            {
+                Clients.Caller.EnableBackBtn(false);
+                Clients.Caller.EnableFwdBtn(false);
+                replay.CurrentState++;
+                GameController();
+            }
+        }
+
+        public void ReplayFwd()
+        {
+            BelotReplay replay = GetReplay();
+            if (replay.CurrentState < replay.States.Count() - 1)
+            {
+                replay.CurrentState++;
+                if (replay.States[replay.CurrentState].ShowTrickWinner == true) replay.CurrentState++;
+                if (replay.CurrentState == replay.States.Count() - 1)
+                {
+                    Clients.Caller.EnableFwdBtn(false);
+                    Clients.Caller.EnableBackBtn(true);
+                    Clients.Caller.EnablePauseBtn(false);
+                }
+                Clients.Caller.EnableBackBtn(true);
+                Clients.Caller.SetState(new JavaScriptSerializer().Serialize(replay.States[replay.CurrentState]), replay.Speed);
+            }
+        }
+
+        public void ReplayBack()
+        {
+            BelotReplay replay = GetReplay();
+            if (replay.CurrentState > 0)
+            {
+                replay.CurrentState--;
+                if (replay.States[replay.CurrentState].ShowTrickWinner == true) replay.CurrentState--;
+                if (replay.CurrentState == 0) Clients.Caller.EnableBackBtn(false);
+                Clients.Caller.EnableFwdBtn(true);
+                Clients.Caller.EnablePauseBtn(true);
+                Clients.Caller.SetState(new JavaScriptSerializer().Serialize(replay.States[replay.CurrentState]), replay.Speed);
+            }
         }
 
         public BelotReplay GetReplay()
@@ -433,8 +382,9 @@ namespace BelotWebApp
 
         public override Task OnConnected()
         {
-            if (GetReplay() == null) replays.Add(new BelotReplay(Context.User.Identity.Name));
+            if (replays.Where(i => i.ReplayId == Context.User.Identity.Name).Count() == 0) replays.Add(new BelotReplay(Context.User.Identity.Name));
             else GetReplay().PlayerIsActive = true;
+            FindReplays();
             return base.OnConnected();
         }
 
