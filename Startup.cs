@@ -1,4 +1,6 @@
-﻿using Microsoft.Owin;
+﻿using BelotWebApp.Service;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Owin;
 using Owin;
 
 [assembly: OwinStartupAttribute(typeof(BelotWebApp.Startup))]

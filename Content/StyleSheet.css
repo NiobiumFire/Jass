@@ -28,13 +28,13 @@
 }
 
 .suitsize {
-    font-size: 2em !important;
+    font-size: 2.5em !important;
 }
 
 .suitsizeJA {
     overflow: visible;
-    width: 2em;
-    height: 2em;
+    width: 1.6em;
+    height: 1.6em;
 }
 
 /*768, 992, 1200*/
@@ -68,12 +68,22 @@ th {
     font-size: 12px;
 }
 
-tbody:last-of-type tr:last-child {
+.table-heading-border {
+    border-bottom: 2px solid black;
+}
+
+.suit-call-table td {
+    /*border: 1px solid rgba(118, 117, 117, 0.3) !important;*/
+    border: 1px solid lightgray !important;
+}
+
+/*.tbody:last-of-type tr:last-child*/
+.total-row {
     border-top: 2px solid black;
 }
 
 td:first-child {
-    font-weight: bold
+    /*font-weight: bold*/
 }
 
 .replay-table * {

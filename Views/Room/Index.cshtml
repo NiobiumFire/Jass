@@ -129,7 +129,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
+                                <tr class="total-row">
                                     <th scope="row">Total</th>
                                     <td>0</td>
                                     <td>0</td>
@@ -153,7 +153,7 @@
         <div class="score-summary d-flex justify-content-center align-items-center">
             <table class="table table-sm m-0" style="width: auto;  border-style:hidden" id="scoreTotals">
                 <thead>
-                    <tr>
+                    <tr class="table-heading-border">
                         <th class="py-0 px-2" style="text-align:center;" scope="col" id="scoreSummaryNSTitle">N/S</th>
                         <th class="py-0 px-2" style="text-align:center" scope="col" id="scoreSummaryEWTitle">E/W</th>
                     </tr>
@@ -331,23 +331,48 @@
                 <h5 class="modal-title">Make a call</h5>
                 <i class="bi bi-dash-lg" style="cursor:pointer;" onclick="minimiseSuitModal()"></i>
             </div>
-            <div class="modal-body py-1">
-                <div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center" style="min-width:0">
-                    <i class="btn m-0 p-0 bi bi-suit-club-fill suitsize" style="color: black; " id="suit1"></i>
-                    <i class="btn m-0 p-0 bi bi-suit-diamond-fill suitsize" style="color: red;" id="suit2"></i>
-                    <i class="btn m-0 p-0 bi bi-suit-heart-fill suitsize" style="color: red; " id="suit3"></i>
-                    <i class="btn m-0 p-0 bi bi-suit-spade-fill suitsize" style="color: black; " id="suit4"></i>
-                </div>
-                <div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center">
-                    <svg class="btn m-0 p-0 suitsizeJA" id="suit5" color="darkmagenta">
-                        <use xlink:href="#i-notrumps" x="0" y="0" fill="darkmagenta" id="suitfill5"></use>
-                    </svg>
-                    <svg class="btn m-0 p-0 suitsizeJA" style="transform: translate(0, -1px)" id="suit6" color="darkmagenta">
-                        <use xlink:href="#i-alltrumps" x="0" y="0" fill="darkmagenta" id="suitfill6"></use>
-                    </svg>
-                    <i class="btn m-0 p-0 suitsize" style="color: black" id="suit7">x2</i>
-                    <i class="btn m-0 p-0 suitsize" style="color: black" id="suit8">x4</i>
-                </div>
+            <div class="modal-body p-0">
+
+                <table class="table table-sm suit-call-table mb-0" style="table-layout:fixed">
+                    <tbody>
+                        <tr class="rounded-3">
+                            <td style="text-align: center">
+                                <i class="btn m-0 p-0 bi bi-suit-club-fill suitsize" style="color: black; " id="suit1"></i>
+                            </td>
+                            <td style="text-align: center">
+                                <i class="btn m-0 p-0 bi bi-suit-diamond-fill suitsize" style="color: red;" id="suit2"></i>
+                            </td>
+                            <td style="text-align: center">
+                                <i class="btn m-0 p-0 bi bi-suit-heart-fill suitsize" style="color: red; " id="suit3"></i>
+                            </td>
+                            <td style="text-align: center">
+                                <i class="btn m-0 p-0 bi bi-suit-spade-fill suitsize" style="color: black; " id="suit4"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center; vertical-align:central">
+                                <svg class="btn m-0 p-0 suitsizeJA" style="transform: translate(-15%, 23%)" id="suit5" color="darkmagenta">
+                                    <use xlink:href="#i-notrumps" x="0" y="0" fill="darkmagenta" id="suitfill5"></use>
+                                </svg>
+                            </td>
+                            <td style="text-align: center">
+                                <svg class="btn m-0 p-0 suitsizeJA" style="transform: translate(-15%, 18%)" id="suit6" color="darkmagenta">
+                                    <use xlink:href="#i-alltrumps" x="0" y="0" fill="darkmagenta" id="suitfill6"></use>
+                                </svg>
+                            </td>
+                            <td style="text-align: center; transform: translate(0, 0)">
+                                <i class="btn m-0 p-0 suitsize" style="color: black" id="suit7">x2</i>
+                            </td>
+                            <td style="text-align: center; transform: translate(0, 0)">
+                                <i class="btn m-0 p-0 suitsize" style="color: black" id="suit8">x4</i>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+                @*<div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center" style="min-width:0"></div>
+                <div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center"></div>*@
             </div>
             <div class="d-flex justify-content-between modal-footer py-1">
                 <button type="button" id="suit9" class="btn btn-danger" onclick="nominateSuit(this);" disabled>⁹⁄₅</button>
