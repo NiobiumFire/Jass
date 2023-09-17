@@ -1,8 +1,12 @@
-﻿
+﻿@{
+    ViewData["Title"] = "Belot";
+}
 @section scripts{
-    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    @* <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/js"></script>
-    <script src="~/Scripts/z-BelotRoom.js"></script>
+    <script src="~/js/"></script> *@
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/BelotRoom.js"></script>
 
     <svg style="display:none">
         <symbol id="i-alltrumps" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 162.000000 164.000000" preserveAspectRatio="xMidYMid meet">
@@ -29,18 +33,9 @@
             document.getElementById("suit-modal-dialog").style.top = bottom + "px";
             document.getElementById("summary-modal-dialog").style.top = bottom + "px";
             document.getElementById("throw-modal-dialog").style.top = bottom + "px";
-            //rotateCards();
         });
     </script>
-}
-
-@*<div class="circle" id="circle"></div>
-    <div class="line" id="line"></div>
-    <div class="line" id="line2"></div>
-    <div class="line" id="line3"></div>
-    <div class="line" id="line4"></div>
-    <div class="line" id="line5"></div>
-    <div class="" id="line6"></div>*@
+    }
 
 <!-- Control Panel -->
 <div class="d-flex flex-column bg-info rounded p-1 mt-2 position-relative z-2">
@@ -70,22 +65,22 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body pt-0">
-        <p class="small" style="margin:0" id="roomId">Room Id:</p>
-        <p class="small" style="margin:0" id="gameId">Game Id:</p>
+        <p class="small" style="margin:0" id="roomId" hidden>@ViewData["roomId"]</p>
+        <p class="small" style="margin:0" id="gameId" hidden></p>
         <div class="accordion accordian-flush mt-1" id="roomAccordion">
 
             <!-- User List -->
 
-            <div class="accordion-item">
+            <div class="accordion-item bg-info bg-opacity-75">
                 <h2 class="accordion-header" style="outline: none">
                     <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#connectedUsersAccordian">
                         Connected Users
                     </button>
                 </h2>
-                <div class="accordion-collapse collapse show bg-info bg-opacity-75" id="connectedUsersAccordian" data-bs-parent="#accordionExample">
+                <div class="accordion-collapse collapse show" id="connectedUsersAccordian" data-bs-parent="#accordionExample">
                     <div class="accordion-body p-0">
                         <div class="p-2" id=userLists>
-                            <p class="small" id="userList"></p>
+                            <p class="small" id="userList">here</p>
                         </div>
                     </div>
                 </div>
@@ -93,7 +88,7 @@
 
             <!-- Chat Controls and Log -->
 
-            <div class="accordion-item bg-info bg-opacity-75 ">
+            <div class="accordion-item bg-info bg-opacity-75">
                 <h2 class="accordion-header">
                     <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#chatLogAccordian" id="chatLogBtn">
                         Chat Log
@@ -101,8 +96,8 @@
                 </h2>
                 <div class="accordion-collapse collapse show" id="chatLogAccordian" data-bs-parent="#accordionExample">
                     <div class="accordion-body p-0">
-                        <div class="d-flex flex-row justify-content-around align-items-center" style="min-width:0">
-                            <input class="form-control m-1" type="text" style="max-width: 1000px" id="messageToSend" placeholder="Type something..." />
+                        <div class="d-flex justify-content-around align-items-center" style="min-width:0">
+                            <input class="form-control m-1" type="text" style="max-width: 1500px" id="messageToSend" placeholder="Type something..." />
                             <input class="btn btn-primary m-1" type="button" value="Send" id="sendmessage" />
                         </div>
                         <textarea readonly class="bg-transparent border-0 pb-2 ps-3" style="font-size: 12px; resize: none; min-height: 100px; height: 100%; min-width:100%; outline: none" id="chatLog"></textarea>
@@ -112,7 +107,7 @@
 
             <!-- Score History -->
 
-            <div class="accordion-item bg-info bg-opacity-75 ">
+            <div class="accordion-item bg-info bg-opacity-75">
                 <h2 class="accordion-header">
                     <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#scoreHistoryAccordian">
                         Game Score History
@@ -194,9 +189,9 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer0 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker0" hidden>
+                    <img class="dealer-marker dealer0 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker0" hidden>
                     <!-- Card -->
-                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard0">
+                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard0">
                 </div>
             </div>
             <!-- Fingerprints -->
@@ -254,9 +249,9 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer1 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker1" hidden>
+                    <img class="dealer-marker dealer1 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker1" hidden>
                     <!-- Card -->
-                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard1">
+                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard1">
                 </div>
                 <!-- South -->
                 <div class="inSouth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot3">
@@ -274,9 +269,9 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer3 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker3" hidden>
+                    <img class="dealer-marker dealer3 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker3" hidden>
                     <!-- Card -->
-                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
+                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard3">
                 </div>
             </div>
             <!-- Turn Indicator -->
@@ -301,9 +296,9 @@
                         <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                     </span>
                     <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer2 seatTransition" src="~/Images/Other/Dealer.svg" id="dealermarker2" hidden>
+                    <img class="dealer-marker dealer2 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker2" hidden>
                     <!-- Card -->
-                    <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard2">
+                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard2">
                 </div>
             </div>
         </div>
@@ -324,8 +319,8 @@
 
 <!-- Suit Selector Modal -->
 
-<div class="modal modal-sm" id="suit-modal" data-bs-backdrop="static" tabindex="-1">
-    <div class="modal-dialog modal-low" id="suit-modal-dialog">
+<div class="modal" id="suit-modal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-low" id="suit-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title">Make a call</h5>
@@ -392,46 +387,46 @@
             </div>
             <div class="d-flex justify-content-center modal-body p-0" style="background-color: rgba(13, 110, 253, 0.25)">
                 <div class="throw throw0" id="throwBoard0">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard0">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard1">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard2">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard3">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard4">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard5">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard6">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="wthrowcard7">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard0">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard1">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard2">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard3">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard4">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard5">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard6">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="wthrowcard7">
                 </div>
                 <div class="d-flex flex-column justify-content-between miniboard">
                     <div class="throw throw1" id="throwBoard1">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard0">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard1">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard2">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard3">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard4">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard5">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard6">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="nthrowcard7">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard0">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard1">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard2">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard3">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard4">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard5">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard6">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="nthrowcard7">
                     </div>
                     <div class="throw throw3" id="throwBoard3">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard0">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard1">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard2">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard3">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard4">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard5">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard6">
-                        <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="sthrowcard7">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard0">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard1">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard2">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard3">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard4">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard5">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard6">
+                        <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="sthrowcard7">
                     </div>
                 </div>
                 <div class="throw throw2" id="throwBoard2">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard0">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard1">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard2">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard3">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard4">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard5">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard6">
-                    <img class="mini-belot-card" src="~/Images/Cards/c2-13.png" id="ethrowcard7">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard0">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard1">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard2">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard3">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard4">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard5">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard6">
+                    <img class="mini-belot-card" src="~/images/Cards/c2-13.png" id="ethrowcard7">
                 </div>
             </div>
             <div class="modal-footer py-1">
@@ -443,8 +438,8 @@
 
 <!-- Extra Points Modal -->
 
-<div class="modal modal-sm" id="extras-modal" data-bs-backdrop="static" tabindex="-1">
-    <div class="modal-dialog modal-low" id="extras-modal-dialog">
+<div class="modal" id="extras-modal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-low" id="extras-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title">Extra points</h5>
@@ -462,8 +457,8 @@
 
 <!-- Round Summary Modal -->
 
-<div class="modal modal-sm" id="summary-modal" tabindex="-1">
-    <div class="modal-dialog modal-low" id="summary-modal-dialog">
+<div class="modal" id="summary-modal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-low" id="summary-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title">Round summary</h5>
@@ -524,17 +519,17 @@
 
 <div class="small mt-2 position-relative">
     <div class="d-flex align-items-center justify-content-center rounded cardboard position-relative" id="cardboard">
-        <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card0" hidden>
-        <img class="belot-card2" src="~/Images/Cards/c3-13.png" id="card1" hidden>
-        <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card2" hidden>
-        <img class="belot-card2" src="~/Images/Cards/c1-10.png" id="card3" hidden>
-        <img class="belot-card2" src="~/Images/Cards/c4-10.png" id="card4" hidden>
-        <img class="belot-card2" src="~/Images/Cards/c3-10.png" id="card5" hidden>
-        <img class="belot-card2" src="~/Images/Cards/c2-10.png" id="card6" hidden>
-        <img class="belot-card2" src="~/Images/Cards/c1-10.png" id="card7" hidden>
+        <img class="belot-card2" src="~/images/Cards/c4-10.png" id="card0" hidden>
+        <img class="belot-card2" src="~/images/Cards/c3-13.png" id="card1" hidden>
+        <img class="belot-card2" src="~/images/Cards/c2-10.png" id="card2" hidden>
+        <img class="belot-card2" src="~/images/Cards/c1-10.png" id="card3" hidden>
+        <img class="belot-card2" src="~/images/Cards/c4-10.png" id="card4" hidden>
+        <img class="belot-card2" src="~/images/Cards/c3-10.png" id="card5" hidden>
+        <img class="belot-card2" src="~/images/Cards/c2-10.png" id="card6" hidden>
+        <img class="belot-card2" src="~/images/Cards/c1-10.png" id="card7" hidden>
     </div>
     <div class="shimmer" id="deck-shimmer" hidden></div>
-    <img class="deck" src="~/Images/Other/Deck.png" id="deck" />
+    <img class="deck" src="~/images/Other/Deck.png" id="deck" />
 </div>
 
 @Html.AntiForgeryToken()

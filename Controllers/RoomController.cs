@@ -1,51 +1,48 @@
-﻿using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using BelotWebApp.BelotClasses;
+using BelotWebApp.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Serilog;
 
 namespace BelotWebApp.Controllers
 {
 
-    public static class URLHelper
-    {
-        public static string BuildURL(this HttpRequestBase request, string id)
-        {
-            return string.Format("{0}://{1}{2}{3}",
-                request.Url.Scheme,
-                request.Headers["host"],
-                request.RawUrl.Substring(0, request.RawUrl.Length - 3),
-                id);
-        }
-    }
-
     [Authorize]
     public class RoomController : Controller
     {
+        private readonly IConfiguration _config;
 
+        public RoomController(IConfiguration config)
+        {
+            _config = config;
 
+        }
+
+        [HttpPost]
+        public ActionResult Index(BelotRoomCreator creator)
+        {
+            if (creator != null)
+            {
+                string id = Guid.NewGuid().ToString();
+                BelotRoom.games.Add(new BelotGame(new Player[] { new Player(), new Player(), new Player(), new Player() }, id, _config.GetSection("SerilogPath:Path").Value));
+                //BelotRoom.log.Information("Creating new room. Redirecting to room " + id);
+                return RedirectToAction("Index", new { id });
+            }
+            return RedirectToAction("Index", "Home");
+        }
 
         // GET: Room
         public ActionResult Index(string id)
         {
-            if (id.ToLower() == "new")
+            if (BelotRoom.games.Where(g => g.RoomId == id).Count() > 0)
             {
-                id = Guid.NewGuid().ToString();
-                ChatRoom.games.Add(new BelotGame(new Player[] { new Player(), new Player(), new Player(), new Player() }, id, true));
-                ChatRoom.log.Information("Creating new room. Redirecting to " + URLHelper.BuildURL(Request, id));
-                //return Redirect(Request.Url.ToString().Substring(0, Request.Url.ToString().Length - 3) + id);
-                return Redirect(URLHelper.BuildURL(Request, id));
-            }
-            else if (ChatRoom.games.Where(g => g.RoomId == id).Count() > 0)
-            {
-                ChatRoom.log.Information("Entering room: " + id);
+                //BelotRoom.log.Information("Entering room: " + id);
+                ViewData["roomId"] = id;
                 return View();
             }
-            else
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            return RedirectToAction("Index", "Home");
         }
     }
 }

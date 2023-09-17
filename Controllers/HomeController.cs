@@ -1,68 +1,53 @@
-﻿using BelotWebApp.Models;
-using BelotWebApp.Service;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Mvc;
-using System.Web.Script.Serialization;
-using System.Web.Services;
-using System.Threading.Tasks;
+﻿using BelotWebApp.BelotClasses;
+using BelotWebApp.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace BelotWebApp.Controllers
 {
+    //[Authorize]
     public class HomeController : Controller
     {
-        //private readonly IEmailService _emailService;
-        private readonly EmailService emailService = new EmailService();
-        public HomeController()//IEmailService emailService)
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
         {
-            //_emailService = emailService;
+            _logger = logger;
         }
-        public ActionResult Index()
+
+        public IActionResult Index()
         {
             ViewBag.numGames = GetNumRooms();
+            return View(new BelotRoomCreator());
+        }
+
+        public IActionResult Privacy()
+        {
             return View();
         }
 
-        public ActionResult About()
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
         {
-            ViewBag.Message = "Your application description page.";
-
-            return View();
-        }
-
-        public async Task<ActionResult> Contact()
-        {
-            UserEmailOptions userEmailOptions = new UserEmailOptions
-            {
-                ToEmails = new List<string>() { "croftjoel@gmail.com" }
-            };
-
-            //_emailService.SendTestEmail(userEmailOptions);
-            await emailService.SendTestEmail(userEmailOptions);
-
-            ViewBag.Message = "Your contact page.";
-
-            return View();
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
         // Belot lobby
         public int GetNumRooms()
         {
-            return ChatRoom.games.Count();
+            return BelotRoom.games.Count;
         }
 
         public string PopulateLobby()
         {
             List<BelotLobbyGame> games = new List<BelotLobbyGame>();
-            foreach (BelotGame game in ChatRoom.games)
+            foreach (BelotGame game in BelotRoom.games)
             {
                 games.Add(new BelotLobbyGame(game));
             }
-            return new JavaScriptSerializer().Serialize(games);
+            return JsonSerializer.Serialize(games);
         }
     }
 }
