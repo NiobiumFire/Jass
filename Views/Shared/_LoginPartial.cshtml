@@ -1,35 +1,28 @@
-﻿@using Microsoft.AspNet.Identity
-@if (Request.IsAuthenticated)
-{
-        <form method="post" id="logoutForm" action="~/Account/LogOff">
-            @Html.AntiForgeryToken()
-            <ul class="navbar-nav ms-auto me-5 navbar-nav-scroll" style="--bs-scroll-height: 200px;">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        @User.Identity.GetUserName()
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end border-info" aria-labelledby="navbarScrollingDropdown">
-                        <li><a title="Manage" class="dropdown-item" href="/Manage/Index">Manage</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="javascript:document.getElementById('logoutForm').submit()">Sign out</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </form>
-}
-else
-{
-    <ul class="navbar-nav ms-auto me-3 navbar-nav-scroll" style="--bs-scroll-height: 200px;">
+﻿@using Microsoft.AspNetCore.Identity
+@using BelotWebApp.Areas.Identity.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" data-bs-offset="200,200" href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown">
+            <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage" data-bs-toggle="dropdown">
+                @UserManager.GetUserName(User)
                 <i class="bi-person-fill" style="font-size: 1.5em; color: darkmagenta;"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end border-info">
-                <li><a class="dropdown-item" href="/Account/Login">Sign in</a></li>
-                <li><a class="dropdown-item" href="/Account/Register">Register</a></li>
+                <li><a title="Manage" class="dropdown-item" href="/Identity/Account/Manage/Index">Manage</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#">Something else</a></li>
+                <li>
+                    <a id="logout" class="dropdown-item" href="/Identity/Account/Logout">Logout</a>
+                </li>
             </ul>
         </li>
-    </ul>
-}
+    }
+    else
+    {
+
+    }
+</ul>

@@ -1,51 +1,55 @@
-﻿@section scripts{
-    <script src="~/Scripts/jquery-3.4.1.js"></script>
-    <script src="~/Scripts/z-BelotLobby.js"></script>
-    <script>
-        //$(document).ready(function () {
+﻿@{
+    ViewData["Title"] = "Home";
+}
+@model BelotRoomCreator
 
-        //});
-    </script>
+@section scripts{
+    <script src="~/js/belotlobby.js"></script>
 }
 
-
-
-<div class="bg-info p-5 rounded mb-5 mt-5">
-    <h1>NiobiumFire Web App</h1>
-    <p class="lead">ASP.NET</p>
+<div class="row bg-info p-5 rounded mb-5 mt-5" style="text-align:center">
+    <div class="col-1 col-sm-2 d-flex justify-content-center align-items-center">
+        <img class="crystal" src="~/images/NiobiumCrystal.png" />
+    </div>
+    <div class="col-10 col-sm-8">
+        <h1>NiobiumFire Web App</h1>
+        <p class="lead" style="text-align:center">ASP.NET Core</p>
+    </div>
+    <div class="col-1 col-sm-2 d-flex justify-content-center align-items-center">
+        <img class="crystal" src="~/images/NiobiumCrystal.png" />
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
+<div class="row justify-content-center">
+    <div class="col-6 col-lg-3">
         <h2>Belot</h2>
         <p id="numRooms">Klaverjassen rooms: @ViewBag.numGames</p>
-        <p><button type="button" onclick="location.href='/Room/Index/new'" class="btn btn-primary" style="width: 30%">Create &raquo;</button></p>
 
-        <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 30%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join &raquo;</button></p>
+        <form id="createBelotGameForm" method="post">
+            <p><button asp-area="" asp-controller="Room" asp-action="Index" type="submit" class="btn btn-primary" style="width: 100%">Create &raquo;</button></p>
+        </form>
 
-        <p><button type="button" onclick="location.href='/Replay/Index'" class="btn btn-primary" style="width: 30%">Replay &raquo;</button></p>
-    </div>
-    <div class="col-md-6">
-        <h2>Train Advanced Agent</h2>
-        <p>Control room. Keep out.</p>
-        <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" disabled>Training center &raquo;</button></p>
+        <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join &raquo;</button></p>
+
+        <p><button type="button" onclick="location.href='/Replay/Index'" class="btn btn-primary" style="width: 100%">Replay &raquo;</button></p>
+
+        <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%" disabled>Training center &raquo;</button></p>
     </div>
 </div>
 
 <div class="modal" tabindex="-1" id="belot-lobby-modal">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Belot Lobby</h5>
                 <div class="d-flex justify-content-center align-items-center">
-                    <i class="bi bi-arrow-repeat me-2" style="transform: rotate(25deg); font-size: 1.5em; color:black" onclick="populateLobby()"></i>
+                    <i class="bi bi-arrow-repeat me-2" style="transform: rotate(25deg); font-size: 1.5em; font-weight:500; color:black; cursor:pointer" onclick="populateLobby()"></i>
                     <button type="button" class="btn-close" style="opacity:initial" data-bs-dismiss="modal"></button>
                 </div>
             </div>
-            <div class="modal-body">
-
+            <div class="modal-body px-0 px-sm-1">
                 <div class="d-flex justify-content-center">
-                    <table class="table table-responsive m-0">
+                    <table class="table table-responsive m-0" style="font-size: 10px">
                         <thead>
                             <tr>
                                 <th>Started</th>
@@ -56,10 +60,9 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody class="replay-table" id="lobby-table"></tbody>
+                        <tbody class="lobby-table" id="lobby-table"></tbody>
                     </table>
                 </div>
-
             </div>
             <div class="modal-footer">
             </div>

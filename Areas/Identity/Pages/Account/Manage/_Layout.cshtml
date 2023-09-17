@@ -1,0 +1,68 @@
+﻿@{
+    // if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
+    // {
+    //     Layout = parentLayout.ToString();
+    // }
+    // else
+    // {
+    //     Layout = "/Areas/Identity/Pages/_Layout.cshtml";
+    // }
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-7 col-xl-5 mt-5">
+        <div class="card tab-card profile-card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Identity/Account/Manage/Index">Username</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Identity/Account/Manage/Email">Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Identity/Account/Manage/Password">Password</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-10 my-4">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* <h1>Manage your account</h1>
+
+<div>
+    <h2>Change your account settings</h2>
+    <hr />
+    <div class="row">
+        <div class="col-md-3">
+            <partial name="_ManageNav" />
+        </div>
+        <div class="col-md-9">
+            @RenderBody()
+        </div>
+    </div>
+</div> *@
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+    <script>
+        $(function () {
+            const currentPage = location.pathname;
+            $('.nav-tabs li a').each(function () {
+                const $this = $(this);
+                if (currentPage.toLowerCase().indexOf($this.attr('href').toLowerCase()) !== -1) {
+                    $this.addClass('active');
+                }
+            })
+        })
+    </script>
+}

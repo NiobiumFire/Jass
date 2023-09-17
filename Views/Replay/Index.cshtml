@@ -1,13 +1,8 @@
-﻿
+﻿@{
+    ViewData["Title"] = "Replay";
+}
 @section scripts{
-    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
-    <script src="~/signalr/js"></script>
-    <script src="~/Scripts/z-ReplayRoom.js"></script>
-    <script>
-        //$(document).ready(function () {
-
-        //});
-    </script>
+    <script src="~/js/belotreplayroom.js"></script>
 }
 
 <!-- Control Panel -->
@@ -17,22 +12,23 @@
     <div class="dropdown">
         <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">Load Game</button>
         <div class="dropdown-menu border-info" style="width:350px">
-            <button class="btn btn-primary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#my-games" id="my-games-btn">My Games</button>
-            <div class="d-flex justify-content-center input-group">
+            <button class="btn btn-primary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#my-games" id="my-games-btn" onclick="getMyReplays()">My Games</button>
+            <div class="d-flex justify-content-center input-group px-1">
                 <input class="form-control my-1" style="font-size:0.7em" type="text" id="gameGUID" placeholder="Game Id" />
-                <button class="btn btn-primary my-1" type="button" id="load-game">Load</button>
+                <button class="btn btn-primary my-1" type="button" id="load-game" onclick="getReplay()">Load</button>
             </div>
         </div>
     </div>
     <!-- Replay Control -->
     <div class="d-flex">
-        <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="replayBack()" id="replay-back" disabled>
+        <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="back()" id="replay-back" disabled>
             <i class="bi bi-rewind-circle-fill" style="font-size:1.5em"></i>
         </button>
-        <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="pauseReplay()" id="pause-replay" disabled>
+        @* <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="pauseReplay()" id="pause-replay" disabled> *@
+        <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="play()" id="pause-replay" disabled>
             <i class="bi bi-play-circle-fill" id="pause-icon" style="font-size:1.5em"></i>
         </button>
-        <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="replayFwd()" id="replay-fwd" disabled>
+        <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="fwd()" id="replay-fwd" disabled>
             <i class="bi bi-fast-forward-circle-fill" style="font-size:1.5em"></i>
         </button>
     </div>
@@ -43,29 +39,45 @@
     </div>
 </div>
 
+<!-- Replay Not Found Modal -->
+<div class="modal" id="replay-not-found-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Replay load error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>A replay with the specified ID could not be found.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- My Games Offcanvas -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="my-games">
     <!-- Header -->
-    <div class="offcanvas-header bg-info">
+    <div class="offcanvas-header">
         <h1>My Games</h1>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body bg-info pt-0 px-0 mx-0">
+    <div class="offcanvas-body">
         <!-- Header -->
-        <table class="table table-responsive m-0">
+        <table class="table table-responsive rounded bg-info m-0">
             <thead>
                 <tr>
-                    <th>Time</th>
                     <th>West</th>
                     <th>North</th>
                     <th>East</th>
                     <th>South</th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody class="replay-table" id="replays-table"></tbody>
         </table>
-        <p style="color:darkmagenta" id="no-games"></p>
+        <p style="color:darkmagenta; text-align:center" id="no-games"></p>
     </div>
 </div>
 
@@ -74,14 +86,14 @@
 <div class="small mt-2 mb-2">
     <div class="replay-cardboard-horizontal rounded-top" style="height: calc(0.4*var(--card-height)) !important" id="cardboard">
         <div class="throw-t throw-t1" id="cardboard">
-            <img class="training-card" src="~/Images/Cards/c4-10.png" id="ncard0">
-            <img class="training-card" src="~/Images/Cards/c3-10.png" id="ncard1">
-            <img class="training-card" src="~/Images/Cards/c2-10.png" id="ncard2">
-            <img class="training-card" src="~/Images/Cards/c1-10.png" id="ncard3">
-            <img class="training-card" src="~/Images/Cards/c4-13.png" id="ncard4">
-            <img class="training-card" src="~/Images/Cards/c3-13.png" id="ncard5">
-            <img class="training-card" src="~/Images/Cards/c2-13.png" id="ncard6">
-            <img class="training-card" src="~/Images/Cards/c1-13.png" id="ncard7">
+            <img class="training-card" src="~/images/Cards/c4-10.png" id="ncard0">
+            <img class="training-card" src="~/images/Cards/c3-10.png" id="ncard1">
+            <img class="training-card" src="~/images/Cards/c2-10.png" id="ncard2">
+            <img class="training-card" src="~/images/Cards/c1-10.png" id="ncard3">
+            <img class="training-card" src="~/images/Cards/c4-13.png" id="ncard4">
+            <img class="training-card" src="~/images/Cards/c3-13.png" id="ncard5">
+            <img class="training-card" src="~/images/Cards/c2-13.png" id="ncard6">
+            <img class="training-card" src="~/images/Cards/c1-13.png" id="ncard7">
         </div>
     </div>
 
@@ -89,14 +101,14 @@
     <div class="d-flex justify-content-center p-0 position-relative">
         <div class="replay-cardboard-vertical">
             <div class="throw-t throw-t0">
-                <img class="training-card" src="~/Images/Cards/c4-10.png" id="wcard0">
-                <img class="training-card" src="~/Images/Cards/c3-10.png" id="wcard1">
-                <img class="training-card" src="~/Images/Cards/c2-10.png" id="wcard2">
-                <img class="training-card" src="~/Images/Cards/c1-10.png" id="wcard3">
-                <img class="training-card" src="~/Images/Cards/c4-13.png" id="wcard4">
-                <img class="training-card" src="~/Images/Cards/c3-13.png" id="wcard5">
-                <img class="training-card" src="~/Images/Cards/c2-13.png" id="wcard6">
-                <img class="training-card" src="~/Images/Cards/c1-13.png" id="wcard7">
+                <img class="training-card" src="~/images/Cards/c4-10.png" id="wcard0">
+                <img class="training-card" src="~/images/Cards/c3-10.png" id="wcard1">
+                <img class="training-card" src="~/images/Cards/c2-10.png" id="wcard2">
+                <img class="training-card" src="~/images/Cards/c1-10.png" id="wcard3">
+                <img class="training-card" src="~/images/Cards/c4-13.png" id="wcard4">
+                <img class="training-card" src="~/images/Cards/c3-13.png" id="wcard5">
+                <img class="training-card" src="~/images/Cards/c2-13.png" id="wcard6">
+                <img class="training-card" src="~/images/Cards/c1-13.png" id="wcard7">
             </div>
         </div>
 
@@ -113,8 +125,8 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="py-0" style="text-align: center;font-weight:400">0</td>
-                            <td class="py-0" style="text-align:center">0</td>
+                            <td class="py-0" style="text-align: center;font-weight:400" id="ns-score">0</td>
+                            <td class="py-0" style="text-align: center" id="ew-score">0</td>
                         </tr>
                     </tbody>
                 </table>
@@ -149,9 +161,9 @@
                             <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                         </span>
                         <!-- Dealer Badge -->
-                        <img class="dealer-marker seatTransition" style="top:0;left:50%" src="~/Images/Other/Dealer.svg" id="dealermarker0" hidden>
+                        <img class="dealer-marker dealer0 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker0" hidden>
                         <!-- Card -->
-                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard0">
+                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard0">
                     </div>
 
                 </div>
@@ -173,9 +185,9 @@
                             <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                         </span>
                         <!-- Dealer Badge -->
-                        <img class="dealer-marker seatTransition" style="top:25%;left:100%" src="~/Images/Other/Dealer.svg" id="dealermarker1" hidden>
+                        <img class="dealer-marker dealer1 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker1" hidden>
                         <!-- Card -->
-                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard1">
+                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard1">
                     </div>
                     <!-- South -->
                     <div class="inSouth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot3">
@@ -193,9 +205,9 @@
                             <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                         </span>
                         <!-- Dealer Badge -->
-                        <img class="dealer-marker seatTransition" style="top:75%;left:0%" src="~/Images/Other/Dealer.svg" id="dealermarker3" hidden>
+                        <img class="dealer-marker dealer3 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker3" hidden>
                         <!-- Card -->
-                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard3">
+                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard3">
                     </div>
                 </div>
                 <!-- Turn Indicator -->
@@ -220,9 +232,9 @@
                             <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
                         </span>
                         <!-- Dealer Badge -->
-                        <img class="dealer-marker seatTransition" style="top:100%;left:50%" src="~/Images/Other/Dealer.svg" id="dealermarker2" hidden>
+                        <img class="dealer-marker dealer2 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker2" hidden>
                         <!-- Card -->
-                        <img class="belot-card" src="~/Images/Cards/c0-00.png" id="tablecard2">
+                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard2">
                     </div>
                 </div>
             </div>
@@ -230,28 +242,28 @@
 
         <div class="replay-cardboard-vertical">
             <div class="throw-t throw-t2">
-                <img class="training-card" src="~/Images/Cards/c4-10.png" id="ecard0">
-                <img class="training-card" src="~/Images/Cards/c3-10.png" id="ecard1">
-                <img class="training-card" src="~/Images/Cards/c2-10.png" id="ecard2">
-                <img class="training-card" src="~/Images/Cards/c1-10.png" id="ecard3">
-                <img class="training-card" src="~/Images/Cards/c4-13.png" id="ecard4">
-                <img class="training-card" src="~/Images/Cards/c3-13.png" id="ecard5">
-                <img class="training-card" src="~/Images/Cards/c2-13.png" id="ecard6">
-                <img class="training-card" src="~/Images/Cards/c1-13.png" id="ecard7">
+                <img class="training-card" src="~/images/Cards/c4-10.png" id="ecard0">
+                <img class="training-card" src="~/images/Cards/c3-10.png" id="ecard1">
+                <img class="training-card" src="~/images/Cards/c2-10.png" id="ecard2">
+                <img class="training-card" src="~/images/Cards/c1-10.png" id="ecard3">
+                <img class="training-card" src="~/images/Cards/c4-13.png" id="ecard4">
+                <img class="training-card" src="~/images/Cards/c3-13.png" id="ecard5">
+                <img class="training-card" src="~/images/Cards/c2-13.png" id="ecard6">
+                <img class="training-card" src="~/images/Cards/c1-13.png" id="ecard7">
             </div>
         </div>
     </div>
 
     <div class="replay-cardboard-horizontal rounded-bottom">
         <div class="throw-t throw-t3" id="cardboard">
-            <img class="training-card" src="~/Images/Cards/c4-10.png" id="scard0">
-            <img class="training-card" src="~/Images/Cards/c3-10.png" id="scard1">
-            <img class="training-card" src="~/Images/Cards/c2-10.png" id="scard2">
-            <img class="training-card" src="~/Images/Cards/c1-10.png" id="scard3">
-            <img class="training-card" src="~/Images/Cards/c4-13.png" id="scard4">
-            <img class="training-card" src="~/Images/Cards/c3-13.png" id="scard5">
-            <img class="training-card" src="~/Images/Cards/c2-13.png" id="scard6">
-            <img class="training-card" src="~/Images/Cards/c1-13.png" id="scard7">
+            <img class="training-card" src="~/images/Cards/c4-10.png" id="scard0">
+            <img class="training-card" src="~/images/Cards/c3-10.png" id="scard1">
+            <img class="training-card" src="~/images/Cards/c2-10.png" id="scard2">
+            <img class="training-card" src="~/images/Cards/c1-10.png" id="scard3">
+            <img class="training-card" src="~/images/Cards/c4-13.png" id="scard4">
+            <img class="training-card" src="~/images/Cards/c3-13.png" id="scard5">
+            <img class="training-card" src="~/images/Cards/c2-13.png" id="scard6">
+            <img class="training-card" src="~/images/Cards/c1-13.png" id="scard7">
         </div>
     </div>
 </div>
