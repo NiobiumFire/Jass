@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.IO;
+using System.Diagnostics.Metrics;
 
 namespace BelotWebApp.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Player")]
     public class ReplayController : Controller
     {
 
@@ -26,14 +27,11 @@ namespace BelotWebApp.Controllers
         public string GetReplay(string replayId)
         {
             BelotReplay replay = new BelotReplay();
-            BelotReplayState currentState = new BelotReplayState(new int[] { 0, 0 }, 4, 0, 4, 4, new string[] { "", "", "", "" },
-                new string[] { "c0-00", "c0-00", "c0-00", "c0-00" }, new string[][] { new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" },
-                new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" }, new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" },
-                new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" } }, false);
+            BelotReplayState currentState = new BelotReplayState();
             replay.States.Add(new BelotReplayState(currentState));
 
             string path = _config.GetSection("SerilogPath:Path").Value + replayId + ".txt";
-            string[] lines = new string[] { "" };
+            string[] lines;
             try
             {
                 lines = System.IO.File.ReadAllLines(path);
@@ -51,12 +49,13 @@ namespace BelotWebApp.Controllers
             }
 
             int handsDealt = 0;
+            string[] declarations = new string[] { "", "", "", "" };
 
             for (int i = 1; i < lines.Length; i++)
             {
                 if (lines[i].IndexOf("Dealer:") > -1)
                 {
-                    currentState.Dealer = BelotReplay.GetDealer(lines[i]);
+                    currentState.Dealer = BelotReplay.GetPosition(lines[i], "Dealer");
                     currentState.Caller = 4;
                     currentState.RoundSuit = 0;
                 }
@@ -74,10 +73,10 @@ namespace BelotWebApp.Controllers
                 }
                 else if (lines[i].IndexOf("Call: ") > -1)
                 {
-                    int[] calls = BelotReplay.GetCalls(lines[i]);
+                    int[] calls = BelotReplay.GetIntArray(lines[i], "Call");
                     if (string.Join("", calls.ToArray()) == "0000")
                     {
-                        currentState.Emotes = new string[] { "Pass", "Pass", "Pass", "Pass" };
+                        currentState.Emotes = new string[] { "0", "0", "0", "0" };
                         replay.States.Add(new BelotReplayState(currentState));
                     }
                     else
@@ -85,12 +84,13 @@ namespace BelotWebApp.Controllers
                         foreach (int call in calls)
                         {
                             if (--currentState.Turn == -1) currentState.Turn = 3;
-                            if (call > 0)
+                            if (call > 0 && call < 9)
                             {
                                 currentState.Caller = currentState.Turn;
                                 currentState.RoundSuit = call;
                             }
-                            currentState.Emotes = BelotReplay.BuildEmotes(currentState.Turn, call);
+                            currentState.Emotes = new string[] { "", "", "", "" };
+                            currentState.Emotes[currentState.Turn] = call.ToString();
                             replay.States.Add(new BelotReplayState(currentState));
 
                         }
@@ -98,6 +98,26 @@ namespace BelotWebApp.Controllers
                     currentState.Turn = currentState.Dealer;
                     currentState.Emotes = new string[] { "", "", "", "" };
                     if (--currentState.Turn == -1) currentState.Turn = 3;
+                }
+                else if (lines[i].IndexOf("Tierce: ") > -1)
+                {
+                    declarations[BelotReplay.GetPosition(lines[i], "Tierce")] += "Tierce\n";
+                }
+                else if (lines[i].IndexOf("Quarte: ") > -1)
+                {
+                    declarations[BelotReplay.GetPosition(lines[i], "Quarte")] += "Quarte\n";
+                }
+                else if (lines[i].IndexOf("Quint: ") > -1)
+                {
+                    declarations[BelotReplay.GetPosition(lines[i], "Quint")] += "Quint\n";
+                }
+                else if (lines[i].IndexOf("Carre: ") > -1)
+                {
+                    declarations[BelotReplay.GetPosition(lines[i], "Carre")] += "Carre\n";
+                }
+                else if (lines[i].IndexOf("Belot: ") > -1)
+                {
+                    declarations[BelotReplay.GetPosition(lines[i], "Belot")] += "Belot\n";
                 }
                 else if (lines[i].IndexOf("Play: ") > -1)
                 {
@@ -111,13 +131,22 @@ namespace BelotWebApp.Controllers
                         currentState.TableCards[currentState.Turn] = plays[currentState.Turn];
                         int card = Array.IndexOf(currentState.Hand[currentState.Turn], currentState.Hand[currentState.Turn].Where(c => c == plays[currentState.Turn]).First());
                         currentState.Hand[currentState.Turn][card] = "c0-00";
+                        currentState.Emotes[currentState.Turn] = declarations[currentState.Turn];
                         replay.States.Add(new BelotReplayState(currentState));
+                        currentState.Emotes[currentState.Turn] = "";
+                        declarations[currentState.Turn] = "";
                     }
+                }
+                else if (lines[i].IndexOf("Throw: ") > -1)
+                {
+                    currentState.Emotes[currentState.Turn] = "Throws\ncards";
+                    replay.States.Add(new BelotReplayState(currentState));
+                    currentState.Emotes[currentState.Turn] = "";
                 }
                 else if (lines[i].IndexOf("Trick: ") > -1)
                 {
                     currentState.ShowTrickWinner = true;
-                    currentState.Turn = BelotReplay.GetWinner(lines[i]);
+                    currentState.Turn = BelotReplay.GetPosition(lines[i], "Trick");
                     replay.States.Add(new BelotReplayState(currentState));
                     currentState.TableCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
                     currentState.ShowTrickWinner = false;
@@ -125,7 +154,7 @@ namespace BelotWebApp.Controllers
                 }
                 else if (lines[i].IndexOf("Round: ") > -1)
                 {
-                    int[] points = BelotReplay.GetPoints(lines[i]);
+                    int[] points = BelotReplay.GetIntArray(lines[i], "Round");
                     currentState.Scores[0] += points[0];
                     currentState.Scores[1] += points[1];
                     replay.States.Add(new BelotReplayState(current: currentState));

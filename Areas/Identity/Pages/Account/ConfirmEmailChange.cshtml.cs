@@ -47,6 +47,10 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
 
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ChangeEmailAsync(user, email, code);
+            if (result.Succeeded && !await _userManager.IsInRoleAsync(user, "Player"))
+            {
+                await _userManager.AddToRoleAsync(user, "Player");
+            }
             if (!result.Succeeded)
             {
                 StatusMessage = "Error changing email.";

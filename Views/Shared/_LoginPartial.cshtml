@@ -21,8 +21,19 @@
             </ul>
         </li>
     }
-    else
+    else if (ViewData["IsLoginPage"] == null)
     {
-
+        <li class="nav-item dropdown">
+            <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Login" data-bs-toggle="dropdown">
+                <i class="bi-person-fill" style="font-size: 1.5em; color: darkmagenta;"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end border-info">
+                <li><a title="Login" class="dropdown-item" href="/Identity/Account/Login">Login</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a id="Register" class="dropdown-item" href="/Identity/Account/Register">Register</a>
+                </li>
+            </ul>
+        </li>
     }
 </ul>

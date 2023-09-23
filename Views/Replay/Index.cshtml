@@ -3,6 +3,7 @@
 }
 @section scripts{
     <script src="~/js/belotreplayroom.js"></script>
+    <script src="~/js/belotroomreplayshared.js"></script>
 }
 
 <!-- Control Panel -->
@@ -24,7 +25,6 @@
         <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="back()" id="replay-back" disabled>
             <i class="bi bi-rewind-circle-fill" style="font-size:1.5em"></i>
         </button>
-        @* <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="pauseReplay()" id="pause-replay" disabled> *@
         <button class="btn btn-primary py-0 px-2 mx-1" type="button" onclick="play()" id="pause-replay" disabled>
             <i class="bi bi-play-circle-fill" id="pause-icon" style="font-size:1.5em"></i>
         </button>
@@ -48,7 +48,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>A replay with the specified ID could not be found.</p>
+                <p>A replay with the specified id could not be found.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
@@ -66,7 +66,7 @@
     </div>
     <div class="offcanvas-body">
         <!-- Header -->
-        <table class="table table-responsive rounded bg-info m-0">
+        <table class="table table-responsive rounded bg-info m-0" id="replay-table" hidden>
             <thead>
                 <tr>
                     <th>West</th>
@@ -75,9 +75,9 @@
                     <th>South</th>
                 </tr>
             </thead>
-            <tbody class="replay-table" id="replays-table"></tbody>
+            <tbody class="replay-table-body" id="replay-table-body"></tbody>
         </table>
-        <p style="color:darkmagenta; text-align:center" id="no-games"></p>
+        <p style="color:darkmagenta; text-align:center" id="no-games" hidden></p>
     </div>
 </div>
 
@@ -112,133 +112,7 @@
             </div>
         </div>
 
-        <div class="p-3 d-flex replay-tableboard justify-content-center position-relative">
-
-            <!-- Score Totals -->
-            <div class="d-flex justify-content-center align-items-center score-summary">
-                <table class="table table-sm m-0" id="scoreTotals" style="width: auto;  border-style:hidden">
-                    <thead>
-                        <tr>
-                            <th class="py-0 px-2" style="text-align:center;" scope="col">N/S</th>
-                            <th class="py-0 px-2" style="text-align:center" scope="col">E/W</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="py-0" style="text-align: center;font-weight:400" id="ns-score">0</td>
-                            <td class="py-0" style="text-align: center" id="ew-score">0</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Selected Suit Indicator -->
-            <div class="d-flex selected-suit p-0 m-0 justify-content-center align-items-center" style="width:auto;">
-                <i class="bi bi-arrows-move" style="font-size: 25px; color: dimgrey;" id="wnescallindicator"></i>
-                <div class="position-relative">
-                    <i class="bi bi-suit-spade-fill" style="font-size: 25px; color: dimgrey;" id="selectedsuit"></i>
-                    <span class="position-absolute" style="top: 40%; left: 60%; font-size:20px;font-weight:500;" id="selectedmultiplier"></span>
-                </div>
-            </div>
-
-            <div class="d-flex justify-content-center my-3 position-relative">
-                <!-- Flex Column 1 -->
-                <div class="d-flex flex-column justify-content-center position-relative" id="cardCol1">
-
-                    <!-- West -->
-                    <div class="inWest d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot0">
-                        <!-- Player Marker -->
-                        <div class="player-marker pm-west seatTransition" style="transform: translate(-57%, 0) rotate(270deg)" id="player-marker0">
-                            <!-- Player Name -->
-                            <span class="badge rounded-pill player-name-marker" id="usernamelabel0">West</span>
-                            <!-- Bot Badge -->
-                            <i class="bot-badge bi bi-robot" id="BotBadge0" hidden></i>
-                        </div>
-                        <!-- Emote -->
-                        <div class="emote bubble-w" style="visibility:hidden" id="wbubble"></div>
-                        <!-- Winner Marker -->
-                        <span class="badge rounded-circle p-1 winner-marker" id="0winnermarker" hidden>
-                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                        </span>
-                        <!-- Dealer Badge -->
-                        <img class="dealer-marker dealer0 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker0" hidden>
-                        <!-- Card -->
-                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard0">
-                    </div>
-
-                </div>
-                <!-- Flex Column 2 -->
-                <div class="d-flex flex-column justify-content-center" id="cardCol2">
-                    <!-- North -->
-                    <div class="inNorth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot1">
-                        <!-- Player Marker -->
-                        <div class="player-marker seatTransition" style="transform: translate(0, -56%) rotate(0deg)" id="player-marker1">
-                            <!-- Player Name -->
-                            <span class="badge rounded-pill player-name-marker" id="usernamelabel1">North</span>
-                            <!-- Bot Badge -->
-                            <i class="bot-badge bi bi-robot" id="BotBadge1" hidden></i>
-                        </div>
-                        <!-- Emote -->
-                        <div class="emote bubble-n" style="visibility: hidden" id="nbubble"></div>
-                        <!-- Winner Marker -->
-                        <span class="badge rounded-circle p-1 winner-marker" id="1winnermarker" hidden>
-                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                        </span>
-                        <!-- Dealer Badge -->
-                        <img class="dealer-marker dealer1 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker1" hidden>
-                        <!-- Card -->
-                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard1">
-                    </div>
-                    <!-- South -->
-                    <div class="inSouth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot3">
-                        <!-- Player Marker -->
-                        <div class="player-marker pnm-south seatTransition" style="transform: translate(0, 55%) rotate(180deg)" id="player-marker3">
-                            <!-- Player Name -->
-                            <span class="badge rounded-pill player-name-marker" id="usernamelabel3">South</span>
-                            <!-- Bot Badge -->
-                            <i class="bot-badge bi bi-robot" id="BotBadge3" hidden></i>
-                        </div>
-                        <!-- Emote -->
-                        <div class="emote bubble-s" style="visibility: hidden" id="sbubble"></div>
-                        <!-- Winner Marker -->
-                        <span class="badge rounded-circle p-1 winner-marker" id="3winnermarker" hidden>
-                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                        </span>
-                        <!-- Dealer Badge -->
-                        <img class="dealer-marker dealer3 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker3" hidden>
-                        <!-- Card -->
-                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard3">
-                    </div>
-                </div>
-                <!-- Turn Indicator -->
-                <span class="badge rounded-circle p-1 position-absolute z-4 top-50 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
-                    <i class="bi bi-suit-spade-fill seatTransition" style="font-size: 2em; color: darkmagenta" id="turnIndicator"></i>
-                </span>
-                <!-- Flex Column 3 -->
-                <div class="d-flex flex-column justify-content-center position-relative" id="cardCol3">
-                    <!-- East -->
-                    <div class="inEast d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot2">
-                        <!-- Player Marker -->
-                        <div class="player-marker seatTransition" style="transform: translate(58%, 0) rotate(90deg)" id="player-marker2">
-                            <!-- Player Name -->
-                            <span class="badge rounded-pill player-name-marker" id="usernamelabel2">East</span>
-                            <!-- Bot Badge -->
-                            <i class="bot-badge bi bi-robot" id="BotBadge2" hidden></i>
-                        </div>
-                        <!-- Emote -->
-                        <div class="emote bubble-e" style="visibility: hidden" id="ebubble"></div>
-                        <!-- Winner Marker -->
-                        <span class="badge rounded-circle p-1 winner-marker" id="2winnermarker" hidden>
-                            <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                        </span>
-                        <!-- Dealer Badge -->
-                        <img class="dealer-marker dealer2 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker2" hidden>
-                        <!-- Card -->
-                        <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard2">
-                    </div>
-                </div>
-            </div>
-        </div>
+        <partial name="_BelotCardTable" />
 
         <div class="replay-cardboard-vertical">
             <div class="throw-t throw-t2">

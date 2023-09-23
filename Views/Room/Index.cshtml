@@ -7,19 +7,7 @@
     <script src="~/js/"></script> *@
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
     <script src="~/js/BelotRoom.js"></script>
-
-    <svg style="display:none">
-        <symbol id="i-alltrumps" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 162.000000 164.000000" preserveAspectRatio="xMidYMid meet">
-            <g transform="translate(0.000000,164.000000) scale(0.100000,-0.100000)">
-                <path d="M1348 1569 c-15 -11 -54 -30 -85 -41 -89 -32 -201 -28 -414 16 -203 41 -284 45 -362 16 -114 -43 -197 -149 -197 -253 0 -69 19 -111 63 -137 45 -28 89 -25 126 6 41 35 44 92 5 131 -23 23 -31 25 -75 20 -43 -5 -49 -4 -49 12 0 27 63 79 105 87 48 9 100 -1 215 -37 100 -33 214 -42 295 -26 l39 9 -62 -47 c-116 -87 -176 -179 -188 -287 l-6 -57 -31 16 c-41 21 -145 29 -190 14 -38 -13 -117 -66 -117 -79 0 -4 7 -15 15 -26 13 -18 16 -18 56 -2 61 25 111 14 165 -36 39 -36 85 -121 72 -133 -3 -3 -24 2 -48 10 -58 21 -119 19 -184 -6 -63 -23 -70 -31 -62 -64 6 -22 10 -24 80 -23 63 0 83 -4 126 -28 150 -81 217 -294 124 -388 -38 -37 -93 -42 -194 -16 -106 27 -163 23 -227 -16 -48 -30 -93 -94 -108 -156 -6 -23 -3 -28 19 -34 21 -5 32 0 55 25 37 40 70 40 186 1 49 -17 109 -30 134 -30 107 0 254 72 384 188 103 91 166 189 199 308 20 73 21 104 23 399 1 297 2 324 22 376 23 64 77 152 135 221 l39 47 -20 20 c-26 26 -29 26 -63 0z m-181 -199 c-47 -56 -82 -123 -108 -210 -21 -69 -23 -102 -28 -425 -6 -345 -6 -351 -30 -400 -30 -59 -80 -116 -127 -144 l-35 -21 25 33 c56 74 59 93 66 487 7 382 11 415 58 505 36 71 81 124 143 170 34 25 63 45 66 45 2 0 -11 -18 -30 -40z" />
-            </g>
-        </symbol>
-        <symbol id="i-notrumps" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 137.000000 151.000000" preserveAspectRatio="xMidYMid meet">
-            <g transform="translate(0.000000,151.000000) scale(0.100000,-0.100000)">
-                <path d="M581 1468 c-75 -10 -186 -54 -251 -99 -61 -42 -127 -126 -159 -202 -23 -54 -26 -76 -26 -172 0 -153 20 -200 131 -313 l84 -85 -52 -71 c-139 -189 -178 -262 -178 -335 0 -67 46 -100 101 -71 24 13 24 23 -2 86 -31 73 -22 88 44 81 65 -6 151 -45 276 -122 84 -52 96 -57 115 -45 12 7 85 62 163 122 78 59 144 108 147 108 2 0 8 -21 11 -47 4 -27 15 -66 24 -88 19 -43 82 -105 107 -105 17 0 234 179 234 193 0 9 -25 37 -34 37 -3 0 -21 -11 -41 -24 -44 -30 -62 -25 -74 23 -12 44 -35 856 -25 908 10 61 47 116 96 142 23 13 44 25 46 26 10 8 -13 55 -27 55 -24 0 -109 -52 -162 -98 l-45 -40 -50 34 c-65 45 -188 92 -271 104 -78 11 -94 11 -182 -2z m163 -183 c32 -8 66 -20 77 -26 19 -10 18 -11 -6 -44 l-26 -34 -47 15 c-131 39 -261 -14 -308 -125 -31 -73 -8 -115 35 -64 14 17 36 35 48 42 28 14 100 13 136 -2 l29 -12 -132 -180 c-72 -99 -137 -186 -144 -193 -21 -21 -108 65 -148 146 -29 59 -33 76 -32 147 0 60 6 92 22 127 74 164 297 255 496 203z m201 -105 c18 -20 20 -39 23 -241 l4 -219 -221 0 -221 0 78 108 c307 422 290 404 337 352z m35 -684 l0 -65 -101 -75 c-83 -62 -104 -74 -122 -67 -39 16 -402 173 -405 176 -2 2 10 24 28 49 l31 46 284 0 285 0 0 -64z" />
-            </g>
-        </symbol>
-    </svg>
+    <script src="~/js/belotroomreplayshared.js"></script>
 
     <script>
         $(document).ready(function () {
@@ -38,7 +26,7 @@
     }
 
 <!-- Control Panel -->
-<div class="d-flex flex-column bg-info rounded p-1 mt-2 position-relative z-2">
+<div class="d-flex flex-column bg-info rounded p-1 my-2 position-relative z-2">
     <div class="d-flex m-0 p-0 py-2 justify-content-between align-items-center px-sm-5">
         <input class="btn btn-sm btn-dark px-2" type="button" id="dealBtn" value="Deal" style="visibility:hidden" disabled />
         <button class="nohover btn btn-sm btn-dark px-2" type="button" id="rotateSeatsAntiClockwiseBtn" disabled>
@@ -141,185 +129,11 @@
 </div>
 
 <!-- Card Table -->
-
-<div class="container-fluid rounded mt-2 position-relative z-1">
-    <div class="row tableboard rounded justify-content-center position-relative py-4" id="tableboard">
-        <!-- Score Totals -->
-        <div class="score-summary d-flex justify-content-center align-items-center">
-            <table class="table table-sm m-0" style="width: auto;  border-style:hidden" id="scoreTotals">
-                <thead>
-                    <tr class="table-heading-border">
-                        <th class="py-0 px-2" style="text-align:center;" scope="col" id="scoreSummaryNSTitle">N/S</th>
-                        <th class="py-0 px-2" style="text-align:center" scope="col" id="scoreSummaryEWTitle">E/W</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="py-0" style="text-align: center;font-weight:400">0</td>
-                        <td class="py-0" style="text-align:center">0</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <!-- Selected Suit Indicator -->
-        <div class="selected-suit d-flex p-0 m-0 justify-content-center align-items-center" style="width:auto;">
-            <i class="bi bi-arrows-move seatTransition" style="font-size: 25px; color: dimgrey" id="wnescallindicator"></i>
-            <div class="position-relative">
-                <i class="bi bi-suit-spade-fill" style="font-size: 25px; color: dimgrey;" id="selectedsuit"></i>
-                <span class="position-absolute" style="top: 40%; left: 60%; font-size:20px;font-weight:500;font-style:italic" id="selectedmultiplier"></span>
-            </div>
-        </div>
-        <!-- Main -->
-        <div class="d-flex justify-content-center align-items-center my-3 position-relative" id="seatPanel">
-            <!-- Flex Column 1 -->
-            <div class="d-flex flex-column justify-content-center position-relative" id="cardCol1">
-                <!-- West -->
-                <div class="inWest d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot0">
-                    <!-- Player Marker -->
-                    <div class="player-marker pm-west seatTransition" style="transform: translate(-57%, 0) rotate(270deg)" id="player-marker0">
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel0">West</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge0" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble-w" style="visibility:hidden" id="wbubble"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="0winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer0 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker0" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard0">
-                </div>
-            </div>
-            <!-- Fingerprints -->
-            <!-- West -->
-            <div class="dropdown dropend">
-                <i class="fingerprint0 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint0"></i>
-                <ul class="test dropdown-menu border-info" id="teamselector0">
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)" id="occupy0">Occupy Seat</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)" id="assignbot0">Assign to Bot</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate0" hidden>Vacate Seat</a></li>
-                </ul>
-            </div>
-            <!-- North -->
-            <div class="dropdown dropdown-center">
-                <i class="fingerprint1 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint1"></i>
-                <ul class="test dropdown-menu border-info" id="teamselector1">
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)" id="occupy1">Occupy Seat</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)" id="assignbot1">Assign to Bot</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate1" hidden>Vacate Seat</a></li>
-                </ul>
-            </div>
-            <!-- East -->
-            <div class="dropdown dropstart">
-                <i class="fingerprint2 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint2"></i>
-                <ul class="test dropdown-menu border-info" id="teamselector2">
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(2)" id="occupy2">Occupy Seat</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(6)" id="assignbot2">Assign to Bot</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate2" hidden>Vacate Seat</a></li>
-                </ul>
-            </div>
-            <!-- South-->
-            <div class="dropdown dropup dropup-center">
-                <i class="fingerprint3 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint3"></i>
-                <ul class="test dropdown-menu border-info" id="teamselector3">
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)" id="occupy3">Occupy Seat</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)" id="assignbot3">Assign to Bot</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate3" hidden>Vacate Seat</a></li>
-                </ul>
-            </div>
-            <!-- Flex Column 2 -->
-            <div class="d-flex flex-column justify-content-center" id="cardCol2">
-                <!-- North -->
-                <div class="inNorth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot1">
-                    <!-- Player Marker -->
-                    <div class="player-marker seatTransition" style="transform: translate(0, -56%) rotate(0deg)" id="player-marker1">
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel1">North</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge1" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble-n" style="visibility: hidden" id="nbubble"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="1winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer1 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker1" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard1">
-                </div>
-                <!-- South -->
-                <div class="inSouth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot3">
-                    <!-- Player Marker -->
-                    <div class="player-marker pnm-south seatTransition" style="transform: translate(0, 55%) rotate(180deg)" id="player-marker3">
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel3">South</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge3" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble-s" style="visibility: hidden" id="sbubble"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="3winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer3 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker3" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard3">
-                </div>
-            </div>
-            <!-- Turn Indicator -->
-            <span class="badge rounded-circle p-1 position-absolute z-4 top-50 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
-                <i class="bi bi-suit-spade-fill seatTransition" style="font-size: 2em; color: darkmagenta" id="turnIndicator"></i>
-            </span>
-            <!-- Flex Column 3 -->
-            <div class="d-flex flex-column justify-content-center position-relative" id="cardCol3">
-                <!-- East -->
-                <div class="inEast d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot2">
-                    <!-- Player Marker -->
-                    <div class="player-marker seatTransition" style="transform: translate(58%, 0) rotate(90deg)" id="player-marker2">
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel2">East</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge2" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble-e" style="visibility: hidden" id="ebubble"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="2winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer2 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker2" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard2">
-                </div>
-            </div>
-        </div>
-        <!-- Throw Cards Button -->
-        <div class="d-flex throw-cards-ctnr p-0 m-0 justify-content-center align-items-center" style="width: auto;">
-            <button class="throw-cards-btn round-btn-pulse px-1 position-relative" id="throw-cards-btn" hidden>
-                Throw
-            </button>
-        </div>
-        <!-- Maximise Suit Selector -->
-        <div class="d-flex make-call-ctnr p-0 m-0 justify-content-center align-items-center" style="width: auto;">
-            <button class="make-call-btn round-btn-pulse px-1 position-relative" id="make-call-btn" hidden>
-                Call
-            </button>
-        </div>
-    </div>
-</div>
+<partial name="_BelotCardTable" />
 
 <!-- Suit Selector Modal -->
 
-<div class="modal" id="suit-modal" data-bs-backdrop="static" tabindex="-1">
+<div class="modal" id="suit-modal" data-bs-backdrop="static" tabindex="-1" data-bs-keyboard="false">
     <div class="modal-dialog modal-sm modal-low" id="suit-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">
@@ -328,50 +142,50 @@
             </div>
             <div class="modal-body p-0">
 
-                <table class="table table-sm suit-call-table mb-0" style="table-layout:fixed">
+                <table class="table table-sm suit-call-table mb-0">
                     <tbody>
-                        <tr class="rounded-3">
-                            <td style="text-align: center">
-                                <i class="btn m-0 p-0 bi bi-suit-club-fill suitsize" style="color: black; " id="suit1"></i>
+                        <tr>
+                            <td id="suitBtn1">
+                                <i class="bi bi-suit-club-fill" style="color: black" id="suit1"></i>
+                                <p>Clubs</p>
                             </td>
-                            <td style="text-align: center">
-                                <i class="btn m-0 p-0 bi bi-suit-diamond-fill suitsize" style="color: red;" id="suit2"></i>
+                            <td id="suitBtn2">
+                                <i class="bi bi-suit-diamond-fill" style="color: red;" id="suit2"></i>
+                                <p>Diamonds</p>
                             </td>
-                            <td style="text-align: center">
-                                <i class="btn m-0 p-0 bi bi-suit-heart-fill suitsize" style="color: red; " id="suit3"></i>
+                            <td id="suitBtn3">
+                                <i class="bi bi-suit-heart-fill" style="color: red; " id="suit3"></i>
+                                <p>Hearts</p>
                             </td>
-                            <td style="text-align: center">
-                                <i class="btn m-0 p-0 bi bi-suit-spade-fill suitsize" style="color: black; " id="suit4"></i>
+                            <td id="suitBtn4">
+                                <i class="bi bi-suit-spade-fill" style="color: black; " id="suit4"></i>
+                                <p>Spades</p>
                             </td>
                         </tr>
                         <tr>
-                            <td style="text-align: center; vertical-align:central">
-                                <svg class="btn m-0 p-0 suitsizeJA" style="transform: translate(-15%, 23%)" id="suit5" color="darkmagenta">
-                                    <use xlink:href="#i-notrumps" x="0" y="0" fill="darkmagenta" id="suitfill5"></use>
-                                </svg>
+                            <td id="suitBtn5">
+                                <i class="allNoTrumps" style="color: darkmagenta; " id="suit5">A</i>
+                                <p>No Trumps</p>
                             </td>
-                            <td style="text-align: center">
-                                <svg class="btn m-0 p-0 suitsizeJA" style="transform: translate(-15%, 18%)" id="suit6" color="darkmagenta">
-                                    <use xlink:href="#i-alltrumps" x="0" y="0" fill="darkmagenta" id="suitfill6"></use>
-                                </svg>
+                            <td id="suitBtn6">
+                                <i class="allNoTrumps" style="color: darkmagenta; " id="suit6">J</i>
+                                <p>All Trumps</p>
                             </td>
-                            <td style="text-align: center; transform: translate(0, 0)">
-                                <i class="btn m-0 p-0 suitsize" style="color: black" id="suit7">x2</i>
+                            <td id="suitBtn7">
+                                <i class="allNoTrumps" style="color: black; font-style:normal" id="suit7">×2</i>
+                                <p>Double</p>
                             </td>
-                            <td style="text-align: center; transform: translate(0, 0)">
-                                <i class="btn m-0 p-0 suitsize" style="color: black" id="suit8">x4</i>
+                            <td id="suitBtn8">
+                                <i class="allNoTrumps" style="color: black; font-style:normal" id="suit8">×4</i>
+                                <p>Redouble</p>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-
-
-                @*<div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center" style="min-width:0"></div>
-                <div class="d-flex flex-row m-0 p-0 justify-content-around align-items-center"></div>*@
             </div>
             <div class="d-flex justify-content-between modal-footer py-1">
-                <button type="button" id="suit9" class="btn btn-danger" onclick="nominateSuit(this);" disabled>⁹⁄₅</button>
-                <button type="button" id="suit0" class="btn btn-dark" onclick="nominateSuit(this);">Pass</button>
+                <button type="button" id="suitBtn9" class="btn btn-danger" onclick="nominateSuit(this);" disabled>⁹⁄₅</button>
+                <button type="button" id="suitBtn10" class="btn btn-dark" onclick="nominateSuit(this);">Pass</button>
             </div>
         </div>
     </div>
@@ -438,7 +252,7 @@
 
 <!-- Extra Points Modal -->
 
-<div class="modal" id="extras-modal" data-bs-backdrop="static" tabindex="-1">
+<div class="modal" id="extras-modal" data-bs-backdrop="static" tabindex="-1" data-bs-keyboard="false">
     <div class="modal-dialog modal-sm modal-low" id="extras-modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-1">

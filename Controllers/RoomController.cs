@@ -9,7 +9,7 @@ using Serilog;
 namespace BelotWebApp.Controllers
 {
 
-    [Authorize]
+    [Authorize(Roles ="Player")]
     public class RoomController : Controller
     {
         private readonly IConfiguration _config;
@@ -17,7 +17,6 @@ namespace BelotWebApp.Controllers
         public RoomController(IConfiguration config)
         {
             _config = config;
-
         }
 
         [HttpPost]
