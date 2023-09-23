@@ -199,7 +199,7 @@ namespace BelotWebApp.BelotClasses
         {
             log.Information("Entering TrickController.");
             BelotGame game = GetGame();
-            while (game.PlayedCards.Where(c => c != "c0-00").Count() < 4 && !game.WaitCard)
+            while (game.TableCards.Where(c => c != "c0-00").Count() < 4 && !game.WaitCard)
             {
                 if (game.Hand[game.Turn].Where(c => c != "c0-00").Count() == 1) // auto-play last card
                 {
@@ -218,9 +218,9 @@ namespace BelotWebApp.BelotClasses
                 if (game.Players[game.Turn].IsHuman)
                 {
                     game.WaitCard = true;
-                    if (game.PlayedCards.Where(c => c != "c0-00").Count() == 0)
+                    if (game.TableCards.Where(c => c != "c0-00").Count() == 0)
                     {
-                        if (game.GetWinners(game.Turn).Where(w => w == 2).Count() == game.Hand[game.Turn].Where(c => c != "c0-00").Count() && game.NumCardsPlayed > 4)
+                        if (game.GetWinners(game.Turn).Where(w => w == 2).Count() == game.Hand[game.Turn].Where(c => c != "c0-00").Count() && game.NumCardsPlayed > 3)
                         {
                             await Clients.Client(game.Players[game.Turn].ConnectionId).SendAsync("ShowThrowBtn");
                         }
@@ -230,7 +230,7 @@ namespace BelotWebApp.BelotClasses
                 }
                 else
                 {
-                    string card = new AgentBasic().SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.PlayedCards, game.Turn, game.DetermineWinner(), game.RoundSuit, game.TrickSuit, game.EWCalled);
+                    string card = new AgentBasic().SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.TableCards, game.Turn, game.DetermineWinner(), game.RoundSuit, game.TrickSuit, game.EWCalled);
 
                     game.PlayCard(card);
 
@@ -280,7 +280,7 @@ namespace BelotWebApp.BelotClasses
                 {
                     await Clients.Group(GetRoomId()).SendAsync("ResetTable");
                     game.Turn = winner;
-                    game.PlayedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
+                    game.TableCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
                 }
                 game.HighestTrumpInTrick = 0;
                 game.TrickSuit = 0;
@@ -362,8 +362,11 @@ namespace BelotWebApp.BelotClasses
 
             if (suit > 0)
             {
-                await Clients.Group(GetRoomId()).SendAsync("SuitNominated", suit);
-                await Clients.Group(GetRoomId()).SendAsync("setCallerIndicator", game.Turn);
+                if (suit < 9)
+                {
+                    await Clients.Group(GetRoomId()).SendAsync("SuitNominated", suit);
+                    await Clients.Group(GetRoomId()).SendAsync("setCallerIndicator", game.Turn);
+                }
                 if (suit < 7)
                 {
                     message = username + " called " + BelotHelpers.GetSuitNameFromNumber(suit) + ".";
@@ -381,13 +384,9 @@ namespace BelotWebApp.BelotClasses
                     message = username + " called five-under-nine.";
                 }
             }
-
-            //await Task.Run(() => SysAnnounce(message));
             await SysAnnounce(message);
-            string[] seatPos = new string[] { "w", "n", "e", "s" };
-            await Clients.Group(GetRoomId()).SendAsync("EmoteSuit", suit, seatPos[game.Turn]);
-            //await Task.Run(() => Emote(seatPos[game.Turn], game.BotDelay));
-            await Emote(seatPos[game.Turn], game.BotDelay);
+            await Clients.Group(GetRoomId()).SendAsync("EmoteSuit", suit, game.Turn);
+            await Emote(game.Turn, game.BotDelay);
             log.Information("Leaving AnnounceSuit.");
         }
 
@@ -400,7 +399,7 @@ namespace BelotWebApp.BelotClasses
             log.Information("Entering HubPlayCard.");
             BelotGame game = GetGame();
             game.PlayCard(card);
-            await Clients.Caller.SendAsync("SetTableCard", game.Turn, game.PlayedCards[game.Turn]);
+            await Clients.Caller.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
 
             List<string> extras = new List<string>();
 
@@ -430,7 +429,7 @@ namespace BelotWebApp.BelotClasses
         {
             log.Information("Entering CardPlayEnd.");
             BelotGame game = GetGame();
-            await Clients.Group(GetRoomId()).SendAsync("SetTableCard", game.Turn, game.PlayedCards[game.Turn]);
+            await Clients.Group(GetRoomId()).SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
             Thread.Sleep(game.BotDelay);
             if (game.NumCardsPlayed % 4 != 0) if (--game.Turn == -1) game.Turn = 3;
             if (game.NumCardsPlayed < 32) Clients.Group(GetRoomId()).SendAsync("SetTurnIndicator", game.Turn);
@@ -494,15 +493,13 @@ namespace BelotWebApp.BelotClasses
             }
             if (emotes.Count > 0)
             {
-                string[] seatPos = new string[] { "w", "n", "e", "s" };
-                await Clients.Group(GetRoomId()).SendAsync("SetExtrasEmote", JsonSerializer.Serialize(emotes), seatPos[game.Turn]);
-                //await Task.Run(() => Emote(seatPos[game.Turn], game.BotDelay));
-                await Emote(seatPos[game.Turn], game.BotDelay);
+                await Clients.Group(GetRoomId()).SendAsync("SetExtrasEmote", JsonSerializer.Serialize(emotes), game.Turn);
+                await Emote(game.Turn, game.BotDelay);
             }
             log.Information("Leaving AnnounceExtras.");
         }
 
-        public async Task Emote(string seat, int duration)
+        public async Task Emote(int seat, int duration)
         {
             log.Information("Entering Emote.");
             await Clients.Group(GetRoomId()).SendAsync("ShowEmote", seat);
@@ -515,6 +512,8 @@ namespace BelotWebApp.BelotClasses
         {
             log.Information("Entering ThrowCards.");
             BelotGame game = GetGame();
+
+            game.Log.Information("Throw: " + game.Turn);
 
             int points = 10; // stoch
 
@@ -838,7 +837,7 @@ namespace BelotWebApp.BelotClasses
                 }
 
                 // Update table cards
-                if (!game.IsNewGame) Clients.Caller.SendAsync("SetTableCard", i, game.PlayedCards[i]);
+                if (!game.IsNewGame) Clients.Caller.SendAsync("SetTableCard", i, game.TableCards[i]);
             }
 
             if (!game.IsNewGame)
@@ -907,7 +906,7 @@ namespace BelotWebApp.BelotClasses
                             await Clients.Caller.SendAsync("ShowSuitModal", validCalls, fiveUnderNine);
                         }
                         // if the connecting user must declare extras
-                        else if (game.PlayedCards[game.Turn] != "c0-00")
+                        else if (game.TableCards[game.Turn] != "c0-00")
                         {
                             await Clients.Caller.SendAsync("DeclareExtras", JsonSerializer.Serialize(game.CurrentExtras));
                         }
@@ -1008,7 +1007,7 @@ namespace BelotWebApp.BelotClasses
             }
             allConnections.Remove(Context.ConnectionId);
             log.Information("Leaving OnDisconnected.");
-            if (games.Count == 0) 
+            if (games.Count == 0)
             {
                 log.Dispose();
                 log = null;

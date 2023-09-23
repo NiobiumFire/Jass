@@ -178,12 +178,12 @@ room.on("setTurnIndicator", function (turn) {
 // -------------------- Emote --------------------
 
 room.on("showEmote", function (turn) {
-    let seat = turn.concat("bubble");
+    let seat = "bubble" + turn;
     document.getElementById(seat).style.visibility = "visible";
 });
 
 room.on("hideEmote", function (turn) {
-    let seat = turn.concat("bubble");
+    let seat = "bubble" + turn;
     document.getElementById(seat).style.visibility = "hidden";
 });
 
@@ -236,6 +236,7 @@ function resetBoard() {
 
 function resetSuitSelection() {
     setCallerIndicator(4);
+    document.getElementById("selectedsuit").innerHTML = "";
     document.getElementById("selectedsuit").classList = "bi bi-suit-spade-fill";
     document.getElementById("selectedsuit").style.color = "dimgrey";
     document.getElementById("selectedmultiplier").innerHTML = "";
@@ -254,8 +255,8 @@ room.on("newGame", function (gameId) {
     table.rows[1].cells[1].innerHTML = 0;
     table.rows[1].cells[2].innerHTML = 0;
 
-    document.getElementById("scoreTotals").rows[1].cells[0].innerHTML = 0;
-    document.getElementById("scoreTotals").rows[1].cells[1].innerHTML = 0;
+    document.getElementById("ns-score").innerHTML = 0;
+    document.getElementById("ew-score").innerHTML = 0;
 
     document.getElementById("0winnermarker").hidden = true;
     document.getElementById("1winnermarker").hidden = true;
@@ -293,10 +294,8 @@ room.on("showGameWinner", function (winner) {
 });
 
 room.on("updateScoreTotals", function (ewPoints, nsPoints) {
-    let table = document.getElementById("scoreTotals");
-
-    table.rows[1].cells[0].innerHTML = nsPoints;
-    table.rows[1].cells[1].innerHTML = ewPoints;
+    document.getElementById("ns-score").innerHTML = nsPoints;
+    document.getElementById("ew-score").innerHTML = ewPoints;
 });
 
 room.on("setScoreTitles", function (nsTitle, ewTitle) {
@@ -411,7 +410,7 @@ room.on("declareExtras", function (extras) {
             }
             else {
                 box.checked = true;
-            };
+            }
             box.id = extras[i];
 
             const lbl = document.createElement('label');
@@ -431,7 +430,7 @@ room.on("declareExtras", function (extras) {
         let runs = [];
         let carres = [];
         room.invoke("HubExtrasDeclared", belot, runs, carres);
-    };
+    }
 });
 
 function closeExtrasModal() {
@@ -456,12 +455,10 @@ function closeExtrasModal() {
 
 room.on("setExtrasEmote", function (extras, turn) {
     extras = JSON.parse(extras);
-    let seat = turn.concat("bubble");
+    let seat = "bubble" + turn;
     document.getElementById(seat).innerHTML = "";
-    document.getElementById(seat).append(extras[0]);
-    for (let i = 1; i < extras.length; i++) {
-        document.getElementById(seat).append("\n");
-        document.getElementById(seat).append(extras[i]);
+    for (let i = 0; i < extras.length; i++) {
+        document.getElementById(seat).append(extras[i] + "\n");
     };
 });
 
@@ -476,8 +473,8 @@ room.on("showSuitModal", function (validCalls, fiveUnderNine = false) {
             setSuitIconOff(i + 1);
         };
     };
-    if (fiveUnderNine) document.getElementById("suit9").disabled = false;
-    else document.getElementById("suit9").disabled = true;
+    if (fiveUnderNine) document.getElementById("suitBtn9").disabled = false;
+    else document.getElementById("suitBtn9").disabled = true;
     $('#lobby').offcanvas('hide');
     //window.scrollTo(0, 99999);
     $('#suit-modal').modal('show');
@@ -494,69 +491,28 @@ function minimiseSuitModal() {
 };
 
 room.on("emoteSuit", function (suit, turn) {
-    let seat = turn.concat("bubble");
-    document.getElementById(seat).innerHTML = "";
-    const emote = document.createElement('i');
-    document.getElementById(seat).appendChild(emote);
-    emote.style.fontSize = "2em";
-
-    // use array of icons and array of colours instead of switch
-    switch (suit) {
-        case 0:
-            document.getElementById(seat).innerHTML = "Pass";
-            break;
-        case 1:
-            emote.style.color = "black";
-            emote.classList = "bi bi-suit-club-fill";
-            break;
-        case 2:
-            emote.style.color = "red";
-            emote.classList = "bi bi-suit-diamond-fill";
-            break;
-        case 3:
-            emote.style.color = "red";
-            emote.classList = "bi bi-suit-heart-fill";
-            break;
-        case 4:
-            emote.style.color = "black";
-            emote.classList = "bi bi-suit-spade-fill";
-            break;
-        case 5:
-            emote.classList = "i-notrumps";
-            break;
-        case 6:
-            emote.classList = "i-alltrumps";
-            break;
-        case 7:
-            document.getElementById(seat).innerHTML = "Double!";
-            break;
-        case 8:
-            document.getElementById(seat).innerHTML = "Redouble!!";
-            break;
-        case 9:
-            document.getElementById(seat).innerHTML = "⁹⁄₅";
-            break;
-    };
+    let bubble = document.getElementById("bubble" + turn);
+    bubble.innerHTML = "";
+    bubble.appendChild(setEmoteSuitContent(suit));
 });
 
 function setSuitIconOff(suit) {
-    document.getElementById("suit".concat(String(suit))).onclick = "";
-    if (suit < 5 || suit > 6) document.getElementById("suit".concat(String(suit))).style.color = "dimgrey";
-    else document.getElementById("suitfill".concat(String(suit))).style.fill = "dimgrey";
+    document.getElementById("suitBtn" + suit).onclick = "";
+    document.getElementById("suit" + suit).style.color = "lightgrey";
 };
 
 function setSuitIconOn(suit) {
     if (suit == 1 || suit == 4) {
-        document.getElementById("suit".concat(String(suit))).style.color = "black";
+        document.getElementById("suit" + suit).style.color = "black";
     }
     else if (suit == 2 || suit == 3 || suit == 7 || suit == 8) {
-        document.getElementById("suit".concat(String(suit))).style.color = "red";
+        document.getElementById("suit" + suit).style.color = "red";
     }
     else if (suit == 5 || suit == 6) {
-        document.getElementById("suitfill".concat(String(suit))).style.fill = "darkmagenta";
+        document.getElementById("suit" + suit).style.color = "darkmagenta";
     };
 
-    document.getElementById("suit".concat(String(suit))).onclick = function () { nominateSuit(this) };
+    document.getElementById("suitBtn" + suit).onclick = function () { nominateSuit(this) };
 };
 
 function nominateSuit(el) {
@@ -565,51 +521,7 @@ function nominateSuit(el) {
 };
 
 room.on("suitNominated", function (suit) {
-    if (suit < 7) {
-        document.getElementById("selectedmultiplier").innerHTML = "";
-    }
-    else {
-
-        if (document.getElementById("selectedsuit").style.color == "black") {
-            document.getElementById("selectedmultiplier").style.color = "red";
-        }
-        else {
-            document.getElementById("selectedmultiplier").style.color = "black";
-        };
-    };
-    switch (suit) {
-        case 1:
-            document.getElementById("selectedsuit").style.color = "black";
-            document.getElementById("selectedsuit").classList = "bi bi-suit-club-fill";
-            break;
-        case 2:
-            document.getElementById("selectedsuit").style.color = "red";
-            document.getElementById("selectedsuit").classList = "bi-suit-diamond-fill";
-            break;
-        case 3:
-            document.getElementById("selectedsuit").style.color = "red";
-            document.getElementById("selectedsuit").classList = "bi bi-suit-heart-fill";
-            break;
-        case 4:
-            document.getElementById("selectedsuit").style.color = "black";
-            document.getElementById("selectedsuit").classList = "bi bi-suit-spade-fill";
-            break;
-        case 5:
-            document.getElementById("selectedsuit").style.color = "darkmagenta";
-            document.getElementById("selectedsuit").classList = "i-notrumps";
-            break;
-        case 6:
-            document.getElementById("selectedsuit").style.color = "darkmagenta";
-            document.getElementById("selectedsuit").classList = "i-alltrumps";
-            break;
-        case 7:
-            document.getElementById("selectedmultiplier").innerHTML = "x2";
-            break;
-        case 8:
-            document.getElementById("selectedmultiplier").innerHTML = "x4";
-            break;
-    };
-
+    setRoundSuit(suit);
 });
 
 room.on("setCallerIndicator", function (turn) {
@@ -791,8 +703,8 @@ function rotateSeats(direction) {
                 card.style.transform = "translate(" + tableCardTranslate[i][d] + ")";
 
                 marker.style.transform = markerTranslate[d] + " rotate(" + (getRotation(marker) + 90 * direction) + "deg)";
-                if (d == 3) marker.classList.add("pnm-south");
-                else marker.classList.remove("pnm-south");
+                if (d == 1) marker.classList.remove("pnm-reverse");
+                else marker.classList.add("pnm-reverse");
 
                 dealer.classList.remove("dealer0", "dealer1", "dealer2", "dealer3");
                 dealer.classList.add("dealer" + d);
@@ -801,7 +713,7 @@ function rotateSeats(direction) {
                 fingerprint.classList.add("fingerprint" + d);
                 fingerprint.parentNode.classList = "dropdown" + dropdowns[d];
 
-                document.getElementById(emotes[i] + "bubble").classList = "emote bubble-" + emotes[d];
+                document.getElementById("bubble" + i).classList = "emote bubble" + d;
 
                 document.getElementById("throwBoard" + i).classList = "throw throw" + d;
                 break;

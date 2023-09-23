@@ -43,8 +43,8 @@ namespace BelotWebApp.BelotClasses
         public bool NSWonATrick { get; set; }
         public bool Capot { get; set; }
         public bool Inside { get; set; }
-        public string[] PlayedCards { get; set; }
-        public List<int> AllPlayedCards { get; set; }
+        public string[] TableCards { get; set; }
+        public List<int> CardsPlayedThisRound { get; set; }
         public int HighestTrumpInTrick { get; set; }
         public List<Run>[] Runs { get; set; }
         public List<Carre>[] Carres { get; set; }
@@ -80,7 +80,7 @@ namespace BelotWebApp.BelotClasses
             SetLogger();
             if (EnableLogging) Log.Information("Players: {0},{1},{2},{3}", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
             lock (rnd) FirstPlayer = rnd.Next(4);
-            //FirstPlayer = 0;
+            //FirstPlayer = 1;
             WaitDeal = false;
             WaitCall = false;
             WaitCard = false;
@@ -109,8 +109,8 @@ namespace BelotWebApp.BelotClasses
                 Carres[i] = new List<Carre>();
                 Belots[i] = new List<Belot>();
             }
-            PlayedCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
-            AllPlayedCards = new List<int>();
+            TableCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
+            CardsPlayedThisRound = new List<int>();
             CardsDealt = 0;
             NumCardsPlayed = 0;
             TrickSuit = 0;
@@ -149,15 +149,16 @@ namespace BelotWebApp.BelotClasses
                 Deck.Add(masterDeck[p]);
                 masterDeck.RemoveAt(p);
             }
-
-            //Deck = new List<string> {"c1-06", "c1-07", "c2-07", "c3-06", "c4-07",
-            //    "c1-08", "c1-07", "c2-07", "c3-06", "c4-07",
-            //    "c1-06", "c1-07", "c2-07", "c3-06", "c4-07",
-            //    "c1-06", "c1-07", "c2-07", "c3-06", "c4-07",
-            //    "c1-10", "c1-11", "c1-12",
-            //    "c4-11", "c4-12", "c2-12",
-            //    "c3-12", "c4-12", "c4-06",
-            //    "c2-06", "c3-07", "c4-06" };
+            //Deck = new List<string> {
+            //    "c4-13", "c4-12", "c4-11", "c4-10", "c4-09",
+            //    //"c3-13", "c3-12", "c3-11", "c3-10", "c3-09",
+            //    "c1-06", "c2-06", "c3-06", "c4-06", "c1-07",
+            //    "c2-13", "c2-12", "c2-11", "c2-10", "c2-09",
+            //    "c1-13", "c1-12", "c1-11", "c1-10", "c1-09",
+            //    "c4-08", "c4-07", "c4-06",
+            //    "c3-08", "c3-07", "c3-06",
+            //    "c2-08", "c2-07", "c2-06",
+            //    "c1-08", "c1-07", "c1-06" };
 
             if (EnableLogging) Log.Information("Deck: {0}", String.Join(",", Deck));
         }
@@ -471,12 +472,12 @@ namespace BelotWebApp.BelotClasses
             if (RoundSuit < 5)
             {
                 if (Belots[Turn].Where(s => s.Suit == RoundSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == RoundSuit).First().Declared = declared;
-                if (EnableLogging && declared) Log.Information("Belot {0}: {1}", Turn, RoundSuit);
+                if (EnableLogging && declared) Log.Information("Belot: {0}", Turn);
             }
             else if (RoundSuit == 6)
             {
                 if (Belots[Turn].Where(s => s.Suit == TrickSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == TrickSuit).First().Declared = declared;
-                if (EnableLogging && declared) Log.Information("Belot {0}: {1}", Turn, TrickSuit);
+                if (EnableLogging && declared) Log.Information("Belot: {0}", Turn);
             }
         }
 
@@ -488,7 +489,7 @@ namespace BelotWebApp.BelotClasses
                 {
                     if (declared == null) Runs[Turn][i].Declared = true;
                     else Runs[Turn][i].Declared = declared[i];
-                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information("Run {0}: {1}", Turn, BelotHelpers.GetRunNameFromLength(Runs[Turn][i].Length));
+                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information("{0}: {1}", BelotHelpers.GetRunNameFromLength(Runs[Turn][i].Length), Turn);
                 }
             }
         }
@@ -499,13 +500,13 @@ namespace BelotWebApp.BelotClasses
             {
                 if (declared == null) Carres[Turn][i].Declared = true;
                 else Carres[Turn][i].Declared = declared[i];
-                if (EnableLogging && Carres[Turn][i].Declared) Log.Information("Carre {0}", Turn);
+                if (EnableLogging && Carres[Turn][i].Declared) Log.Information("Carre: {0}", Turn);
             }
         }
 
         public void PlayCard(string card)
         {
-            PlayedCards[Turn] = card;
+            TableCards[Turn] = card;
             //if (EnableLogging) Log.Information("Play {0}, {1}", Turn, card);
 
             Hand[Turn][Hand[Turn].IndexOf(card)] = "c0-00";
@@ -517,7 +518,7 @@ namespace BelotWebApp.BelotClasses
             int trumpstrength = TrumpStrength(card);
             if (HighestTrumpInTrick < trumpstrength) HighestTrumpInTrick = trumpstrength;
 
-            AllPlayedCards.Add(BelotHelpers.GetCardNumber(card));
+            CardsPlayedThisRound.Add(BelotHelpers.GetCardNumber(card));
 
             //if (EnableLogging && NumCardsPlayed % 4 == 0) Log.Information(GetDisplayName(DetermineWinner()) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
         }
@@ -670,9 +671,9 @@ namespace BelotWebApp.BelotClasses
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    if (PlayedCards[i] != "c0-00")
+                    if (TableCards[i] != "c0-00")
                     {
-                        int value = BelotHelpers.DetermineCardPower(PlayedCards[i], RoundSuit, TrickSuit);
+                        int value = BelotHelpers.DetermineCardPower(TableCards[i], RoundSuit, TrickSuit);
                         if (value > bestValue)
                         {
                             bestValue = value;
@@ -681,9 +682,9 @@ namespace BelotWebApp.BelotClasses
                     }
                 }
             }
-            if (EnableLogging && PlayedCards.Where(c => c == "c0-00").Count() == 0)
+            if (EnableLogging && TableCards.Where(c => c == "c0-00").Count() == 0)
             {
-                Log.Information("Play: {0}", String.Join(",", PlayedCards));
+                Log.Information("Play: {0}", String.Join(",", TableCards));
                 Log.Information("Trick: {0}", winner);
             }
             return winner;
@@ -695,7 +696,7 @@ namespace BelotWebApp.BelotClasses
 
             for (int i = 0; i < 4; i++)
             {
-                points += CalculateCardPoints(PlayedCards[i]);
+                points += CalculateCardPoints(TableCards[i]);
             }
 
             if (NumCardsPlayed == 32) points += 10;

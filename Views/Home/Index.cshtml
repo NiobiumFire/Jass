@@ -1,10 +1,15 @@
-﻿@{
-    ViewData["Title"] = "Home";
-}
+﻿@using BelotWebApp.Areas.Identity.Data;
+@using Microsoft.AspNetCore.Identity;
 @model BelotRoomCreator
+@inject SignInManager<ApplicationUser> signInManager
+@inject UserManager<ApplicationUser> userManager
 
 @section scripts{
     <script src="~/js/belotlobby.js"></script>
+}
+
+@{
+    ViewData["Title"] = "Home";
 }
 
 <div class="row bg-info p-5 rounded mb-5 mt-5" style="text-align:center">
@@ -21,20 +26,30 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-6 col-lg-3">
-        <h2>Belot</h2>
-        <p id="numRooms">Klaverjassen rooms: @ViewBag.numGames</p>
+    @if (!signInManager.IsSignedIn(User))
+    {
+        <p style="text-align:center">Welcome! <a asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a asp-area="Identity" asp-page="/Account/Register">create an account</a> to play.</p>
+    }
+    else
+    {
+        <div class="col-6 col-lg-3">
+            <h2>Belot</h2>
+            <p id="numRooms">Klaverjassen rooms: @ViewBag.numGames</p>
 
-        <form id="createBelotGameForm" method="post">
-            <p><button asp-area="" asp-controller="Room" asp-action="Index" type="submit" class="btn btn-primary" style="width: 100%">Create &raquo;</button></p>
-        </form>
+            <form id="createBelotGameForm" method="post">
+                <p><button asp-area="" asp-controller="Room" asp-action="Index" type="submit" class="btn btn-primary" style="width: 100%">Create &raquo;</button></p>
+            </form>
 
-        <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join &raquo;</button></p>
+            <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join &raquo;</button></p>
 
-        <p><button type="button" onclick="location.href='/Replay/Index'" class="btn btn-primary" style="width: 100%">Replay &raquo;</button></p>
+            <p><button type="button" onclick="location.href='/Replay/Index'" class="btn btn-primary" style="width: 100%">Replay &raquo;</button></p>
 
-        <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%" disabled>Training center &raquo;</button></p>
-    </div>
+            @if (await userManager.IsInRoleAsync(await userManager.GetUserAsync(User), "Admin") == true)
+            {
+                <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%">Training center &raquo;</button></p>
+            }
+        </div>
+    }
 </div>
 
 <div class="modal" tabindex="-1" id="belot-lobby-modal">

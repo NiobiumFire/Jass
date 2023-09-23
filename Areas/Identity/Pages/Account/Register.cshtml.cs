@@ -91,6 +91,8 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
                 Response.Redirect("/");
             }
 
+            ViewData["IsLoginPage"] = true;
+
             ReturnUrl = returnUrl;
             //ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }

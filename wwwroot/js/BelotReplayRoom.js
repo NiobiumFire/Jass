@@ -10,11 +10,8 @@ const fwdBtn = document.getElementById("replay-fwd");
 const playBtn = document.getElementById("pause-replay");
 const backBtn = document.getElementById("replay-back");
 
-const pos = ["w", "n", "e", "s"];
 const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-suit-spade-fill"];
 const wnesCallIndicator = ["bi bi-arrow-left", "bi bi-arrow-up", "bi bi-arrow-right", "bi bi-arrow-down", "bi bi-arrows-move"];
-const selectedSuit = ["bi bi-suit-spade-fill", "bi bi-suit-club-fill", "bi bi-suit-diamond-fill", "bi bi-suit-heart-fill", "bi bi-suit-spade-fill", "i-notrumps", "i-alltrumps"];
-const colours = ["dimgrey", "black", "red", "red", "black", "darkmagenta", "darkmagenta"];
 
 document.getElementById("speed-slider").oninput = function () {
     speed = (11 - this.value) * 100 + 200;
@@ -45,7 +42,7 @@ function getReplay(replayId = "") {
             }
         }
     })
-};
+}
 
 function getMyReplays() {
     $.ajax({
@@ -54,32 +51,38 @@ function getMyReplays() {
         success: function (data) {
             data = JSON.parse(data);
             if (data.length == 0) {
+                document.getElementById("replay-table").hidden = true;
                 document.getElementById("no-games").innerHTML = "No historic games found. Go play!"
-            };
-            let table = document.getElementById("replays-table");
-            table.innerHTML = "";
-            for (let i = 0; i < data.length; i++) {
-                let row2 = table.insertRow(table.rows.length);
-                let cell2 = row2.insertCell(table.rows[table.rows.length - 1].cells.length);
-                cell2.colSpan = 5;
-                cell2.innerHTML = data[i][4];
-                let cell3 = row2.insertCell(table.rows[table.rows.length - 1].cells.length);
-                cell3.rowSpan = 2;
-                let row = table.insertRow(table.rows.length);
-                for (let j = 0; j < 4; j++) {
-                    row.insertCell(table.rows[table.rows.length - 1].cells.length);
-                    row.cells[j].innerHTML = data[i][j];
-                };
-                let btn = document.createElement("button");
-                btn.classList = "bi bi-eyeglasses btn btn-primary py-0 px-1";
-                btn.style.fontSize = "1.1rem";
-                const s = data[i][5];
-                btn.onclick = function () {
-                    getReplay(s);
-                    $('#my-games').offcanvas('hide');
-                };
-                cell3.appendChild(btn);
-            };
+                document.getElementById("no-games").hidden = false;
+            }
+            else {
+                document.getElementById("no-games").hidden = true;
+                let table = document.getElementById("replay-table-body");
+                table.innerHTML = "";
+                for (let i = 0; i < data.length; i++) {
+                    let row2 = table.insertRow(table.rows.length);
+                    let cell2 = row2.insertCell(table.rows[table.rows.length - 1].cells.length);
+                    cell2.colSpan = 5;
+                    cell2.innerHTML = data[i][4];
+                    let cell3 = row2.insertCell(table.rows[table.rows.length - 1].cells.length);
+                    cell3.rowSpan = 2;
+                    let row = table.insertRow(table.rows.length);
+                    for (let j = 0; j < 4; j++) {
+                        row.insertCell(table.rows[table.rows.length - 1].cells.length);
+                        row.cells[j].innerHTML = data[i][j];
+                    };
+                    let btn = document.createElement("button");
+                    btn.classList = "bi bi-eyeglasses btn btn-primary py-0 px-1";
+                    btn.style.fontSize = "1.1rem";
+                    const s = data[i][5];
+                    btn.onclick = function () {
+                        getReplay(s);
+                        $('#my-games').offcanvas('hide');
+                    };
+                    cell3.appendChild(btn);
+                }
+                document.getElementById("replay-table").hidden = false;
+            }
         }
     })
 };
@@ -169,23 +172,6 @@ function setDealer(dealer) {
         }
     };
 };
-function setRoundSuit(suit) {
-    if (suit < 7) {
-        document.getElementById("selectedmultiplier").innerHTML = "";
-        document.getElementById("selectedsuit").style.color = colours[suit];
-        document.getElementById("selectedsuit").classList = selectedSuit[suit];
-    }
-    else {
-        if (document.getElementById("selectedsuit").style.color == "black") {
-            document.getElementById("selectedmultiplier").style.color = "red";
-        }
-        else {
-            document.getElementById("selectedmultiplier").style.color = "black";
-        };
-        if (suit == 7) document.getElementById("selectedmultiplier").innerHTML = "x2";
-        else document.getElementById("selectedmultiplier").innerHTML = "x4";
-    };
-};
 function setCaller(caller) {
     document.getElementById("wnescallindicator").classList = wnesCallIndicator[caller];
     if (caller == 4) document.getElementById("wnescallindicator").style.color = "dimgrey";
@@ -195,53 +181,25 @@ function setTurn(turn) {
     document.getElementById("turnIndicator").classList = turnIndicator[turn];
 };
 function setEmote(emote, i) {
-    let bubble = document.getElementById(pos[i] + "bubble")
-    if (emote != "") {
-        setEmoteContent(emote, bubble);
+    let bubble = document.getElementById("bubble" + i)
+    bubble.innerHTML = "";
+    if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].some(c => emote.includes(c))) {
+        bubble.appendChild(setEmoteSuitContent(parseInt(emote)));
+        bubble.style.visibility = "visible";
+    }
+    else if (emote != "") {
+        bubble.innerHTML = emote;
         bubble.style.visibility = "visible";
     }
     else {
         bubble.style.visibility = "hidden";
     };
 };
-function setEmoteContent(content, bubble) {
-    bubble.innerHTML = "";
-    const icon = document.createElement('i');
-    bubble.appendChild(icon);
-    icon.style.fontSize = "2em";
-
-    if (content == "Clubs") {
-        icon.style.color = "black";
-        icon.classList = "bi bi-suit-club-fill";
-    }
-    else if (content == "Diamonds") {
-        icon.style.color = "red";
-        icon.classList = "bi bi-suit-diamond-fill";
-    }
-    else if (content == "Hearts") {
-        icon.style.color = "red";
-        icon.classList = "bi bi-suit-heart-fill";
-    }
-    else if (content == "Spades") {
-        icon.style.color = "black";
-        icon.classList = "bi bi-suit-spade-fill";
-    }
-    else if (content == "No Trumps") {
-        icon.style.color = "darkmagenta";
-        icon.classList = "i-notrumps";
-    }
-    else if (content == "All Trumps") {
-        icon.style.color = "darkmagenta";
-        icon.classList = "i-alltrumps";
-    }
-    else {
-        bubble.innerHTML = content;
-    };
-};
 function setTableCard(card, i) {
     document.getElementById("tablecard" + i).src = "/images/Cards/" + card + ".png";
 };
 function setHand(hand, i, j) {
+    const pos = ["w", "n", "e", "s"];
     if (hand == "c0-00") {
         document.getElementById(pos[i] + "card" + j).hidden = true;
     }
