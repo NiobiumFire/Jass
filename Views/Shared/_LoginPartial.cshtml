@@ -8,11 +8,12 @@
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item dropdown">
-            <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage" data-bs-toggle="dropdown">
+            <a id="manage" class="nav-link text-dark" title="Manage" data-bs-toggle="dropdown">
                 @UserManager.GetUserName(User)
                 <i class="bi-person-fill" style="font-size: 1.5em; color: darkmagenta;"></i>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end border-info">
+            <ul class="dropdown-menu dropdown-menu-end" style="border-color:darkmagenta">
+                @* <ul class="dropdown-menu border-info"> *@
                 <li><a title="Manage" class="dropdown-item" href="/Identity/Account/Manage/Index">Manage</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
@@ -24,10 +25,10 @@
     else if (ViewData["IsLoginPage"] == null)
     {
         <li class="nav-item dropdown">
-            <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Login" data-bs-toggle="dropdown">
+            <a id="manage" class="nav-link text-dark" title="Login" data-bs-toggle="dropdown">
                 <i class="bi-person-fill" style="font-size: 1.5em; color: darkmagenta;"></i>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end border-info">
+            <ul class="dropdown-menu dropdown-menu-end" style="border-color:darkmagenta">
                 <li><a title="Login" class="dropdown-item" href="/Identity/Account/Login">Login</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>

@@ -210,6 +210,41 @@ td:first-child {
     width: calc(50% - var(--card-width)*0.5) !important;
 }
 
+.tooltipx {
+    display: flex;
+    position: relative;
+    padding: 5px;
+}
+
+/*.tooltipx *{
+    pointer-events: none;
+    z-index: 30;
+}*/
+
+    .tooltipx .tooltiptext {
+        visibility: hidden;
+        white-space: nowrap;
+        background-color: white;
+        font-size: 12px;
+        text-align: center;
+        border: 1px outset darkmagenta;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        right: 0;
+        top: 110%;
+    }
+
+    .tooltipx:hover .tooltiptext {
+        visibility: visible;
+    }
+
+    .tooltipx:hover {
+        background-color: white;
+        border: 1px solid darkmagenta;
+        border-radius: 5px;
+    }
+
 .player-marker {
     display: flex;
     position: absolute;
@@ -699,6 +734,16 @@ td:first-child {
     width: var(--card-width);
     /*transform-origin: center 350%;*/
     transition: 0.4s ease-in-out;
+}
+
+/*.belot-card2-valid {
+    border: 1px solid darkmagenta;
+    border-radius: 10px;
+    outline: darkmagenta solid 1px;
+}*/
+
+.belot-card2-invalid {
+    filter: brightness(80%);
 }
 
 .deal-pulse {

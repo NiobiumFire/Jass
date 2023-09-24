@@ -50,6 +50,7 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
             if (result.Succeeded && !await _userManager.IsInRoleAsync(user, "Player"))
             {
                 await _userManager.AddToRoleAsync(user, "Player");
+                await _signInManager.RefreshSignInAsync(user);
             }
             if (!result.Succeeded)
             {
