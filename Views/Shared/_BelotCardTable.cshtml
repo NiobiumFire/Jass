@@ -27,12 +27,9 @@
                 </tbody>
             </table>
         </div>
-        <!-- Selected Suit Indicator -->
-        <div class="selected-suit d-flex p-0 m-0 justify-content-center align-items-center" style="width:auto;">
-            <i class="bi bi-arrows-move seatTransition" style="font-size: 25px; color: dimgrey" id="wnescallindicator"></i>
-            <i class="bi bi-suit-spade-fill" style="font-size: 25px; color: dimgrey;" id="selectedsuit"></i>
-            <i class="allNoTrumps" style="font-size:20px;font-weight:500" id="selectedmultiplier"></i>
-        </div>
+
+        <!-- Selected Suit Indicator (at the bottom so it is not blocked) -->
+
         <!-- Main -->
         <div class="d-flex justify-content-center align-items-center my-3 position-relative" id="seatPanel">
             <!-- Flex Column 1 -->
@@ -144,7 +141,7 @@
             </div>
             <!-- Turn Indicator -->
             <span class="badge rounded-circle p-1 position-absolute z-4 top-50 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
-                <i class="bi bi-suit-spade-fill seatTransition" style="font-size: 2em; color: darkmagenta" id="turnIndicator"></i>
+                <i class="bi bi-suit-spade-fill seatTransition d-flex justify-content-center align-items-center" style="font-size: 2em; color: darkmagenta; line-height:normal" id="turnIndicator"></i>
             </span>
             <!-- Flex Column 3 -->
             <div class="d-flex flex-column justify-content-center position-relative" id="cardCol3">
@@ -181,6 +178,17 @@
             <button class="make-call-btn round-btn-pulse px-1 position-relative" id="make-call-btn" hidden>
                 Call
             </button>
+        </div>
+        <!-- Selected Suit Indicator -->
+        <div class="selected-suit d-flex p-0 m-0 justify-content-center align-items-center" style="width:auto;">
+            <div class="tooltipx">
+                <i class="bi bi-arrows-move seatTransition d-flex align-items-center" style="font-size: 25px; color: dimgrey; line-height: normal" id="wnescallindicator"></i>
+                <i class="bi bi-suit-spade-fill d-flex align-items-center" style="font-size: 25px; color: dimgrey; line-height:normal" id="selectedsuit"></i>
+                <i class="allNoTrumps" style="font-size:20px;font-weight:500" id="selectedmultiplier"></i>
+                <span class="tooltiptext" id="tooltiptext">
+                    No call has been made
+                </span>
+            </div>
         </div>
     </div>
 </div>

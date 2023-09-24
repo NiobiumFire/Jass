@@ -146,14 +146,23 @@ room.on("disableCards", function () {
 
 function disableCards() {
     for (let i = 0; i < 8; i++) {
-        document.getElementById("card".concat(i)).onclick = "";
+        document.getElementById("card" + i).onclick = "";
+        //document.getElementById("card" + i).classList.remove("belot-card2-valid");
+        document.getElementById("card" + i).classList.remove("belot-card2-invalid");
     }
     document.getElementById("cardboard").classList.remove("card-board-pulse");
 };
 
 room.on("enableCards", function (validcards) {
     for (let i = 0; i < 8; i++) { // change to for each element in received integer array
-        if (validcards[i] == 1) document.getElementById("card".concat(i)).onclick = playCardRequest;
+        if (validcards[i] == 1) {
+            //alert("");
+            document.getElementById("card" + i).onclick = playCardRequest;
+            //document.getElementById("card" + i).classList.add("belot-card2-valid");
+        }
+        else {
+            document.getElementById("card" + i).classList.add("belot-card2-invalid");
+        }
     }
     document.getElementById("cardboard").classList.add("card-board-pulse");
 });
@@ -235,11 +244,11 @@ function resetBoard() {
 };
 
 function resetSuitSelection() {
-    setCallerIndicator(4);
     document.getElementById("selectedsuit").innerHTML = "";
     document.getElementById("selectedsuit").classList = "bi bi-suit-spade-fill";
     document.getElementById("selectedsuit").style.color = "dimgrey";
     document.getElementById("selectedmultiplier").innerHTML = "";
+    setCallerIndicator(4);
 };
 
 $("#newGameBtn").on("click", function () {
@@ -540,6 +549,7 @@ function setCallerIndicator(turn) {
     else {
         document.getElementById("wnescallindicator").style.color = "dimgrey";
     }
+    setCallTooltip();
 };
 
 // -------------------- Seat Management --------------------

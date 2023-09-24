@@ -28,6 +28,7 @@ function setRoundSuit(suit) {
         selectedSuit.style.color = colours[suit];
         selectedSuit.classList = classes[suit];
         selectedSuit.innerHTML = text[suit];
+
     }
     else if (suit < 9) {
         if (selectedSuit.style.color == "black") {
@@ -37,5 +38,51 @@ function setRoundSuit(suit) {
             selectedMultiplier.style.color = "black";
         }
         selectedMultiplier.innerHTML = text[suit];
+    }
+}
+
+function setCallTooltip() {
+    const callers = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
+    const calls = ["bi bi-suit-club-fill", "bi bi-suit-diamond-fill", "bi bi-suit-heart-fill", "bi bi-suit-spade-fill"];
+    const tooltip = ["Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps"];
+
+    let wnesClass = String(document.getElementById("wnescallindicator").classList).toLowerCase();
+    let wnesPos = 4;
+    for (let i = 0; i < 4; i++) {
+        if (wnesClass.includes(callers[i])) {
+            wnesPos = i;
+            break;
+        }
+    }
+    let caller;
+    if (wnesPos < 4) {
+        caller = document.getElementById("usernamelabel" + wnesPos).innerHTML;
+    }
+    else {
+        document.getElementById("tooltiptext").innerHTML = "No call has been made";
+        return;
+    }
+
+    let suitClass = String(document.getElementById("selectedsuit").classList);
+    let suitNum = calls.indexOf(suitClass);
+    let suit;
+    if (suitNum > -1) {
+        suit = tooltip[suitNum];
+    }
+    else if (document.getElementById("selectedsuit").innerHTML == "A") {
+        suit = "No Trumps";
+    }
+    else {
+        suit = "All Trumps";
+    }
+
+    if (document.getElementById("selectedmultiplier").innerHTML == "×2") {
+        document.getElementById("tooltiptext").innerHTML = caller + " doubled in " + suit;
+    }
+    else if (document.getElementById("selectedmultiplier").innerHTML == "×4") {
+        document.getElementById("tooltiptext").innerHTML = caller + " redoubled in " + suit;
+    }
+    else {
+        document.getElementById("tooltiptext").innerHTML = caller + " called " + suit;
     }
 }

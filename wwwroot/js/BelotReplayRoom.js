@@ -6,12 +6,11 @@ let speed = 800;
 let autoPlay = false;
 let replay = null;
 
-const fwdBtn = document.getElementById("replay-fwd");
-const playBtn = document.getElementById("pause-replay");
+const prevBtn = document.getElementById("replay-prev");
 const backBtn = document.getElementById("replay-back");
-
-const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-suit-spade-fill"];
-const wnesCallIndicator = ["bi bi-arrow-left", "bi bi-arrow-up", "bi bi-arrow-right", "bi bi-arrow-down", "bi bi-arrows-move"];
+const playBtn = document.getElementById("pause-replay");
+const fwdBtn = document.getElementById("replay-fwd");
+const nextBtn = document.getElementById("replay-next");
 
 document.getElementById("speed-slider").oninput = function () {
     speed = (11 - this.value) * 100 + 200;
@@ -105,14 +104,37 @@ function loopPlay() {
     }, speed);
 }
 
+function prev() {
+    if (currentState > 1) {
+        do {
+            currentState--;
+        }
+        while (currentState > 0 && replay.States[currentState - 1].Dealer == replay.States[currentState].Dealer);
+    }
+    if (currentState == 1) {
+        currentState--;
+    }
+    setState(replay.States[currentState]);
+}
+function back() {
+    if (replay.States[currentState - 1].ShowTrickWinner) currentState--;
+    setState(replay.States[--currentState]);
+}
 function fwd() {
     if (replay.States[currentState + 1].ShowTrickWinner) currentState++;
     setState(replay.States[++currentState]);
 }
-
-function back() {
-    if (replay.States[currentState - 1].ShowTrickWinner) currentState--;
-    setState(replay.States[--currentState]);
+function next() {
+    if (currentState < maxState - 1) {
+        do {
+            currentState++;
+        }
+        while (currentState < maxState && replay.States[currentState + 1].Dealer == replay.States[currentState].Dealer);
+    }
+    if (currentState < maxState) {
+        currentState++;
+    }
+    setState(replay.States[currentState]);
 }
 
 function setState(state) {
@@ -121,6 +143,7 @@ function setState(state) {
     setDealer(state.Dealer);
     setRoundSuit(state.RoundSuit);
     setCaller(state.Caller);
+    setCallTooltip();
     setTurn(state.Turn);
     for (let i = 0; i < 4; i++) {
         setEmote(state.Emotes[i], i);
@@ -134,25 +157,33 @@ function setState(state) {
 };
 function setControls() {
     if (currentState == 0) {
-        fwdBtn.disabled = false;
+        prevBtn.disabled = true;
         backBtn.disabled = true;
         playBtn.disabled = false;
+        fwdBtn.disabled = false;
+        nextBtn.disabled = false;
     }
     else if (currentState == maxState) {
         autoPlay = false;
-        fwdBtn.disabled = true;
+        prevBtn.disabled = false;
         backBtn.disabled = false;
         playBtn.disabled = true;
+        fwdBtn.disabled = true;
+        nextBtn.disabled = true;
     }
     else {
-        fwdBtn.disabled = false;
+        prevBtn.disabled = false;
         backBtn.disabled = false;
         playBtn.disabled = false;
+        fwdBtn.disabled = false;
+        nextBtn.disabled = false;
     }
     if (autoPlay) {
         document.getElementById("pause-icon").classList = "bi bi-pause-circle-fill";
-        fwdBtn.disabled = true;
+        prevBtn.disabled = true;
         backBtn.disabled = true;
+        fwdBtn.disabled = true;
+        nextBtn.disabled = true;
     }
     else {
         document.getElementById("pause-icon").classList = "bi bi-play-circle-fill";
@@ -173,11 +204,13 @@ function setDealer(dealer) {
     };
 };
 function setCaller(caller) {
+    const wnesCallIndicator = ["bi bi-arrow-left", "bi bi-arrow-up", "bi bi-arrow-right", "bi bi-arrow-down", "bi bi-arrows-move"];
     document.getElementById("wnescallindicator").classList = wnesCallIndicator[caller];
     if (caller == 4) document.getElementById("wnescallindicator").style.color = "dimgrey";
     else document.getElementById("wnescallindicator").style.color = "black";
 };
 function setTurn(turn) {
+    const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-suit-spade-fill"];
     document.getElementById("turnIndicator").classList = turnIndicator[turn];
 };
 function setEmote(emote, i) {

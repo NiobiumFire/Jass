@@ -142,6 +142,9 @@ namespace BelotWebApp.Controllers
                     currentState.Emotes[currentState.Turn] = "Throws\ncards";
                     replay.States.Add(new BelotReplayState(currentState));
                     currentState.Emotes[currentState.Turn] = "";
+                    currentState.Hand = new string[][] { new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" },
+                new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" }, new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" },
+                new string[] { "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00", "c0-00" } };
                 }
                 else if (lines[i].IndexOf("Trick: ") > -1)
                 {
