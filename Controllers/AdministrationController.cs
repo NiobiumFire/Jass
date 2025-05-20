@@ -3,7 +3,6 @@ using BelotWebApp.Models.Administration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace BelotWebApp.Controllers
 {
@@ -52,7 +51,7 @@ namespace BelotWebApp.Controllers
         public async Task<IActionResult> Index(AdministrateUserModel model)
         {
             List<string> errors = new List<string>();
-            foreach (BelotWebApp.Models.Administration.InputModel updatedUser in model.Users)
+            foreach (InputModel updatedUser in model.Users)
             {
                 var user = await _userManager.FindByNameAsync(updatedUser.Username);
                 if (user == null)

@@ -84,85 +84,18 @@
 
                 if (cardsPlayedInTrick == 0) // if I'm to lead
                 {
-                    if (((ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1)) && roundSuit != 5) // if we called, try play the Jass
+                    int result = SelectCardForFirst(hand, validCards, winners, turn, roundSuit, ewCalled);
+                    if (result < 8)
                     {
-                        for (int i = 0; i < 8; i++)
-                        {
-                            int rank = Int32.Parse(hand[i].Substring(3, 2));
-                            int suit = Int32.Parse(hand[i].Substring(1, 1));
-                            if (rank == 10 && validCards[i] == 1)
-                            {
-                                lock (rnd)
-                                {
-                                    if (rnd.Next(100) + 1 > 10 && suit == roundSuit)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
-                                    {
-                                        return hand[i];
-                                    }
-                                    else if (rnd.Next(100) + 1 > 20 && roundSuit == 6)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
-                                    {
-                                        return hand[i];
-                                    }
-                                    else
-                                    {
-
-                                    }
-                                }
-                            }
-                        }
+                        return hand[result];
                     }
-                    //// if my team called and I am the first to play in a trick, for the first 3? tricks, play the highest trump
-                    if (roundSuit < 6) // Try play a non-trump Ace (works for no trumps)
+                }
+                else if (cardsPlayedInTrick == 1) // if I'm second to play
+                {
+                    int result = SelectCardForSecond();
+                    if (result < 8)
                     {
-                        for (int i = 0; i < 8; i++)
-                        {
-                            int rank = Int32.Parse(hand[i].Substring(3, 2));
-                            int suit = Int32.Parse(hand[i].Substring(1, 1));
-                            lock (rnd)
-                            {
-                                if (rank == 13 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
-                                {
-                                    return hand[i];
-                                }
-                                else if (rank == 13 && suit != roundSuit && validCards[i] == 1)
-                                {
-
-                                }
-                            }
-                        }
-                    }
-                    bool hardNontrumpWinner = false;
-                    bool softNontrumpWinner = false;
-                    if (winners.Where(w => w > 0).Count() > 0)
-                    {
-                        for (int i = 0; i < 8; i++)
-                        {
-                            int suit = Int32.Parse(hand[i].Substring(1, 1));
-                            if (suit != roundSuit && validCards[i] == 1)
-                            {
-                                if (winners[i] == 2) hardNontrumpWinner = true;
-                                if (winners[i] == 1) softNontrumpWinner = true;
-                                if (hardNontrumpWinner && softNontrumpWinner) break;
-                            }
-                        }
-                    }
-                    lock (rnd)
-                    {
-                        if (hardNontrumpWinner && rnd.Next(100) + 1 > 10) // 90% of the time, I will lead a nontrump hard winner
-                        {
-                            while (true)
-                            {
-                                choice = rnd.Next(8);
-                                if (winners[choice] == 2 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit) return hand[choice];
-                            }
-                        }
-                        if (softNontrumpWinner && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead a nontrump soft winner
-                        {
-                            while (true)
-                            {
-                                choice = rnd.Next(8);
-                                if (winners[choice] == 1 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit) return hand[choice];
-                            }
-                        }
+                        return hand[result];
                     }
                 }
                 if (cardsPlayedInTrick > 1 && turn % 2 != curWinner % 2) // if I am 3rd or 4th to play and the other team is winning
@@ -233,15 +166,123 @@
                 }
                 while (true)
                 {
-                    lock (rnd) choice = rnd.Next(validCards.Count());
+                    lock (rnd)
+                    {
+                        choice = rnd.Next(validCards.Count());
+                    }
                     if (validCards[choice] == 1)
                     {
                         return hand[choice];
                     }
                 }
-
             }
             return hand[choice];
+        }
+
+        private int SelectCardForFirst(List<string> hand, int[] validCards, int[] winners, int turn, int roundSuit, bool ewCalled)
+        {
+            if (((ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1)) && roundSuit != 5) // if we called, try play the Jass
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    int rank = Int32.Parse(hand[i].Substring(3, 2));
+                    int suit = Int32.Parse(hand[i].Substring(1, 1));
+                    if (rank == 10 && validCards[i] == 1)
+                    {
+                        lock (rnd)
+                        {
+                            if (rnd.Next(100) + 1 > 10 && suit == roundSuit)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
+                            {
+                                return i;
+                            }
+                            else if (rnd.Next(100) + 1 > 20 && roundSuit == 6)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
+                            {
+                                return i;
+                            }
+                        }
+                    }
+                }
+            }
+            //// if my team called and I am the first to play in a trick, for the first 3? tricks, play the highest trump
+            if (roundSuit < 6) // Try play a non-trump Ace (works for no trumps)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    int rank = Int32.Parse(hand[i].Substring(3, 2));
+                    int suit = Int32.Parse(hand[i].Substring(1, 1));
+                    lock (rnd)
+                    {
+                        if (rank == 13 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
+                        {
+                            return i;
+                        }
+                        else if (rank == 13 && suit != roundSuit && validCards[i] == 1)
+                        {
+
+                        }
+                    }
+                }
+            }
+            bool hardNontrumpWinner = false;
+            bool softNontrumpWinner = false;
+            if (winners.Where(w => w > 0).Count() > 0)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    int suit = Int32.Parse(hand[i].Substring(1, 1));
+                    if (suit != roundSuit && validCards[i] == 1)
+                    {
+                        if (winners[i] == 2) hardNontrumpWinner = true;
+                        if (winners[i] == 1) softNontrumpWinner = true;
+                        if (hardNontrumpWinner && softNontrumpWinner) break;
+                    }
+                }
+            }
+            lock (rnd)
+            {
+                if (hardNontrumpWinner && rnd.Next(100) + 1 > 10) // 90% of the time, I will lead a nontrump hard winner
+                {
+                    while (true)
+                    {
+                        int choice = rnd.Next(8);
+                        if (winners[choice] == 2 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit)
+                        {
+                            return choice;
+                        }
+                    }
+                }
+                if (softNontrumpWinner && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead a nontrump soft winner
+                {
+                    while (true)
+                    {
+                        int choice = rnd.Next(8);
+                        if (winners[choice] == 1 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit)
+                        {
+                            return choice;
+                        }
+                    }
+                }
+            }
+            return 8;
+        }
+
+        private int SelectCardForSecond()
+        {
+            if (true)
+            {
+
+            }
+            return 8;
+        }
+
+        private int SelectCardForThird()
+        {
+            return 0;
+        }
+
+        private int SelectCardForFourth()
+        {
+            return 0;
         }
     }
 }

@@ -4,6 +4,10 @@ var room = new signalR.HubConnectionBuilder().withUrl("/belotroom/" + document.g
 
 room.start();
 
+room.onclose(() => {
+    alert("Disconnected. Try refresh the page to reconnect.");
+});
+
 room.on("connectedUsers", function (players, spectators) {
     document.getElementById("userList").innerHTML = "";
     for (let i = 0; i < players.length; i++) {
