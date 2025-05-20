@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.DataProtection;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
-using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,9 +7,6 @@ namespace BelotWebApp.Services.EmailService
 {
     public class EmailService : IEmailSender
     {
-
-        byte[] a = { 141, 191, 67, 180, 133, 100, 99, 21, 74, 108, 9, 170, 177, 53, 131, 154 };
-
         private readonly IConfiguration _config;
 
         public EmailService(IConfiguration config)
@@ -22,7 +17,7 @@ namespace BelotWebApp.Services.EmailService
 
         public async Task SendEmailAsync(string toAddress, string subject, string message)
         {
-            MailMessage mailMessage = new MailMessage
+            MailMessage mailMessage = new()
             {
                 Subject = subject,
                 Body = message,
@@ -33,7 +28,7 @@ namespace BelotWebApp.Services.EmailService
 
             try
             {
-                using (SmtpClient client = new SmtpClient(_config["SMTPConfiguration:Host"], int.Parse(_config["SMTPConfiguration:Port"]))
+                using (SmtpClient client = new(_config["SMTPConfiguration:Host"], int.Parse(_config["SMTPConfiguration:Port"]))
                 {
                     Credentials = new NetworkCredential(_config["SMTPConfiguration:SenderAddress"], DecryptPassword(_config["SMTPConfiguration:EncryptedPassword"]).Result),
                     EnableSsl = true
@@ -57,9 +52,9 @@ namespace BelotWebApp.Services.EmailService
             {
                 aes.IV = code[0].Split(',').Select(b => byte.Parse(b)).ToArray();
                 aes.Key = Convert.FromBase64String(code[1]);
-                using (MemoryStream output = new MemoryStream())
+                using (MemoryStream output = new())
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (CryptoStream cryptoStream = new(output, aes.CreateEncryptor(), CryptoStreamMode.Write))
                     {
                         await cryptoStream.WriteAsync(Encoding.Unicode.GetBytes(""));
                         await cryptoStream.FlushFinalBlockAsync();
