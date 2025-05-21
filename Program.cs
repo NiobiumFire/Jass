@@ -19,11 +19,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
-//builder.Services.Configure<IdentityOptions>(o =>
-//{
-
-//});
-
 builder.Services.AddScoped<IEmailSender, EmailService>();
 
 var app = builder.Build();
@@ -47,6 +42,44 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     await EnsureRolesExist(roleManager);
 }
+
+// Grant primary admin
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+    var username = config["PrimaryAdmin:Username"];
+    var email = config["PrimaryAdmin:Email"];
+    var password = config["PrimaryAdmin:Password"];
+
+    var user = await userManager.FindByEmailAsync(email);
+
+    if (user == null)
+    {
+        user = new ApplicationUser
+        {
+            UserName = username,
+            Email = email,
+            EmailConfirmed = true
+        };
+
+        var createResult = await userManager.CreateAsync(user, password);
+
+        if (!createResult.Succeeded)
+        {
+            var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+            throw new Exception($"Failed to create admin user: {errors}");
+        }
+    }
+
+    if (!await userManager.IsInRoleAsync(user, "Admin"))
+    {
+        await userManager.AddToRoleAsync(user, "Admin");
+    }
+}
+
+
 
 app.UseAuthentication(); ;
 
