@@ -63,7 +63,7 @@ namespace BelotWebApp.BelotClasses
         public int BotDelay { get; set; } = 800;
         public int RoundSummaryDelay { get; set; } = 6000;
 
-        public static Random rnd = new Random();
+        private static readonly Random rnd = new();
 
         public void SetLogger()
         {
