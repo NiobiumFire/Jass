@@ -31,7 +31,7 @@ namespace BelotWebApp.Controllers
             var model = new AdministrateUserModel();
             foreach (ApplicationUser user in _userManager.Users)
             {
-                var administrateUserModel = new BelotWebApp.Models.Administration.InputModel()
+                var administrateUserModel = new InputModel()
                 {
                     Id = user.Id,
                     Username = user.UserName,
