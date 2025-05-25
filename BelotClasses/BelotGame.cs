@@ -1,4 +1,7 @@
-﻿using Serilog;
+﻿using BelotWebApp.BelotClasses.Cards;
+using BelotWebApp.BelotClasses.Declarations;
+using BelotWebApp.BelotClasses.Players;
+using Serilog;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -17,15 +20,15 @@ namespace BelotWebApp.BelotClasses
         public string GameId { get; set; } = "";
         public Player[] Players { get; set; }
         public List<Spectator> Spectators { get; set; }
-        public List<string> Deck { get; set; }
-        public List<string>[] Hand { get; set; }
+        public List<Card> Deck { get; set; }
+        public List<Card>[] Hand { get; set; }
         public int CardsDealt { get; set; }
         public int FirstPlayer { get; set; }
         public int Turn { get; set; }
         public int NumCardsPlayed { get; set; }
-        public int RoundSuit { get; set; }
-        public int TrickSuit { get; set; }
-        public List<int> SuitCall { get; set; }
+        public Call RoundCall { get; set; }
+        public Suit? TrickSuit { get; set; }
+        public List<Call> Calls { get; set; }
         public int Rounds { get; set; }
         public bool EWCalled { get; set; }
         public int Caller { get; set; }
@@ -43,7 +46,7 @@ namespace BelotWebApp.BelotClasses
         public bool NSWonATrick { get; set; }
         public bool Capot { get; set; }
         public bool Inside { get; set; }
-        public string[] TableCards { get; set; }
+        public Card[] TableCards { get; set; }
         public List<int> CardsPlayedThisRound { get; set; }
         public int HighestTrumpInTrick { get; set; }
         public List<Run>[] Runs { get; set; }
@@ -87,36 +90,39 @@ namespace BelotWebApp.BelotClasses
             IsNewRound = true;
             EWTotal = 0;
             NSTotal = 0;
-            ScoreHistory = new List<int[]>();
+            ScoreHistory = [];
         }
 
         public void NewRound() // set new first player
         {
             Rounds++;
             Turn = FirstPlayer;
-            if (EnableLogging) Log.Information("Dealer: {0}", Turn);
+            if (EnableLogging)
+            {
+                Log.Information("Dealer: {0}", Turn);
+            }
 
             if (--FirstPlayer == -1) FirstPlayer = 3;
-            Deck = new List<string>();
-            Hand = new List<string>[4];
+            Deck = [];
+            Hand = new List<Card>[4];
             Runs = new List<Run>[4];
             Carres = new List<Carre>[4];
             Belots = new List<Belot>[4];
             for (int i = 0; i < 4; i++)
             {
-                Hand[i] = new List<string>();
-                Runs[i] = new List<Run>();
-                Carres[i] = new List<Carre>();
-                Belots[i] = new List<Belot>();
+                Hand[i] = [];
+                Runs[i] = [];
+                Carres[i] = [];
+                Belots[i] = [];
             }
-            TableCards = new string[] { "c0-00", "c0-00", "c0-00", "c0-00" };
-            CardsPlayedThisRound = new List<int>();
+            TableCards = [new(), new(), new(), new()];
+            CardsPlayedThisRound = [];
             CardsDealt = 0;
             NumCardsPlayed = 0;
-            TrickSuit = 0;
+            TrickSuit = null;
             HighestTrumpInTrick = 0;
-            RoundSuit = 0; // 0 = pass, 1 = clubs ... 5 = no trumps, 6 = all trumps
-            SuitCall = new List<int>();
+            RoundCall = 0; // 0 = pass, 1 = clubs ... 5 = no trumps, 6 = all trumps
+            Calls = [];
             EWRoundPoints = 0;
             NSRoundPoints = 0;
             Multiplier = 1;
@@ -128,82 +134,74 @@ namespace BelotWebApp.BelotClasses
 
         public void Shuffle()
         {
-            //var card = new List<string> { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13" }; // Full deck
-            var card = new List<string> { "06", "07", "08", "09", "10", "11", "12", "13" }; // Belot deck
-            var suit = new List<int> { 1, 2, 3, 4 };
+            Suit[] suits = [Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades];
+            var ranks = Enum.GetValues(typeof(Rank));
 
-            List<string> masterDeck = new List<string>();
+            List<Card> masterDeck = [];
 
-            for (int i = 0; i < card.Count; i++)
+            foreach (Suit suit in suits)
             {
-                for (int j = 0; j < suit.Count; j++)
+                foreach (Rank rank in ranks)
                 {
-                    masterDeck.Add("c" + suit[j] + "-" + card[i]);
+                    masterDeck.Add(new(suit, rank));
                 }
             }
 
-            for (int i = 0; i < card.Count * suit.Count; i++)
+            for (int i = 0; i < suits.Length * ranks.Length; i++)
             {
                 int p;
                 lock (rnd) p = rnd.Next(masterDeck.Count);
                 Deck.Add(masterDeck[p]);
                 masterDeck.RemoveAt(p);
             }
-            //Deck = new List<string> {
-            //    "c4-13", "c4-12", "c4-11", "c4-10", "c4-09",
-            //    //"c3-13", "c3-12", "c3-11", "c3-10", "c3-09",
-            //    "c1-06", "c2-06", "c3-06", "c4-06", "c1-07",
-            //    "c2-13", "c2-12", "c2-11", "c2-10", "c2-09",
-            //    "c1-13", "c1-12", "c1-11", "c1-10", "c1-09",
-            //    "c4-08", "c4-07", "c4-06",
-            //    "c3-08", "c3-07", "c3-06",
-            //    "c2-08", "c2-07", "c2-06",
-            //    "c1-08", "c1-07", "c1-06" };
+            Deck = [
+                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
+                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
+                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
+                new(Suit.Spades, Rank.Seven), new(Suit.Spades, Rank.Eight), new(Suit.Spades, Rank.Nine), new(Suit.Spades, Rank.Ten), new(Suit.Spades, Rank.Jack),
+                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
+                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
+                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
+                new(Suit.Spades, Rank.Queen), new(Suit.Spades, Rank.King), new(Suit.Spades, Rank.Ace) ];
 
             if (EnableLogging) Log.Information("Deck: {0}", String.Join(",", Deck));
         }
 
-        public List<string> OrderCardsForHand(List<string> hand)
+        public List<Card> OrderCardsForHand(List<Card> hand)
         {
-            var nontrumporder = new List<string> { "06", "07", "08", "10", "11", "12", "09", "13" };
-            var trumporder = new List<string> { "06", "07", "11", "12", "09", "13", "08", "10" };
-            var nontrump = new List<int>();
-            var trump = new List<int>();
-            var masterlist = new List<string>();
+            var masterlist = new List<Card>();
 
-            for (int i = 1; i < 5; i++)
+            Call[] suitCalls = [Call.Clubs, Call.Diamonds, Call.Hearts, Call.Spades];
+
+            foreach (var call in suitCalls)
             {
-                for (int j = 0; j < 8; j++)
+                var strengths = RoundCall == call || RoundCall == Call.AllTrumps ? BelotHelpers.trumpRanks : BelotHelpers.nonTrumpRanks;
+
+                for (int i = 0; i < 8; i++)
                 {
-                    if (RoundSuit == i || RoundSuit == 6)
-                    {
-                        masterlist.Add("c" + i + "-" + trumporder[j]);
-                    }
-                    else
-                    {
-                        masterlist.Add("c" + i + "-" + nontrumporder[j]);
-                    }
+                    masterlist.Add(new((Suit)call, strengths[i]));
                 }
             }
 
-            var sortedhand = hand.OrderBy(i => masterlist.IndexOf(i)).ToList();
+            var sortedhand = hand.OrderBy(i => masterlist.FindIndex(m => m.Suit == i.Suit && m.Rank == i.Rank)).ToList();
             return sortedhand;
         }
 
-        public List<string> OrderCardsForRuns(List<string> hand)
+        public List<Card> OrderCardsForRuns(List<Card> hand)
         {
-            var runorder = new List<string> { "06", "07", "08", "09", "10", "11", "12", "13" };
-            var masterlist = new List<string>();
+            var masterlist = new List<Card>();
 
-            for (int i = 1; i < 5; i++)
+            Call[] suitCalls = [Call.Clubs, Call.Diamonds, Call.Hearts, Call.Spades];
+
+            foreach (var call in suitCalls)
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    masterlist.Add("c" + i + "-" + runorder[j]);
+                    masterlist.Add(new((Suit)call, BelotHelpers.runRanks[j]));
                 }
             }
 
-            var sortedhand = hand.OrderBy(i => masterlist.IndexOf(i)).ToList();
+            var sortedhand = hand.OrderBy(i => masterlist.FindIndex(m => m.Suit == i.Suit && m.Rank == i.Rank)).ToList();
             return sortedhand;
         }
 
@@ -224,11 +222,11 @@ namespace BelotWebApp.BelotClasses
 
         public int[] ValidCalls()
         {
-            int[] validCalls = { 1, 1, 1, 1, 1, 1, 0, 0 }; // c, d, h, s, A, J, x2, x4
+            int[] validCalls = [1, 1, 1, 1, 1, 1, 0, 0]; // c, d, h, s, A, J, x2, x4
 
-            if (RoundSuit > 0)
+            if (RoundCall > 0)
             {
-                for (int i = 0; i < RoundSuit; i++)
+                for (int i = 0; i < (int)RoundCall; i++)
                 {
                     validCalls[i] = 0;
                 }
@@ -248,37 +246,37 @@ namespace BelotWebApp.BelotClasses
             return validCalls;
         }
 
-        public void NominateSuit(int suit)
+        public void NominateSuit(Call call)
         {
             //if (EnableLogging) Log.Information("Call {0}: {1}", Turn, suit);
 
-            SuitCall.Add(suit);
+            Calls.Add(call);
 
-            if (suit > 0)
+            if (call != Call.Pass)
             {
                 EWCalled = Turn == 0 || Turn == 2;
                 Caller = Turn;
-                if (suit < 7 || suit == 9)
-                {
-                    RoundSuit = suit;
-                    Multiplier = 1;
-                }
-                else if (suit == 7)
+                if (call == Call.Double)
                 {
                     Multiplier = 2;
                 }
-                else if (suit == 8)
+                else if (call == Call.Redouble)
                 {
                     Multiplier = 4;
+                }
+                else
+                {
+                    RoundCall = call;
+                    Multiplier = 1;
                 }
             }
         }
 
         public bool SuitDecided()
         {
-            if (RoundSuit == 9 || (SuitCall.Count > 3 && string.Join("", SuitCall.GetRange(SuitCall.Count - 3, 3).ToArray()) == "000"))
+            if (RoundCall == Call.FiveUnderNine || (Calls.Count > 3 && Calls.TakeLast(3).All(c => c == Call.Pass)))
             {
-                Log.Information("Call: {0}", String.Join(",", SuitCall));
+                Log.Information("Call: {0}", String.Join(",", Calls));
                 return true;
             }
             return false;
@@ -286,91 +284,161 @@ namespace BelotWebApp.BelotClasses
 
         public int[] ValidCards()
         {
-            int[] validCards = { 1, 1, 1, 1, 1, 1, 1, 1 };
-            validCards = RemovePlayedCards(validCards);
-            if (TrickSuit > 0) // if it's not the first card of the trick
+            int[] validCards = [1, 1, 1, 1, 1, 1, 1, 1];
+            validCards = InvalidatePlayedCards(validCards);
+            if (validCards.Sum() == 0)
             {
-                if (RoundSuit == TrickSuit && PlayerHasCardsOfSuit(RoundSuit))
-                {
-                    validCards = RemoveCardsNotOfSuit(validCards, RoundSuit);
-                    if (PlayerHasHigherTrump()) validCards = RemoveLowerTrumps(validCards);
-                }
 
-                else if (PlayerHasCardsOfSuit(TrickSuit))
+            }
+            if (TrickSuit != null) // if it's not the first card of the trick
+            {
+                if (BelotHelpers.IsSuit(RoundCall) && (Suit)RoundCall == TrickSuit && PlayerHasCardsOfSuit((Suit)RoundCall)) // RoundSuit is C,D,H,S
                 {
-                    validCards = RemoveCardsNotOfSuit(validCards, TrickSuit);
-                    if (RoundSuit == 6 && PlayerHasHigherTrump()) validCards = RemoveLowerTrumps(validCards);
+                    validCards = InvalidateCardsNotOfSuit(validCards, (Suit)RoundCall);
+                    if (validCards.Sum() == 0)
+                    {
+
+                    }
+                    if (PlayerHasHigherTrump())
+                    {
+                        validCards = InvalidateLowerTrumps(validCards);
+                        if (validCards.Sum() == 0)
+                        {
+
+                        }
+                    }
+                }
+                else if (PlayerHasCardsOfSuit((Suit)TrickSuit))
+                {
+                    validCards = InvalidateCardsNotOfSuit(validCards, (Suit)TrickSuit);
+                    if (validCards.Sum() == 0)
+                    {
+
+                    }
+                    if (RoundCall == Call.AllTrumps && PlayerHasHigherTrump())
+                    {
+                        validCards = InvalidateLowerTrumps(validCards);
+                        if (validCards.Sum() == 0)
+                        {
+
+                        }
+                    }
                 }
                 // condition 3 is why it's necessary to first check if trick suit is trumps
-                else if (RoundSuit < 5 && PlayerHasCardsOfSuit(RoundSuit)) // if trumps (C,D,H,S) NOT lead, and player doesn't have any of the trick suit
+                else if (BelotHelpers.IsSuit(RoundCall) && PlayerHasCardsOfSuit((Suit)RoundCall)) // if trumps (C,D,H,S) NOT lead, and player doesn't have any of the trick suit
                 {
                     int currentwinner = DetermineWinner();
                     if ((Turn % 2 == 0 && currentwinner % 2 != 0) || ((Turn - 1) % 2 == 0 && (currentwinner - 1) % 2 != 0)) // if partner is not currently winning the trick
                     {
                         if (PlayerHasHigherTrump()) // if player has a higher trump than what has been played in this trick, must overtrump
                         {
-                            validCards = RemoveCardsNotOfSuit(validCards, RoundSuit);
-                            validCards = RemoveLowerTrumps(validCards);
+                            validCards = InvalidateCardsNotOfSuit(validCards, (Suit)RoundCall);
+                            if (validCards.Sum() == 0)
+                            {
+
+                            }
+                            validCards = InvalidateLowerTrumps(validCards);
+                            if (validCards.Sum() == 0)
+                            {
+
+                            }
                         }
                     }
                 }
             }
+
+            if (validCards.Sum() == 0)
+            {
+
+            }
+
             return validCards;
         }
 
         public int[] GetWinners(int player)
         {
-            int[] winners = { 0, 0, 0, 0, 0, 0, 0, 0 }; // 2 = hard winner, 1 = soft winner/could be trumped
+            int[] winners = [0, 0, 0, 0, 0, 0, 0, 0]; // 2 = hard winner, 1 = soft winner/could be trumped
 
-            bool theirTrumps = false;
+            bool otherHandsHaveTrumps = false;
 
-            int[] theirStrongestCard = { 0, 0, 0, 0 };
+            Dictionary<Suit, int> otherHandsMaxBySuit = new()
+                {
+                    { Suit.Clubs, 0 },
+                    { Suit.Diamonds, 0 },
+                    { Suit.Hearts, 0 },
+                    { Suit.Spades, 0 }
+                };
+
+
             for (int i = 0; i < 4; i++) // player
             {
-                if (i == player) continue;
+                if (i == player)
+                {
+                    continue;
+                }
+
                 for (int j = 0; j < 8; j++) // card
                 {
-                    int suit = BelotHelpers.GetSuitFromCard(Hand[i][j]);
-                    if (suit == 0) continue;
-                    int str = BelotHelpers.DetermineCardPower(Hand[i][j], RoundSuit, suit);
-                    if (str > theirStrongestCard[suit - 1])
+                    if (Hand[i][j].Played || Hand[i][j].Suit is not Suit suit)
                     {
-                        theirStrongestCard[suit - 1] = str;
+                        continue;
                     }
-                    if (suit == RoundSuit && i != player) theirTrumps = true;
+
+                    int strength = BelotHelpers.GetCardStrength(Hand[i][j], RoundCall, suit);
+
+                    if (strength > otherHandsMaxBySuit[suit])
+                    {
+                        otherHandsMaxBySuit[suit] = strength;
+                    }
+
+                    if (BelotHelpers.IsSuit(RoundCall) && suit == (Suit)RoundCall)
+                    {
+                        otherHandsHaveTrumps = true;
+                    }
                 }
             }
 
             for (int i = 0; i < 8; i++)
             {
-                int suit = BelotHelpers.GetSuitFromCard(Hand[player][i]);
-                if (suit == 0) continue;
-                int myStrength = BelotHelpers.DetermineCardPower(Hand[player][i], RoundSuit, suit);
+                if (Hand[player][i].Played || Hand[player][i].Suit is not Suit suit)
+                {
+                    continue;
+                }
 
-                if (suit != RoundSuit && !theirTrumps && myStrength > theirStrongestCard[suit - 1]) winners[i] = 2;
-                else if (suit != RoundSuit && theirTrumps && myStrength > theirStrongestCard[suit - 1]) winners[i] = 1;
-                else if (suit == RoundSuit && myStrength > theirStrongestCard[suit - 1]) winners[i] = 2;
+                int myStrength = BelotHelpers.GetCardStrength(Hand[player][i], RoundCall, suit);
+
+                if ((int)suit != (int)RoundCall && !otherHandsHaveTrumps && myStrength > otherHandsMaxBySuit[suit])
+                {
+                    winners[i] = 2;
+                }
+                else if ((int)suit != (int)RoundCall && otherHandsHaveTrumps && myStrength > otherHandsMaxBySuit[suit])
+                {
+                    winners[i] = 1;
+                }
+                else if ((int)suit == (int)RoundCall && myStrength > otherHandsMaxBySuit[suit])
+                {
+                    winners[i] = 2;
+                }
             }
 
             return winners;
         }
 
-        public int RemainingCardsInASuit(int suit, int player)
-        {
-            int cards = 0;
-            for (int i = 0; i < 8; i++)
-            {
-                if (suit == BelotHelpers.GetSuitFromCard(Hand[player][i])) cards++;
-            }
-            return cards;
-        }
+        //public int RemainingCardsInASuit(int suit, int player)
+        //{
+        //    int cards = 0;
+        //    for (int i = 0; i < 8; i++)
+        //    {
+        //        if (suit == BelotHelpers.GetSuitFromCard(Hand[player][i])) cards++;
+        //    }
+        //    return cards;
+        //}
 
-        public int[] RemovePlayedCards(int[] validcards)
+        public int[] InvalidatePlayedCards(int[] validcards)
         {
             for (int i = 0; i < 8; i++)
             {
-                string card = Hand[Turn][i];
-                if (Int32.Parse(card.Substring(1, 1)) == 0)
+                if (Hand[Turn][i].Played)
                 {
                     validcards[i] = 0;
                 }
@@ -378,26 +446,18 @@ namespace BelotWebApp.BelotClasses
             return validcards;
         }
 
-        public bool PlayerHasCardsOfSuit(int suit)
+        public bool PlayerHasCardsOfSuit(Suit suit)
         {
-            foreach (string card in Hand[Turn])
-            {
-                if (Int32.Parse(card.Substring(1, 1)) == suit)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return Hand[Turn].Any(c => c.Suit == suit && !c.Played);
         }
 
-        public int[] RemoveCardsNotOfSuit(int[] validcards, int suit)
+        public int[] InvalidateCardsNotOfSuit(int[] validcards, Suit suit)
         {
             for (int i = 0; i < 8; i++)
             {
                 if (validcards[i] == 1)
                 {
-                    string card = Hand[Turn][i];
-                    if (Int32.Parse(card.Substring(1, 1)) != suit)
+                    if (Hand[Turn][i].Suit != suit)
                     {
                         validcards[i] = 0;
                     }
@@ -408,7 +468,7 @@ namespace BelotWebApp.BelotClasses
 
         public bool PlayerHasHigherTrump()
         {
-            foreach (string card in Hand[Turn])
+            foreach (var card in Hand[Turn])
             {
                 if (TrumpStrength(card) > HighestTrumpInTrick)
                 {
@@ -418,14 +478,13 @@ namespace BelotWebApp.BelotClasses
             return false;
         }
 
-        public int[] RemoveLowerTrumps(int[] validcards)
+        public int[] InvalidateLowerTrumps(int[] validcards)
         {
             for (int i = 0; i < 8; i++)
             {
                 if (validcards[i] == 1)
                 {
-                    string card = Hand[Turn][i];
-                    if (TrumpStrength(card) < HighestTrumpInTrick)
+                    if (TrumpStrength(Hand[Turn][i]) < HighestTrumpInTrick)
                     {
                         validcards[i] = 0;
                     }
@@ -434,30 +493,35 @@ namespace BelotWebApp.BelotClasses
             return validcards;
         }
 
-        public int TrumpStrength(string card)
+        public int TrumpStrength(Card card)
         {
             int trumpstrength = 0;
-            if (Int32.Parse(card.Substring(1, 1)) == RoundSuit || (RoundSuit == 6 && Int32.Parse(card.Substring(1, 1)) == TrickSuit))
+
+            if (card.Played)
             {
-                int[] strength = { 1, 2, 7, 5, 8, 3, 4, 6 };
-                trumpstrength = strength[Int32.Parse(card.Substring(3, 2)) - 6];
+                return trumpstrength;
+            }
+
+            if ((BelotHelpers.IsSuit(RoundCall) && card.Suit == (Suit)RoundCall) || (RoundCall == Call.AllTrumps && card.Suit == TrickSuit))
+            {
+                int index = Array.IndexOf(Enum.GetValues(typeof(Rank)), card.Rank);
+                trumpstrength = BelotHelpers.onSuitTrumpStrength[index];
             }
             return trumpstrength;
         }
 
-        public bool CheckBelot(string card)
+        public bool CheckBelot(Card card)
         {
             bool canDeclare = false;
-            if (RoundSuit != 5)
+            if (RoundCall != Call.NoTrumps)
             {
-                int rank = Int32.Parse(card.Substring(3, 2));
-                if (rank == 11 || rank == 12)
+                if (card.Rank == Rank.Queen || card.Rank == Rank.King)
                 {
-                    int suit = Int32.Parse(card.Substring(1, 1));
-                    if (Belots[Turn].Where(s => s.Suit == suit).Where(d => d.Declarable == true).Count() > 0)
+                    var belots = Belots[Turn].Where(b => b.Suit == card.Suit && b.Declarable);
+                    if (belots.Any())
                     {
-                        Belots[Turn].Where(s => s.Suit == suit).First().Declarable = false;
-                        if ((suit == TrickSuit && RoundSuit == 6) || RoundSuit < 5)
+                        belots.First().Declarable = false;
+                        if (BelotHelpers.IsSuit(RoundCall) || (RoundCall == Call.AllTrumps && card.Suit == TrickSuit))
                         {
                             canDeclare = true;
                         }
@@ -469,12 +533,12 @@ namespace BelotWebApp.BelotClasses
 
         public void DeclareBelot(bool declared = true)
         {
-            if (RoundSuit < 5)
+            if (BelotHelpers.IsSuit(RoundCall))
             {
-                if (Belots[Turn].Where(s => s.Suit == RoundSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == RoundSuit).First().Declared = declared;
+                if (Belots[Turn].Where(s => s.Suit == (Suit)RoundCall).Count() > 0) Belots[Turn].Where(s => s.Suit == (Suit)RoundCall).First().Declared = declared;
                 if (EnableLogging && declared) Log.Information("Belot: {0}", Turn);
             }
-            else if (RoundSuit == 6)
+            else if (RoundCall == Call.AllTrumps)
             {
                 if (Belots[Turn].Where(s => s.Suit == TrickSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == TrickSuit).First().Declared = declared;
                 if (EnableLogging && declared) Log.Information("Belot: {0}", Turn);
@@ -504,97 +568,114 @@ namespace BelotWebApp.BelotClasses
             }
         }
 
-        public void PlayCard(string card)
+        public void PlayCard(Card card)
         {
+            var handCard = Hand[Turn].FirstOrDefault(c => c.Suit == card.Suit && c.Rank == card.Rank);
+
+            if (handCard != null)
+            {
+                card = handCard;
+            }
+
             TableCards[Turn] = card;
             //if (EnableLogging) Log.Information("Play {0}, {1}", Turn, card);
 
-            Hand[Turn][Hand[Turn].IndexOf(card)] = "c0-00";
-
             NumCardsPlayed++;
 
-            if (TrickSuit == 0) TrickSuit = Int32.Parse(card.Substring(1, 1)); // first card of a trick determines suit
+            TrickSuit ??= (Suit)card.Suit; // first card of a trick determines suit
 
             int trumpstrength = TrumpStrength(card);
-            if (HighestTrumpInTrick < trumpstrength) HighestTrumpInTrick = trumpstrength;
+            if (HighestTrumpInTrick < trumpstrength)
+            {
+                HighestTrumpInTrick = trumpstrength;
+            }
 
             CardsPlayedThisRound.Add(BelotHelpers.GetCardNumber(card));
 
+            card.Played = true;
+
             //if (EnableLogging && NumCardsPlayed % 4 == 0) Log.Information(GetDisplayName(DetermineWinner()) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
         }
+
+        #region Declarations
 
         public void FindRuns()
         {
             for (int i = 0; i < 4; i++)
             {
-                List<string> hand = OrderCardsForRuns(Hand[i]);
+                List<Card> hand = OrderCardsForRuns(Hand[i]);
                 for (int j = 0; j < 6; j++)
                 {
-                    int maxrun = 1;
-                    int suit = Int32.Parse(hand[j].Substring(1, 1));
-                    int strength = Int32.Parse(hand[j].Substring(3, 2));
-                    for (int k = 0; k < maxrun; k++)
+                    int runLength = 1;
+                    Suit suit = (Suit)hand[j].Suit;
+                    Rank rank = (Rank)hand[j].Rank;
+                    for (int k = 0; k < runLength; k++)
                     {
-                        if (j + k + 1 > 7) break;
+                        if (j + k + 1 > 7)
+                        {
+                            break;
+                        }
 
-                        if (Int32.Parse(hand[j + k + 1].Substring(1, 1)) == suit) // if two adjacent cards are of the same suit
+                        if (hand[j + k + 1].Suit == suit) // if two adjacent cards are of the same suit
                         {
 
-                            if (Int32.Parse(hand[j + k + 1].Substring(3, 2)) == strength + k + 1) // if second card is adjacent in rank to the first card
+                            if (hand[j + k + 1].Rank == rank + k + 1) // if second card is adjacent in rank to the first card
                             {
-                                maxrun++; // consider the next card
+                                runLength++; // consider the next card
                             }
                         }
                     }
-                    if (maxrun == 8)
+
+                    if (runLength == 8)
                     {
-                        Runs[i].Add(new Run(3, suit, 8, false, false));
-                        Runs[i].Add(new Run(5, suit, 13, false, false));
+                        Runs[i].Add(new Run(3, suit, Rank.Nine, false, false));
+                        Runs[i].Add(new Run(5, suit, Rank.Ace, false, false));
                     }
-                    else if (maxrun > 2 && maxrun < 6)
+                    else if (runLength > 2 && runLength < 6)
                     {
-                        Runs[i].Add(new Run(maxrun, suit, strength + maxrun - 1, false, false));
+                        Runs[i].Add(new Run(runLength, suit, rank + runLength - 1, false, false));
                     }
-                    else if (maxrun > 5)
+                    else if (runLength > 5)
                     {
-                        Runs[i].Add(new Run(5, suit, strength + maxrun - 1, false, false));
+                        Runs[i].Add(new Run(5, suit, rank + runLength - 1, false, false));
                     }
-                    j += maxrun - 1;
+                    j += runLength - 1;
                 }
             }
         }
 
         public void FindCarres()
         {
-            for (int i = 0; i < 4; i++)
+            Rank[] validCarreRanks = [Rank.Nine, Rank.Ten, Rank.Jack, Rank.Queen, Rank.King, Rank.Ace];
+
+            for (int i = 0; i < 4; i++) // players
             {
-                int[] ranks = { 0, 0, 0, 0, 0, 0 };
-                for (int j = 0; j < 8; j++)
+                foreach (var rank in validCarreRanks)
                 {
-                    int rank = Int32.Parse(Hand[i][j].Substring(3, 2));
-                    if (rank > 7) ranks[rank - 8]++;
-                }
-                for (int j = 0; j < 6; j++)
-                {
-                    if (ranks[j] == 4) Carres[i].Add(new Carre(j + 8, false));
+                    if (Hand[i].Count(c => c.Rank == rank) == 4)
+                    {
+                        Carres[i].Add(new Carre(rank, false));
+                    }
                 }
             }
         }
 
-        public void TruncateRuns() // reduce overlapping runs where this still rewards points, and return invalidated runs
+        public void TruncateRuns() // reduce overlapping runs where this still rewards points, and invalidate other runs
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++) // players
             {
                 for (int j = 0; j < Runs[i].Count; j++)
                 {
-                    int upper = Runs[i][j].Strength;
-                    int lower = upper - Runs[i][j].Length + 1;
-                    if (Carres[i].Count == 1)
+                    Rank upper = Runs[i][j].Rank;
+                    Rank lower = upper - Runs[i][j].Length + 1;
+                    if (Carres[i].Count == 1) // if zero carres: no overlap, if two: can't have any runs
                     {
                         if (Carres[i][0].Rank >= lower && Carres[i][0].Rank <= upper)
                         {
-                            if (Runs[i][j].Length == 3) Runs[i][j].Declarable = false;
-
+                            if (Runs[i][j].Length == 3)
+                            {
+                                Runs[i][j].Declarable = false;
+                            }
                             else // try truncate run
                             {
                                 bool first = Carres[i][0].Rank == lower;
@@ -605,7 +686,10 @@ namespace BelotWebApp.BelotClasses
                                 {
                                     Runs[i][j].Length -= 1;
                                     // if first, strength remains the same, reducing length by 1 is sufficient
-                                    if (last) Runs[i][j].Strength -= 1;
+                                    if (last)
+                                    {
+                                        Runs[i][j].Rank -= 1;
+                                    }
                                     Runs[i][j].Declarable = true;
                                 }
                                 else if (second || secondLast)
@@ -618,7 +702,10 @@ namespace BelotWebApp.BelotClasses
                                     {
                                         Runs[i][j].Length -= 2;
                                         // if second, strength remains the same, reducing length by 2 is sufficient
-                                        if (secondLast) Runs[i][j].Strength -= 2;
+                                        if (secondLast)
+                                        {
+                                            Runs[i][j].Rank -= 2;
+                                        }
                                         Runs[i][j].Declarable = true;
                                     }
                                 }
@@ -643,37 +730,35 @@ namespace BelotWebApp.BelotClasses
 
         public void FindBelots()
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++) // players
             {
-                int[] newBelots = { 0, 0, 0, 0 };
-                for (int j = 0; j < 8; j++)
+                foreach (var suit in new Suit[] { Suit.Clubs, Suit.Diamonds, Suit.Hearts, Suit.Spades })
                 {
-                    int rank = Int32.Parse(Hand[i][j].Substring(3, 2));
-                    if (rank == 11 || rank == 12)
+                    if ((BelotHelpers.IsSuit(RoundCall) && (Suit)RoundCall == suit) || RoundCall == Call.AllTrumps)
                     {
-                        int suit = Int32.Parse(Hand[i][j].Substring(1, 1));
-                        newBelots[suit - 1]++;
+                        if (Hand[i].Any(c => c.Rank == Rank.Queen && c.Suit == suit) && Hand[i].Any(c => c.Rank == Rank.King && c.Suit == suit))
+                        {
+                            Belots[i].Add(new Belot(suit, false, true));
+                        }
                     }
-                }
-                for (int j = 0; j < 4; j++)
-                {
-                    if (newBelots[j] == 2 && (j + 1 == RoundSuit || RoundSuit == 6)) Belots[i].Add(new Belot(j + 1, false, true));
                 }
             }
         }
+
+        #endregion
 
         public int DetermineWinner()
         {
             int winner = Turn;
             int bestValue = 0;
 
-            if (TrickSuit > 0)
+            if (TrickSuit != null)
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    if (TableCards[i] != "c0-00")
+                    if (!TableCards[i].IsNull())
                     {
-                        int value = BelotHelpers.DetermineCardPower(TableCards[i], RoundSuit, TrickSuit);
+                        int value = BelotHelpers.GetCardStrength(TableCards[i], RoundCall, TrickSuit);
                         if (value > bestValue)
                         {
                             bestValue = value;
@@ -682,9 +767,10 @@ namespace BelotWebApp.BelotClasses
                     }
                 }
             }
-            if (EnableLogging && TableCards.Where(c => c == "c0-00").Count() == 0)
+            if (EnableLogging && !TableCards.Any(c => c.IsNull()))
             {
-                Log.Information("Play: {0}", String.Join(",", TableCards));
+                //Log.Information("Play: {0}", String.Join(",", TableCards));
+                Log.Information("Play: {0} XXXXXXXXXX");
                 Log.Information("Trick: {0}", winner);
             }
             return winner;
@@ -704,22 +790,25 @@ namespace BelotWebApp.BelotClasses
             return points;
         }
 
-        public int CalculateCardPoints(string card) // C,D,H,S = 162 (65 vs 97 would result in 7 & 10 in pure rounding), A = 260 (x2), J = 258
+        public int CalculateCardPoints(Card card) // C,D,H,S = 162 (65 vs 97 would result in 7 & 10 in pure rounding), A = 260 (x2), J = 258
         {
-            int[] nontrump = { 0, 0, 0, 10, 2, 3, 4, 11 };
-            int[] trump = { 0, 0, 14, 10, 20, 3, 4, 11 };
+            int[] nontrump = [0, 0, 0, 10, 2, 3, 4, 11];
+            int[] trump = [0, 0, 14, 10, 20, 3, 4, 11];
+
             int points = 0;
 
-            if (card == "c0-00") return points;
-            int suit = Int32.Parse(card.Substring(1, 1));
-            int rank = Int32.Parse(card.Substring(3, 2)) - 6;
-            if (RoundSuit == 6 || RoundSuit == suit)
+            if (card.Suit is not Suit suit || card.Rank is not Rank rank)
             {
-                points += trump[rank];
+                return points;
+            }
+
+            if ((BelotHelpers.IsSuit(RoundCall) && (Suit)RoundCall == suit) || RoundCall == Call.AllTrumps)
+            {
+                points += trump[(int)rank];
             }
             else
             {
-                points += nontrump[rank];
+                points += nontrump[(int)rank];
             }
 
             return points;
@@ -727,95 +816,103 @@ namespace BelotWebApp.BelotClasses
 
         public string FinalisePoints()
         {
-            TrickPoints = new int[] { EWRoundPoints, NSRoundPoints };
-            DeclarationPoints = new int[] { 0, 0 };
-            BelotPoints = new int[] { 0, 0 };
-            Result = new string[] { "", "Success" };
-            string[] message = { "N/S", "call", "succeeded" };
+            TrickPoints = [EWRoundPoints, NSRoundPoints];
+            DeclarationPoints = [0, 0];
+            BelotPoints = [0, 0];
+            Result = ["", "Success"];
+            string[] message = ["N/S", "call", "succeeded"];
             if (EWCalled)
             {
-                Result = new string[] { "Success", "" };
+                Result = ["Success", ""];
                 message[0] = "E/W";
             }
 
-            if (RoundSuit == 5) // no trumps points are always doubled
+            if (RoundCall == Call.NoTrumps) // no-trumps points are always doubled
             {
                 EWRoundPoints *= 2;
                 NSRoundPoints *= 2;
             }
             else
             {
-                // Tierce
-                List<Run> EWRuns = new List<Run>();
-                EWRuns.AddRange(Runs[0].Where(d => d.Declared == true));
-                EWRuns.AddRange(Runs[2].Where(d => d.Declared == true));
-                List<Run> NSRuns = new List<Run>();
-                NSRuns.AddRange(Runs[1].Where(d => d.Declared == true));
-                NSRuns.AddRange(Runs[3].Where(d => d.Declared == true));
+                // Runs
+                List<Run> EWRuns = [.. Runs[0].Where(d => d.Declared), .. Runs[2].Where(d => d.Declared)];
+                List<Run> NSRuns = [.. Runs[1].Where(d => d.Declared), .. Runs[3].Where(d => d.Declared)];
                 if (EWRuns.Count + NSRuns.Count > 0)
                 {
-                    int[] MaxComparer = new int[] { 0, 0 }; // EW, NS
-                    if (EWRuns.Count > 0) MaxComparer[0] = EWRuns.OrderByDescending(r => r.Length).First().Length;
-                    if (NSRuns.Count > 0) MaxComparer[1] = NSRuns.OrderByDescending(r => r.Length).First().Length;
-                    if (MaxComparer[0] == MaxComparer[1])
+                    // Compare runs by length first, and then by rank in case of a tie
+                    int[] runComparer = [0, 0]; // EW, NS
+                    if (EWRuns.Count > 0)
                     {
-                        MaxComparer[0] = EWRuns.Where(r => r.Length == MaxComparer[0]).OrderByDescending(r => r.Strength).First().Strength;
-                        MaxComparer[1] = NSRuns.Where(r => r.Length == MaxComparer[1]).OrderByDescending(r => r.Strength).First().Strength;
+                        runComparer[0] = EWRuns.OrderByDescending(r => r.Length).First().Length;
                     }
-                    if (MaxComparer[0] == MaxComparer[1])
+
+                    if (NSRuns.Count > 0)
+                    {
+                        runComparer[1] = NSRuns.OrderByDescending(r => r.Length).First().Length;
+                    }
+
+                    if (runComparer[0] == runComparer[1])
+                    {
+                        runComparer[0] = (int)EWRuns.Where(r => r.Length == runComparer[0]).OrderByDescending(r => r.Rank).First().Rank;
+                        runComparer[1] = (int)NSRuns.Where(r => r.Length == runComparer[1]).OrderByDescending(r => r.Rank).First().Rank;
+                    }
+
+                    if (runComparer[0] == runComparer[1])
                     {
                         if (EnableLogging) Log.Information("The Runs were tied. No extra points awarded for Runs.");
                     }
-                    else if (MaxComparer[0] > MaxComparer[1])
+                    else if (runComparer[0] > runComparer[1])
                     {
-                        DeclarationPoints[0] += 20 * (EWRuns.Where(r => r.Length == 3).Count());
-                        DeclarationPoints[0] += 50 * (EWRuns.Where(r => r.Length == 4).Count());
-                        DeclarationPoints[0] += 100 * (EWRuns.Where(r => r.Length == 5).Count());
+                        DeclarationPoints[0] += 20 * EWRuns.Count(r => r.Length == 3);
+                        DeclarationPoints[0] += 50 * EWRuns.Count(r => r.Length == 4);
+                        DeclarationPoints[0] += 100 * EWRuns.Count(r => r.Length == 5);
                     }
                     else
                     {
-                        DeclarationPoints[1] += 20 * (NSRuns.Where(r => r.Length == 3).Count());
-                        DeclarationPoints[1] += 50 * (NSRuns.Where(r => r.Length == 4).Count());
-                        DeclarationPoints[1] += 100 * (NSRuns.Where(r => r.Length == 5).Count());
+                        DeclarationPoints[1] += 20 * NSRuns.Count(r => r.Length == 3);
+                        DeclarationPoints[1] += 50 * NSRuns.Count(r => r.Length == 4);
+                        DeclarationPoints[1] += 100 * NSRuns.Count(r => r.Length == 5);
                     }
                 }
 
-                // Carre
-                List<Carre> EWCarres = new List<Carre>();
-                EWCarres.AddRange(Carres[0].Where(d => d.Declared == true));
-                EWCarres.AddRange(Carres[2].Where(d => d.Declared == true));
-                List<Carre> NSCarres = new List<Carre>();
-                NSCarres.AddRange(Carres[1].Where(d => d.Declared == true));
-                NSCarres.AddRange(Carres[3].Where(d => d.Declared == true));
+                // Carres
+                List<Carre> EWCarres = [.. Carres[0].Where(d => d.Declared), .. Carres[2].Where(d => d.Declared)];
+                List<Carre> NSCarres = [.. Carres[1].Where(d => d.Declared), .. Carres[3].Where(d => d.Declared)];
                 if (EWCarres.Count + NSCarres.Count > 0)
                 {
-                    int[] MaxComparer = new int[] { 0, 0 }; // EW, NS
-                    if (EWCarres.Count > 0) MaxComparer[0] = EWCarres.OrderByDescending(r => r.Rank).First().Rank;
-                    if (NSCarres.Count > 0) MaxComparer[1] = NSCarres.OrderByDescending(r => r.Rank).First().Rank;
-                    if (MaxComparer[0] == 8) MaxComparer[0] = 14;
-                    if (MaxComparer[0] == 10) MaxComparer[0] = 15;
-                    if (MaxComparer[1] == 8) MaxComparer[1] = 14;
-                    if (MaxComparer[1] == 10) MaxComparer[1] = 15;
-                    if (MaxComparer[0] > MaxComparer[1])
+                    int[] carreStrength = [0, 0, 5, 3, 6, 1, 2, 4];
+                    int[] carreComparer = [0, 0]; // EW, NS
+
+                    if (EWCarres.Count > 0)
                     {
-                        DeclarationPoints[0] += 200 * (EWCarres.Where(r => r.Rank == 10).Count());
-                        DeclarationPoints[0] += 150 * (EWCarres.Where(r => r.Rank == 8).Count());
-                        DeclarationPoints[0] += 100 * (EWCarres.Where(r => r.Rank != 10 && r.Rank != 8).Count());
+                        carreComparer[0] = carreStrength[(int)EWCarres.OrderByDescending(r => r.Rank).First().Rank];
+                    }
+
+                    if (NSCarres.Count > 0)
+                    {
+                        carreComparer[1] = carreStrength[(int)NSCarres.OrderByDescending(r => r.Rank).First().Rank];
+                    }
+
+                    if (carreComparer[0] > carreComparer[1])
+                    {
+                        DeclarationPoints[0] += 200 * EWCarres.Count(c => c.Rank == Rank.Jack);
+                        DeclarationPoints[0] += 150 * EWCarres.Count(c => c.Rank == Rank.Nine);
+                        DeclarationPoints[0] += 100 * EWCarres.Count(c => c.Rank != Rank.Jack && c.Rank != Rank.Nine);
                     }
                     else
                     {
-                        DeclarationPoints[1] += 200 * (NSCarres.Where(r => r.Rank == 10).Count());
-                        DeclarationPoints[1] += 150 * (NSCarres.Where(r => r.Rank == 8).Count());
-                        DeclarationPoints[1] += 100 * (NSCarres.Where(r => r.Rank != 10 && r.Rank != 8).Count());
+                        DeclarationPoints[1] += 200 * NSCarres.Count(c => c.Rank == Rank.Jack);
+                        DeclarationPoints[1] += 150 * NSCarres.Count(c => c.Rank == Rank.Nine);
+                        DeclarationPoints[1] += 100 * NSCarres.Count(c => c.Rank != Rank.Jack && c.Rank != Rank.Nine);
                     }
                 }
 
                 EWRoundPoints += DeclarationPoints[0];
                 NSRoundPoints += DeclarationPoints[1];
 
-                // Belot
-                BelotPoints[0] += 20 * (Belots[0].Where(d => d.Declared == true).Count() + Belots[2].Where(d => d.Declared == true).Count());
-                BelotPoints[1] += 20 * (Belots[1].Where(d => d.Declared == true).Count() + Belots[3].Where(d => d.Declared == true).Count());
+                // Belots
+                BelotPoints[0] += 20 * (Belots[0].Count(d => d.Declared) + Belots[2].Count(d => d.Declared));
+                BelotPoints[1] += 20 * (Belots[1].Count(d => d.Declared) + Belots[3].Count(d => d.Declared));
 
                 EWRoundPoints += BelotPoints[0];
                 NSRoundPoints += BelotPoints[1];
@@ -835,7 +932,10 @@ namespace BelotWebApp.BelotClasses
                 message[2] += ", Capot";
                 Capot = true;
             }
-            else Capot = false;
+            else
+            {
+                Capot = false;
+            }
 
             if (EWCalled && EWRoundPoints <= NSRoundPoints) // inside
             {
@@ -874,15 +974,20 @@ namespace BelotWebApp.BelotClasses
                 }
             }
 
-            if (EWRoundPoints > 1000 || NSRoundPoints > 1000)
-            {
+            //if (EWRoundPoints > 1000 || NSRoundPoints > 1000)
+            //{
 
-            }
+            //}
 
             EWTotal += EWRoundPoints;
             NSTotal += NSRoundPoints;
-            if (EnableLogging) Log.Information(String.Join(" ", message) + ".");
-            if (EnableLogging) Log.Information("Round: {0},{1}", NSRoundPoints, EWRoundPoints);
+
+            if (EnableLogging)
+            {
+                Log.Information(String.Join(" ", message) + ".");
+                Log.Information("Round: {0},{1}", NSRoundPoints, EWRoundPoints);
+            }
+
             return String.Join(" ", message) + ".";
         }
 
