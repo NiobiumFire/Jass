@@ -22,4 +22,5 @@ A browser-based implementation of the classic Belot card game with real-time mul
 
 ```bash
 git clone https://github.com/NiobiumFire/Jass.git
-cd belot-online
+cd Jass
+dotnet build BelotWebApp.sln
