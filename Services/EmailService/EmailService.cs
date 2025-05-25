@@ -46,8 +46,8 @@ namespace BelotWebApp.Services.EmailService
         private async void EncryptPassword()
         {
             string encryptedPassword;
-
-            string[] code = File.ReadAllLines(_config["EncrpytionKeyPath:Path"]);
+            
+            string[] code = File.ReadAllLines(_config["EncryptionKeyPath:Path"]);
             using (Aes aes = Aes.Create())
             {
                 aes.IV = code[0].Split(',').Select(b => byte.Parse(b)).ToArray();
@@ -67,16 +67,16 @@ namespace BelotWebApp.Services.EmailService
 
         private async Task<string> DecryptPassword(string encrypedPassword)
         {
-            string[] code = File.ReadAllLines(_config["EncrpytionKeyPath:Path"]);
+            string[] code = File.ReadAllLines(_config["EncryptionKeyPath:Path"]);
             using (Aes aes = Aes.Create())
             {
                 aes.IV = code[0].Split(',').Select(b => byte.Parse(b)).ToArray();
                 aes.Key = Convert.FromBase64String(code[1]);
-                using (MemoryStream input = new MemoryStream(Convert.FromBase64String(encrypedPassword)))
+                using (MemoryStream input = new(Convert.FromBase64String(encrypedPassword)))
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream(input, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                    using (CryptoStream cryptoStream = new(input, aes.CreateDecryptor(), CryptoStreamMode.Read))
                     {
-                        using (MemoryStream output = new MemoryStream())
+                        using (MemoryStream output = new())
                         {
                             await cryptoStream.CopyToAsync(output);
                             return Encoding.Unicode.GetString(output.ToArray());
