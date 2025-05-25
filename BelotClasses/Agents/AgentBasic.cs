@@ -1,90 +1,132 @@
-﻿namespace BelotWebApp.BelotClasses
+﻿using BelotWebApp.BelotClasses.Cards;
+
+namespace BelotWebApp.BelotClasses.Agents
 {
     public class AgentBasic
     {
-        public static Random rnd = new Random();
+        private static readonly Random rnd = new Random();
 
         // ignores extra points in suit nomination (for now)
         // doesn't double or redouble
         // always accepts all available extras
         // never throws the cards
         // never calls five-under-nine
-        public int CallSuit(List<string> hand, int[] validCalls)
+        public static Call CallSuit(List<Card> hand, int[] validCalls)
         {
-            int call = 0;
-            //return call;
-            double mostPoints = 0;
-            int[] singleTrumpValue = { 1, 1, 2, 2, 4, 1, 1, 2 }; // considering length and strength
-            int[] noTrumpValue = { 0, 0, 0, 1, 0, 0, 0, 3 };
-            int[] allTrumpValue = { 0, 0, 2, 0, 4, 0, 0, 1 };
-            for (int i = 1; i < 7; i++) // calls
+            const double NO_TRUMP_MULTIPLIER = 1.5;
+            const double SINGLE_TRUMP_THRESHOLD = 10;
+            const double NO_TRUMP_THRESHOLD = 14.5;
+            const double ALL_TRUMP_THRESHOLD = 15;
+
+            Call bestCall = Call.Pass;
+            double highestScore = 0;
+
+            int[] singleTrumpValue = [1, 1, 2, 2, 4, 1, 1, 2];
+            int[] noTrumpValue = [0, 0, 0, 1, 0, 0, 0, 3];
+            int[] allTrumpValue = [0, 0, 2, 0, 4, 0, 0, 1];
+
+            Call[] calls = [Call.Clubs, Call.Diamonds, Call.Hearts, Call.Spades, Call.NoTrumps, Call.AllTrumps];
+
+            for (int i = 0; i < calls.Length; i++)
             {
-                if (validCalls[i - 1] == 1)
+                if (validCalls[i] != 1)
                 {
-                    int length = 0;
-                    double points = 0;
-                    int hasJ9 = 0;
-                    int J9suit = 0;
-                    for (int j = 0; j < hand.Count; j++)
+                    continue;
+                }
+
+                Call currentCall = calls[i];
+                double score = 0;
+                int trumpLength = 0;
+                var j9Tracker = new Dictionary<Suit, HashSet<Rank>>();
+
+                foreach (var card in hand)
+                {
+                    if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
                     {
-                        int suit = Int32.Parse(hand[j].Substring(1, 1));
-                        int rank = Int32.Parse(hand[j].Substring(3, 2));
-                        if (suit > 0)
+                        continue;
+                    }
+
+                    if (BelotHelpers.IsSuit(currentCall) && suit == (Suit)currentCall)
+                    {
+                        trumpLength++;
+                        score += singleTrumpValue[(int)rank];
+
+                        if (rank is Rank.Jack or Rank.Nine)
                         {
-                            if (suit == i)
+                            if (!j9Tracker.TryGetValue(suit, out HashSet<Rank>? value))
                             {
-                                length++;
-                                points += singleTrumpValue[rank - 6];
-                                if (rank == 8 || rank == 10)
-                                {
-                                    hasJ9++;
-                                    if (hasJ9 == 2) points++;
-                                }
+                                value = ([]);
+                                j9Tracker[suit] = value;
                             }
-                            else if (i < 6) // aces have less value in all trumps
+
+                            value.Add(rank);
+
+                            if (value.Count == 2)
                             {
-                                points += noTrumpValue[rank - 6];
-                            }
-                            else if (i == 6)
-                            {
-                                points += allTrumpValue[rank - 6];
-                                if (suit != J9suit)
-                                {
-                                    hasJ9 = 0;
-                                    J9suit = suit;
-                                }
-                                if (suit == J9suit)
-                                {
-                                    if (rank == 8 || rank == 10) hasJ9++;
-                                    if (hasJ9 == 2) points += 2;
-                                }
+                                score += 1;
                             }
                         }
                     }
-                    if (length > 2) points += length;
-
-                    if (i == 5) points *= 1.5;
-                    if (points > mostPoints)
+                    else if (currentCall == Call.NoTrumps)
                     {
-                        mostPoints = points;
-                        if ((points > 10 && i < 5) || (points > 14.5 && i == 5) || (points > 15 && i == 6)) call = i;
+                        score += noTrumpValue[(int)rank];
+                    }
+                    else if (currentCall == Call.AllTrumps)
+                    {
+                        score += allTrumpValue[(int)rank];
+
+                        if (!j9Tracker.ContainsKey(suit))
+                        {
+                            j9Tracker[suit] = new HashSet<Rank>();
+                        }
+
+                        if (rank is Rank.Jack or Rank.Nine)
+                        {
+                            j9Tracker[suit].Add(rank);
+                            if (j9Tracker[suit].Contains(Rank.Jack) && j9Tracker[suit].Contains(Rank.Nine))
+                            {
+                                score += 2;
+                            }
+                        }
+                    }
+                }
+
+                if (trumpLength > 2)
+                    score += trumpLength;
+
+                if (currentCall == Call.NoTrumps)
+                    score *= NO_TRUMP_MULTIPLIER;
+
+                if (score > highestScore)
+                {
+                    highestScore = score;
+                    bool isThresholdMet =
+                        currentCall < Call.NoTrumps && score > SINGLE_TRUMP_THRESHOLD ||
+                        currentCall == Call.NoTrumps && score > NO_TRUMP_THRESHOLD ||
+                        currentCall == Call.AllTrumps && score > ALL_TRUMP_THRESHOLD;
+
+                    if (isThresholdMet)
+                    {
+                        bestCall = currentCall;
                     }
                 }
             }
-            return call;
+
+            return bestCall;
         }
 
-        public string SelectCard(List<string> hand, int[] validCards, int[] winners, string[] cardPlayed, int turn, int curWinner, int roundSuit, int trickSuit, bool ewCalled)
+
+        public static Card SelectCard(List<Card> hand, int[] validCards, int[] winners, Card[] tableCards, int turn, int curWinner, Call roundCall, Suit? trickSuit, bool ewCalled)
         {
             int choice = Array.IndexOf(validCards, 1);
 
             if (validCards.Sum() > 1)
             {
-                int cardsPlayedInTrick = 4 - cardPlayed.Where(c => c == "c0-00").Count();
+                int cardsPlayedInTrick = 4 - tableCards.Count(c => !c.IsNull());
 
                 if (cardsPlayedInTrick == 0) // if I'm to lead
                 {
-                    int result = SelectCardForFirst(hand, validCards, winners, turn, roundSuit, ewCalled);
+                    int result = SelectCardForFirst(hand, validCards, winners, turn, roundCall, ewCalled);
                     if (result < 8)
                     {
                         return hand[result];
@@ -105,22 +147,25 @@
                     for (int i = 0; i < 4; i++) // get highest winning power of cards played so far in trick
                     {
                         int value = 0;
-                        if (cardPlayed[i] != "c0-00") value = BelotHelpers.DetermineCardPower(cardPlayed[i], roundSuit, trickSuit);
+                        if (tableCards[i].Suit != null && tableCards[i].Rank != null)
+                        {
+                            value = BelotHelpers.GetCardStrength(tableCards[i], roundCall, trickSuit);
+                        }
                         if (value > bestValue)
                         {
                             bestValue = value;
                         }
                     }
 
-                    int[] winningCards = { 0, 0, 0, 0, 0, 0, 0, 0 };
-                    int[] myCardPower = { 0, 0, 0, 0, 0, 0, 0, 0 };
+                    int[] winningCards = [0, 0, 0, 0, 0, 0, 0, 0];
+                    int[] myCardPower = [0, 0, 0, 0, 0, 0, 0, 0];
                     int minValue = 25;
 
                     for (int i = 0; i < 8; i++) // determine my cards' power
                     {
                         if (validCards[i] == 1)
                         {
-                            myCardPower[i] = BelotHelpers.DetermineCardPower(hand[i], roundSuit, trickSuit);
+                            myCardPower[i] = BelotHelpers.GetCardStrength(hand[i], roundCall, trickSuit);
                             if (myCardPower[i] > bestValue) // determine if I can win the trick
                             {
                                 winningCards[i] = 1;
@@ -136,7 +181,7 @@
                             {
                                 bool discard_i = false;
                                 if (myCardPower[i] < minValue - 1) discard_i = true;
-                                else if ((myCardPower[i] == minValue - 1 || myCardPower[i] == minValue) && (winners[i] == 0 || (winners[i] > 0 && winners[choice] > 0))) discard_i = true;
+                                else if ((myCardPower[i] == minValue - 1 || myCardPower[i] == minValue) && (winners[i] == 0 || winners[i] > 0 && winners[choice] > 0)) discard_i = true;
                                 else if (myCardPower[i] == minValue - 1 && winners[i] > 0 && winners[choice] == 0 && rnd.Next(100) + 1 > 50) discard_i = true;
                                 //else if (myCardPower[i] == minValue && winners[i] > 0 && winners[choice] == 0) discard_i = false;
                                 else if (myCardPower[i] == minValue + 1 && winners[i] == 0 && winners[choice] > 0 && rnd.Next(100) + 1 > 50) discard_i = true;
@@ -176,26 +221,31 @@
                     }
                 }
             }
+
             return hand[choice];
         }
 
-        private int SelectCardForFirst(List<string> hand, int[] validCards, int[] winners, int turn, int roundSuit, bool ewCalled)
+        private static int SelectCardForFirst(List<Card> hand, int[] validCards, int[] winners, int turn, Call roundCall, bool ewCalled)
         {
-            if (((ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1)) && roundSuit != 5) // if we called, try play the Jass
+            if ((ewCalled && turn % 2 == 0 || !ewCalled && turn % 2 == 1) && roundCall != Call.NoTrumps) // if we called, try play the Jass
             {
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++) // cards
                 {
-                    int rank = Int32.Parse(hand[i].Substring(3, 2));
-                    int suit = Int32.Parse(hand[i].Substring(1, 1));
-                    if (rank == 10 && validCards[i] == 1)
+                    var card = hand[i];
+                    if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
+                    {
+                        continue;
+                    }
+
+                    if (rank == Rank.Jack && validCards[i] == 1)
                     {
                         lock (rnd)
                         {
-                            if (rnd.Next(100) + 1 > 10 && suit == roundSuit)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
+                            if (BelotHelpers.IsSuit(roundCall) && suit == (Suit)roundCall && rnd.Next(100) + 1 > 10)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
                             {
                                 return i;
                             }
-                            else if (rnd.Next(100) + 1 > 20 && roundSuit == 6)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
+                            else if (roundCall == Call.AllTrumps && rnd.Next(100) + 1 > 20)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
                             {
                                 return i;
                             }
@@ -204,37 +254,55 @@
                 }
             }
             //// if my team called and I am the first to play in a trick, for the first 3? tricks, play the highest trump
-            if (roundSuit < 6) // Try play a non-trump Ace (works for no trumps)
+            if (roundCall < Call.AllTrumps) // Try play a non-trump Ace (works for no trumps)
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    int rank = Int32.Parse(hand[i].Substring(3, 2));
-                    int suit = Int32.Parse(hand[i].Substring(1, 1));
+                    var card = hand[i];
+                    if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
+                    {
+                        continue;
+                    }
+
                     lock (rnd)
                     {
-                        if (rank == 13 && suit != roundSuit && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
+                        if (rank == Rank.Ace && (int)suit != (int)roundCall && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
                         {
                             return i;
                         }
-                        else if (rank == 13 && suit != roundSuit && validCards[i] == 1)
-                        {
+                        //else if (rank == Rank.Ace && (int)suit != (int)roundCall && validCards[i] == 1)
+                        //{
 
-                        }
+                        //}
                     }
                 }
             }
             bool hardNontrumpWinner = false;
             bool softNontrumpWinner = false;
-            if (winners.Where(w => w > 0).Count() > 0)
+            if (winners.Any(w => w > 0))
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    int suit = Int32.Parse(hand[i].Substring(1, 1));
-                    if (suit != roundSuit && validCards[i] == 1)
+                    var card = hand[i];
+                    if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
                     {
-                        if (winners[i] == 2) hardNontrumpWinner = true;
-                        if (winners[i] == 1) softNontrumpWinner = true;
-                        if (hardNontrumpWinner && softNontrumpWinner) break;
+                        continue;
+                    }
+
+                    if ((int)suit != (int)roundCall && validCards[i] == 1)
+                    {
+                        if (winners[i] == 2)
+                        {
+                            hardNontrumpWinner = true;
+                        }
+                        if (winners[i] == 1)
+                        {
+                            softNontrumpWinner = true;
+                        }
+                        if (hardNontrumpWinner && softNontrumpWinner)
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -245,7 +313,7 @@
                     while (true)
                     {
                         int choice = rnd.Next(8);
-                        if (winners[choice] == 2 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit)
+                        if (winners[choice] == 2 && validCards[choice] == 1 && hand[choice].Suit is Suit suit && (int)suit != (int)roundCall)
                         {
                             return choice;
                         }
@@ -256,7 +324,7 @@
                     while (true)
                     {
                         int choice = rnd.Next(8);
-                        if (winners[choice] == 1 && validCards[choice] == 1 && Int32.Parse(hand[choice].Substring(1, 1)) != roundSuit)
+                        if (winners[choice] == 1 && validCards[choice] == 1 && hand[choice].Suit is Suit suit && (int)suit != (int)roundCall)
                         {
                             return choice;
                         }
@@ -266,7 +334,7 @@
             return 8;
         }
 
-        private int SelectCardForSecond()
+        private static int SelectCardForSecond()
         {
             if (true)
             {
@@ -275,12 +343,12 @@
             return 8;
         }
 
-        private int SelectCardForThird()
+        private static int SelectCardForThird()
         {
             return 0;
         }
 
-        private int SelectCardForFourth()
+        private static int SelectCardForFourth()
         {
             return 0;
         }

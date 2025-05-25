@@ -25,7 +25,7 @@ function playCardRequest() {
     hideThrowBtn();
     hideCard(this.id);
     rotateCards();
-    let card = this.src.substr(this.src.length - 9, 5);
+    let card = GetCardFromResource(this.src);
     room.invoke("HubPlayCard", card);
 };
 
@@ -50,7 +50,6 @@ room.on("showThrowBtn", function () {
 });
 
 room.on("throwCards", function (player, hand) {
-    hand = JSON.parse(hand);
     const pos = ["w", "n", "e", "s"];
     document.getElementById("throw-modal-title").innerHTML = player.concat(" throws the cards!");
     for (let i = 0; i < 8; i++) {
@@ -60,7 +59,8 @@ room.on("throwCards", function (player, hand) {
             }
             else {
                 let path = document.URL.substring(0, document.URL.indexOf("Room"));
-                document.getElementById(pos[j].concat("throwcard").concat(i)).src = path.concat("Images/Cards/", hand[j][i], ".png");
+                //document.getElementById(pos[j].concat("throwcard").concat(i)).src = path.concat("Images/Cards/", hand[j][i], ".png");
+                document.getElementById(pos[j].concat("throwcard").concat(i)).src = GetResourceFromCard(hand[j][i]);
                 document.getElementById(pos[j].concat("throwcard").concat(i)).hidden = false;
             };
         };
@@ -160,7 +160,6 @@ function disableCards() {
 room.on("enableCards", function (validcards) {
     for (let i = 0; i < 8; i++) { // change to for each element in received integer array
         if (validcards[i] == 1) {
-            //alert("");
             document.getElementById("card" + i).onclick = playCardRequest;
             //document.getElementById("card" + i).classList.add("belot-card2-valid");
         }
@@ -176,8 +175,7 @@ room.on("setTableCard", function (tableCardPosition, tableCard) {
 });
 
 function setTableCard(tableCardPosition, tableCard) {
-    let path = document.URL.substring(0, document.URL.indexOf("Room"));
-    document.getElementById("tablecard".concat(tableCardPosition)).src = path.concat("Images/Cards/", tableCard, ".png");
+    document.getElementById("tablecard".concat(tableCardPosition)).src = GetResourceFromCard(tableCard);
 };
 
 // -------------------- Turn Indicator --------------------
@@ -278,18 +276,6 @@ room.on("newGame", function (gameId) {
 
     //room.client.setGameId(gameId);
 });
-
-//room.on("setRoomId", function (roomId) {
-//    document.getElementById("roomId").innerHTML = "Room Id: " + roomId;
-//});
-
-//room.on("setGameId", function (gameId) {
-//    setGameId(gameId);
-//});
-
-//setGameId = function (gameId) {
-//    document.getElementById("gameId").innerHTML = "Game Id: " + gameId;
-//};
 
 room.on("showTrickWinner", function (winner) {
 
@@ -397,10 +383,9 @@ room.on("setDealerMarker", function (dealer) {
 
 room.on("deal", function (cards) {
     // show hand card images
-    let card = JSON.parse(cards);
-    let path = document.URL.substring(0, document.URL.indexOf("Room"));
-    for (let i = 0; i < card.length; i++) {
-        document.getElementById("card".concat(i)).src = path.concat("Images/Cards/", card[i], ".png");
+    for (let i = 0; i < cards.length; i++) {
+        //document.getElementById("card".concat(i)).src = path.concat("Images/Cards/", card[i], ".png");
+        document.getElementById("card".concat(i)).src = GetResourceFromCard(cards[i])
         showCard("card" + i);
     };
 });
@@ -408,7 +393,6 @@ room.on("deal", function (cards) {
 // -------------------- Extra Points --------------------
 
 room.on("declareExtras", function (extras) {
-    extras = JSON.parse(extras);
     if (extras.length > 0) {
         for (let i = 0; i < extras.length; i++) {
             const dv = document.createElement('div');
@@ -467,7 +451,6 @@ function closeExtrasModal() {
 };
 
 room.on("setExtrasEmote", function (extras, turn) {
-    extras = JSON.parse(extras);
     let seat = "bubble" + turn;
     document.getElementById(seat).innerHTML = "";
     for (let i = 0; i < extras.length; i++) {
@@ -747,6 +730,8 @@ function getRotation(el) {
     return parseInt(r);
 };
 
+
+
 // -------------------- Chat Log --------------------
 
 /*copyGameInvite = function () {*/
@@ -810,3 +795,35 @@ $("#chatbtn").on("click", function () {
         document.getElementById("chatLogBadge").hidden = true;
     }
 });
+
+//-------------
+
+function GetResourceFromCard(card) {
+    let path = document.URL.substring(0, document.URL.indexOf("Room"));
+
+    if (card.suit == null || card.rank == null) {
+        return path.concat("Images/Cards/c0-00.png")
+    }
+
+    let rank = card.rank + 6;
+    if (rank < 10) {
+        rank = "0" + rank;
+    }
+    let resource = "c" + card.suit + "-" + rank + ".png";
+
+    return path.concat("Images/Cards/", resource);
+};
+
+function GetCardFromResource(resource) {
+    let cardText = resource.substr(resource.length - 9, 5);
+
+    let suit = parseInt(cardText.substr(1, 1));
+    let rank = parseInt((cardText.substr(3, 2) - 6));
+
+    let card = {};
+
+    card.suit = suit;
+    card.rank = rank;
+
+    return card
+};

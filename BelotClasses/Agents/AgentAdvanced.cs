@@ -1,4 +1,4 @@
-﻿namespace BelotWebApp.BelotClasses
+﻿namespace BelotWebApp.BelotClasses.Agents
 {
     public class AgentAdvanced
     {

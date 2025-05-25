@@ -1,40 +1,7 @@
-﻿namespace BelotWebApp.BelotClasses
+﻿using BelotWebApp.BelotClasses.Cards;
+
+namespace BelotWebApp.BelotClasses
 {
-    public class Spectator // don't technically need a connection Id because nothing is pushed to spectators exclusively, but it may be needed for Groups when multiple different rooms are implemented
-    {
-        public string Username { get; set; }
-        public string ConnectionId { get; set; }
-        public Spectator(string username, string connectionId)
-        {
-            Username = username;
-            ConnectionId = connectionId;
-        }
-    }
-
-    public class Player
-    {
-        public string Username { get; set; }
-        public string ConnectionId { get; set; }
-        public bool IsHuman { get; set; }
-        public bool IsDisconnected { get; set; }
-        public AgentAdvanced Agent { get; set; }
-
-        public Player()
-        {
-            Username = "";
-            ConnectionId = "";
-            IsHuman = false;
-        }
-
-        public Player(string username, string connectionId, bool isHuman)
-        {
-            Username = username;
-            ConnectionId = connectionId;
-            IsHuman = isHuman;
-        }
-
-    }
-
     public class BelotCard
     {
         public int Suit { get; set; } // 1=C, 2=D, 3=H, 4=S
@@ -46,167 +13,130 @@
         public string Image { get; set; } // image to be displayed on the table
     }
 
-    public class Belot
-    {
-        public Belot(int suit, bool declared, bool declarable)
-        {
-            Suit = suit;
-            Declared = declared;
-            Declarable = declarable;
-        }
-
-        public int Suit { get; set; }
-        public bool Declared { get; set; }
-        public bool Declarable { get; set; }
-
-        public bool Equals(Belot other)
-        {
-            return Suit == other.Suit && Declared == other.Declared && Declarable == other.Declarable;
-        }
-    }
-
-    public class Run
-    {
-        public Run(int length, int suit, int strength, bool declared, bool declarable)
-        {
-            Length = length;
-            Suit = suit;
-            Strength = strength;
-            Declared = declared;
-            Declarable = declarable;
-        }
-
-        public int Length { get; set; } // 3 = Tierce, 4 = Quarte, 5 = Quint
-        public int Suit { get; set; } // 1=C, 2=D, 3=H, 4=S
-        public int Strength { get; set; }
-        public bool Declared { get; set; }
-        public bool Declarable { get; set; }
-    }
-
-    public class Carre
-    {
-        public Carre(int rank, bool declared)
-        {
-            Rank = rank;
-            Declared = declared;
-        }
-
-        public int Rank { get; set; }
-        public bool Declared { get; set; }
-    }
-
     public class BelotHelpers
     {
-        public static string GetSuitNameFromNumber(int suit)
+        public static readonly Rank[] runRanks = [Rank.Seven, Rank.Eight, Rank.Nine, Rank.Ten, Rank.Jack, Rank.Queen, Rank.King, Rank.Ace];
+        public static readonly Rank[] nonTrumpRanks = [Rank.Seven, Rank.Eight, Rank.Nine, Rank.Jack, Rank.Queen, Rank.King, Rank.Ten, Rank.Ace];
+        public static readonly Rank[] trumpRanks = [Rank.Seven, Rank.Eight, Rank.Queen, Rank.King, Rank.Ten, Rank.Ace, Rank.Nine, Rank.Jack];
+        public static readonly int[] offSuitNonTrumpStrength = [1, 2, 3, 7, 4, 5, 6, 8]; // to help bots choose a card when losing
+        public static readonly int[] offSuitTrumpStrength = [1, 2, 7, 5, 8, 3, 4, 6]; // to help bots choose a card when losing
+        public static readonly int[] onSuitNonTrumpStrength = [9, 10, 11, 15, 12, 13, 14, 16];
+        public static readonly int[] onSuitTrumpStrength = [17, 18, 23, 21, 24, 19, 20, 22];
+
+        public static bool IsSuit(Call call)
         {
-            string[] suitNames = { "Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps" };
-            return suitNames[suit - 1];
+            return call <= (Call)Suit.Spades && call >= Call.Pass;
         }
-        public static int GetSuitNumberFromName(string suit)
+
+        public static string GetSuitNameFromNumber(Call call)
         {
-            string[] suitNames = { "Clubs", "Diamonds", "Hearts" };
-            for (int i = 0; i < 3; i++)
+            return call switch
             {
-                if (suit == suitNames[i]) return i + 1;
-            }
-            return 4;
+                Call.NoTrumps => "No Trumps",
+                Call.AllTrumps => "All Trumps",
+                _ => call.ToString(),
+            };
         }
-        public static string GetCardRankFromNumber(int rank)
+
+        //public static int GetSuitNumberFromName(string suit)
+        //{
+        //    string[] suitNames = { "Clubs", "Diamonds", "Hearts" };
+        //    for (int i = 0; i < 3; i++)
+        //    {
+        //        if (suit == suitNames[i]) return i + 1;
+        //    }
+        //    return 4;
+        //}
+
+        public static string GetCardRankFromNumber(Rank rank)
         {
             string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K", "A" };
-            return rankNames[rank - 6];
+            return rankNames[(int)rank];
         }
-        public static int GetRankFromChar(string rank)
-        {
-            string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K" };
-            for (int i = 0; i < 7; i++)
-            {
-                if (rank == rankNames[i])
-                    return i + 6;
-            }
-            return 13;
-        }
+
+        //public static int GetRankFromChar(string rank)
+        //{
+        //    string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K" };
+        //    for (int i = 0; i < 7; i++)
+        //    {
+        //        if (rank == rankNames[i])
+        //            return i + 6;
+        //    }
+        //    return 13;
+        //}
+
         public static string GetRunNameFromLength(int length)
         {
             string[] types = { "Tierce", "Quarte", "Quint" };
             return types[length - 3];
         }
 
-        public static int GetCardNumber(string card) // 0 for already played, 1-32 for the possible cards
+        public static int GetCardNumber(Card card) // 0 for already played, 1-32 for the possible cards
         {
-            if (card == "c0-00") return 0;
-            int rank = Int32.Parse(card.Substring(3, 2));
-            int suit = Int32.Parse(card.Substring(1, 1));
-            return (suit - 1) * 8 + rank - 6 + 1;
-        }
-
-        public static int GetSuitFromCard(string card)
-        {
-            if (card == "c0-00") return 0;
-            return Int32.Parse(card.Substring(1, 1));
-        }
-
-        public static int DetermineCardPower(string card, int roundSuit, int trickSuit)
-        {
-            int value;
-
-            int[] offNonTrumpSuit = { 1, 2, 3, 7, 4, 5, 6, 8 }; // to help bots choose a card when losing
-            int[] offTrumpSuit = { 1, 2, 7, 5, 8, 3, 4, 6 }; // to help bots choose a card when losing
-            int[] nonTrump = { 9, 10, 11, 15, 12, 13, 14, 16 };
-            int[] trump = { 17, 18, 23, 21, 24, 19, 20, 22 };
-
-            int suit = Int32.Parse(card.Substring(1, 1));
-            int rank = Int32.Parse(card.Substring(3, 2)) - 6;
-            if (roundSuit < 5) // C,D,H,S
+            if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
             {
-                if (roundSuit == suit) // if card is a trump
+                return 0;
+            }
+            return ((int)suit - 1) * 8 + (int)rank + 1;
+        }
+
+        //public static int GetSuitFromCard(string card)
+        //{
+        //    if (card == "c0-00") return 0;
+        //    return Int32.Parse(card.Substring(1, 1));
+        //}
+
+        public static int GetCardStrength(Card card, Call roundSuit, Suit? trickSuit)
+        {
+            int strength;
+
+            var ranks = Enum.GetValues(typeof(Rank));
+            int rankIndex = Array.IndexOf(ranks, card.Rank);
+
+            if (IsSuit(roundSuit)) // C,D,H,S
+            {
+                if ((Suit)roundSuit == card.Suit) // if card is a trump
                 {
-                    value = trump[rank];
+                    strength = onSuitTrumpStrength[rankIndex];
                 }
-                else if (trickSuit == suit)  // if card is in lead-suit and is not a trump
+                else if (trickSuit == card.Suit)  // if card is in lead-suit and is not a trump
                 {
-                    value = nonTrump[rank];
+                    strength = onSuitNonTrumpStrength[rankIndex];
                 }
                 else // if card is off-suit, and is a discard
                 {
-                    value = offNonTrumpSuit[rank];
+                    strength = offSuitNonTrumpStrength[rankIndex];
                 }
             }
-            else if (roundSuit == 5)
+            else if (roundSuit == Call.NoTrumps)
             {
-                if (trickSuit == suit) // if the suit was followed in A
+                if (trickSuit == card.Suit) // if the suit was followed in A
                 {
-                    value = nonTrump[rank];
+                    strength = onSuitNonTrumpStrength[rankIndex];
                 }
                 else
                 {
-                    value = offNonTrumpSuit[rank];
+                    strength = offSuitNonTrumpStrength[rankIndex];
                 }
             }
             else  // if the suit was followed in J
             {
-                if (trickSuit == suit)
+                if (trickSuit == card.Suit)
                 {
-                    value = trump[rank];
+                    strength = onSuitTrumpStrength[rankIndex];
                 }
                 else
                 {
-                    value = offTrumpSuit[rank];
+                    strength = offSuitTrumpStrength[rankIndex];
                 }
             }
 
-            return value;
+            return strength;
         }
 
-        public static bool FiveUnderNine(List<string> hand)
+        public static bool FiveUnderNine(List<Card> hand)
         {
-            int underNine = 0;
-            for (int i = 0; i < hand.Count(); i++)
-            {
-                if (Int32.Parse(hand[i].Substring(3, 2)) < 8) underNine++;
-            }
-            if (underNine == 5) return true;
-            return false;
+            return hand.Count(c => c.Rank < Rank.Nine) == 5;
         }
     }
 }
