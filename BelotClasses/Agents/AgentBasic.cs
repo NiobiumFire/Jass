@@ -122,7 +122,7 @@ namespace BelotWebApp.BelotClasses.Agents
 
             if (validCards.Sum() > 1)
             {
-                int cardsPlayedInTrick = 4 - tableCards.Count(c => !c.IsNull());
+                int cardsPlayedInTrick = tableCards.Count(c => !c.IsNull());
 
                 if (cardsPlayedInTrick == 0) // if I'm to lead
                 {
@@ -147,7 +147,7 @@ namespace BelotWebApp.BelotClasses.Agents
                     for (int i = 0; i < 4; i++) // get highest winning power of cards played so far in trick
                     {
                         int value = 0;
-                        if (tableCards[i].Suit != null && tableCards[i].Rank != null)
+                        if (!tableCards[i].IsNull())
                         {
                             value = BelotHelpers.GetCardStrength(tableCards[i], roundCall, trickSuit);
                         }
@@ -201,7 +201,7 @@ namespace BelotWebApp.BelotClasses.Agents
                         {
                             while (true)
                             {
-                                choice = rnd.Next(winningCards.Count());
+                                choice = rnd.Next(winningCards.Length);
                                 if (winningCards[choice] == 1) return hand[choice];
                             }
                         }

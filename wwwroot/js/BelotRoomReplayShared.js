@@ -1,17 +1,17 @@
 ﻿"use strict";
 
-function setEmoteSuitContent(emote) {
+function setEmoteSuitContent(iEmote) {
     const text = ["Pass", "", "", "", "", "A", "J", "×2!", "×4!!", "⁹⁄₅"];
     const classes = ["", "bi bi-suit-club-fill", "bi bi-suit-diamond-fill", "bi bi-suit-heart-fill", "bi bi-suit-spade-fill", "allNoTrumps", "allNoTrumps", "allNoTrumps", "allNoTrumps", ""];
     const colours = ["black", "black", "red", "red", "black", "darkmagenta", "darkmagenta", "red", "red", "black"];
     const icon = document.createElement('i');
 
-    icon.classList = classes[emote];
-    icon.style.color = colours[emote];
+    icon.classList = classes[iEmote];
+    icon.style.color = colours[iEmote];
     icon.style.fontStyle = "normal";
-    icon.innerHTML = text[emote];
+    icon.innerHTML = text[iEmote];
 
-    if (emote > 0) {
+    if (iEmote > 0) {
         icon.style.fontSize = "2em";
     }
 
@@ -23,7 +23,8 @@ function setRoundSuit(suit) {
     const colours = ["dimgrey", "black", "red", "red", "black", "darkmagenta", "darkmagenta"];
     let selectedSuit = document.getElementById("selectedsuit");
     let selectedMultiplier = document.getElementById("selectedmultiplier");
-    if (suit < 7) {
+    // "Pass" is checked on hub
+    if (suit < 7) { // C,D,H,S,A,J
         selectedMultiplier.innerHTML = "";
         selectedSuit.style.color = colours[suit];
         selectedSuit.classList = classes[suit];
@@ -86,3 +87,33 @@ function setCallTooltip() {
         document.getElementById("tooltiptext").innerHTML = caller + " called " + suit;
     }
 }
+
+function GetResourceFromCard(card) {
+    //let path = document.URL.substring(0, document.URL.indexOf("Room"));
+
+    if (card == null || card.suit == null || card.rank == null) {
+        return "/images/Cards/c0-00.png";
+    }
+
+    let rank = card.rank + 6;
+    if (rank < 10) {
+        rank = "0" + rank;
+    }
+    let resource = "c" + card.suit + "-" + rank + ".png";
+
+    return "/images/Cards/" + resource;
+};
+
+function GetCardFromResource(resource) {
+    let cardText = resource.substr(resource.length - 9, 5);
+
+    let suit = parseInt(cardText.substr(1, 1));
+    let rank = parseInt((cardText.substr(3, 2) - 6));
+
+    let card = {};
+
+    card.suit = suit;
+    card.rank = rank;
+
+    return card
+};

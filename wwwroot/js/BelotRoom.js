@@ -54,12 +54,10 @@ room.on("throwCards", function (player, hand) {
     document.getElementById("throw-modal-title").innerHTML = player.concat(" throws the cards!");
     for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 4; j++) {
-            if (hand[j][i] == "c0-00") {
+            if (hand[j][i].played) {
                 document.getElementById(pos[j].concat("throwcard").concat(i)).hidden = true;
             }
             else {
-                let path = document.URL.substring(0, document.URL.indexOf("Room"));
-                //document.getElementById(pos[j].concat("throwcard").concat(i)).src = path.concat("Images/Cards/", hand[j][i], ".png");
                 document.getElementById(pos[j].concat("throwcard").concat(i)).src = GetResourceFromCard(hand[j][i]);
                 document.getElementById(pos[j].concat("throwcard").concat(i)).hidden = false;
             };
@@ -384,7 +382,6 @@ room.on("setDealerMarker", function (dealer) {
 room.on("deal", function (cards) {
     // show hand card images
     for (let i = 0; i < cards.length; i++) {
-        //document.getElementById("card".concat(i)).src = path.concat("Images/Cards/", card[i], ".png");
         document.getElementById("card".concat(i)).src = GetResourceFromCard(cards[i])
         showCard("card" + i);
     };
@@ -797,33 +794,3 @@ $("#chatbtn").on("click", function () {
 });
 
 //-------------
-
-function GetResourceFromCard(card) {
-    let path = document.URL.substring(0, document.URL.indexOf("Room"));
-
-    if (card.suit == null || card.rank == null) {
-        return path.concat("Images/Cards/c0-00.png")
-    }
-
-    let rank = card.rank + 6;
-    if (rank < 10) {
-        rank = "0" + rank;
-    }
-    let resource = "c" + card.suit + "-" + rank + ".png";
-
-    return path.concat("Images/Cards/", resource);
-};
-
-function GetCardFromResource(resource) {
-    let cardText = resource.substr(resource.length - 9, 5);
-
-    let suit = parseInt(cardText.substr(1, 1));
-    let rank = parseInt((cardText.substr(3, 2) - 6));
-
-    let card = {};
-
-    card.suit = suit;
-    card.rank = rank;
-
-    return card
-};

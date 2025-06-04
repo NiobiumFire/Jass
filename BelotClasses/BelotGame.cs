@@ -1,7 +1,10 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Players;
-using Serilog;
+using BelotWebApp.BelotClasses.Replays;
+using BelotWebApp.Configuration;
+using System.Text.Json;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -11,8 +14,8 @@ namespace BelotWebApp.BelotClasses
         {
             Players = players;
             RoomId = roomId;
-            Spectators = new List<Spectator>();
-            EnableLogging = logPath == "" ? false : true;
+            Spectators = [];
+            RecordReplay = !string.IsNullOrEmpty(logPath);
             LogPath = logPath;
         }
 
@@ -58,9 +61,9 @@ namespace BelotWebApp.BelotClasses
         public bool WaitDeal { get; set; }
         public bool WaitCall { get; set; }
         public bool WaitCard { get; set; }
-        public Serilog.Core.Logger Log { get; set; }
         public string LogPath { get; set; }
-        public bool EnableLogging { get; set; }
+        public bool RecordReplay { get; set; }
+        public BelotStateDiff ReplayState { get; set; }
 
         public int WinnerDelay { get; set; } = 400;
         public int BotDelay { get; set; } = 800;
@@ -68,22 +71,11 @@ namespace BelotWebApp.BelotClasses
 
         private static readonly Random rnd = new();
 
-        public void SetLogger()
-        {
-            if (EnableLogging)
-            {
-                //Log = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + GameId + ".txt").CreateLogger();
-                Log = new LoggerConfiguration().WriteTo.File(LogPath + GameId + ".txt").CreateLogger();
-            }
-        }
-
         public void NewGame()
         {
             GameId = Guid.NewGuid().ToString();
-            SetLogger();
-            if (EnableLogging) Log.Information("Players: {0},{1},{2},{3}", GetDisplayName(0), GetDisplayName(1), GetDisplayName(2), GetDisplayName(3));
             lock (rnd) FirstPlayer = rnd.Next(4);
-            //FirstPlayer = 1;
+            //FirstPlayer = 0;
             WaitDeal = false;
             WaitCall = false;
             WaitCard = false;
@@ -91,16 +83,18 @@ namespace BelotWebApp.BelotClasses
             EWTotal = 0;
             NSTotal = 0;
             ScoreHistory = [];
+
+            if (RecordReplay)
+            {
+                SetLogger();
+                AddInitialState();
+            }
         }
 
         public void NewRound() // set new first player
         {
             Rounds++;
             Turn = FirstPlayer;
-            if (EnableLogging)
-            {
-                Log.Information("Dealer: {0}", Turn);
-            }
 
             if (--FirstPlayer == -1) FirstPlayer = 3;
             Deck = [];
@@ -121,7 +115,7 @@ namespace BelotWebApp.BelotClasses
             NumCardsPlayed = 0;
             TrickSuit = null;
             HighestTrumpInTrick = 0;
-            RoundCall = 0; // 0 = pass, 1 = clubs ... 5 = no trumps, 6 = all trumps
+            RoundCall = Call.Pass;
             Calls = [];
             EWRoundPoints = 0;
             NSRoundPoints = 0;
@@ -154,17 +148,15 @@ namespace BelotWebApp.BelotClasses
                 Deck.Add(masterDeck[p]);
                 masterDeck.RemoveAt(p);
             }
-            Deck = [
-                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
-                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
-                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
-                new(Suit.Spades, Rank.Seven), new(Suit.Spades, Rank.Eight), new(Suit.Spades, Rank.Nine), new(Suit.Spades, Rank.Ten), new(Suit.Spades, Rank.Jack),
-                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
-                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
-                new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Seven),
-                new(Suit.Spades, Rank.Queen), new(Suit.Spades, Rank.King), new(Suit.Spades, Rank.Ace) ];
-
-            if (EnableLogging) Log.Information("Deck: {0}", String.Join(",", Deck));
+            //Deck = [
+            //    new(Suit.Diamonds, Rank.Eight), new(Suit.Diamonds, Rank.Nine), new(Suit.Diamonds, Rank.Ten), new(Suit.Hearts, Rank.Queen), new(Suit.Hearts, Rank.King),
+            //    new(Suit.Hearts, Rank.Eight), new(Suit.Hearts, Rank.Nine), new(Suit.Hearts, Rank.Ten), new(Suit.Clubs, Rank.Queen), new(Suit.Clubs, Rank.King),
+            //    new(Suit.Clubs, Rank.Eight), new(Suit.Clubs, Rank.Nine), new(Suit.Clubs, Rank.Ten), new(Suit.Spades, Rank.Queen), new(Suit.Spades, Rank.King),
+            //    new(Suit.Spades, Rank.Eight), new(Suit.Spades, Rank.Nine), new(Suit.Spades, Rank.Ten), new(Suit.Diamonds, Rank.Queen), new(Suit.Diamonds, Rank.King),
+            //    new(Suit.Hearts, Rank.Seven), new(Suit.Hearts, Rank.Jack), new(Suit.Hearts, Rank.Ace),
+            //    new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Jack), new(Suit.Clubs, Rank.Ace),
+            //    new(Suit.Spades, Rank.Seven), new(Suit.Spades, Rank.Jack), new(Suit.Spades, Rank.Ace),
+            //    new(Suit.Diamonds, Rank.Seven), new(Suit.Diamonds, Rank.Jack), new(Suit.Diamonds, Rank.Ace) ];
         }
 
         public List<Card> OrderCardsForHand(List<Card> hand)
@@ -214,9 +206,47 @@ namespace BelotWebApp.BelotClasses
                 {
                     Hand[Turn].Add(Deck[CardsDealt++]);
                 }
+
                 Hand[Turn] = OrderCardsForHand(Hand[Turn]);
-                if (EnableLogging) Log.Information("Hand {0}: {1}", Turn, String.Join(",", Hand[Turn]));
+
                 if (--Turn == -1) Turn = 3;
+            }
+
+            if (RecordReplay)
+            {
+                BelotReplayDiff diff = new();
+
+                if (numCards == 5)
+                {
+                    diff.Before.Caller = ReplayState.Caller;
+                    diff.After.Caller = 4; // no caller
+
+                    diff.Before.RoundCall = ReplayState.RoundCall;
+                    diff.After.RoundCall = Call.NoCall;
+
+                    if (EWTotal != ReplayState.Scores[0] || NSTotal != ReplayState.Scores[1])
+                    {
+                        diff.Before.Scores = ReplayState.Scores;
+                        diff.After.Scores = [NSTotal, EWTotal];
+                    }
+                }
+
+                diff.Before.Hand = Enumerable.Range(0, ReplayState.Hand.Length).Select(i => BelotStateDiff.CloneCards(ReplayState.Hand[i])).ToArray();
+                diff.After.Hand = Hand != null ? Enumerable.Range(0, Hand.Length).Select(i => BelotStateDiff.CloneCards(Hand[i])).ToArray() : null;
+
+                diff.Before.TableCards = BelotStateDiff.CloneCards(ReplayState.TableCards);
+                diff.After.TableCards = [new(), new(), new(), new()];
+
+                diff.Before.AddEmote(ReplayState.Emotes[Turn], Turn);
+                diff.After.AddEmote(null, Turn);
+
+                diff.Before.Turn = ReplayState.Turn;
+                diff.After.Turn = FirstPlayer == 3 ? 0 : FirstPlayer + 1;
+
+                diff.Before.Dealer = ReplayState.Dealer;
+                diff.After.Dealer = diff.After.Turn;
+
+                AddState(diff);
             }
         }
 
@@ -248,7 +278,30 @@ namespace BelotWebApp.BelotClasses
 
         public void NominateSuit(Call call)
         {
-            //if (EnableLogging) Log.Information("Call {0}: {1}", Turn, suit);
+            if (RecordReplay)
+            {
+                BelotReplayDiff diff = new();
+
+                diff.Before.AddEmote(ReplayState.Emotes[Turn], Turn);
+                diff.After.AddEmote(((int)call).ToString(), Turn); // JS checks if the emote is a number to determine the icon/symbol/text to show (as it can also be a declaration, throw cards etc)
+
+                diff.Before.Turn = ReplayState.Turn;
+                diff.After.Turn = Turn;
+
+                if (call > Call.Pass)
+                {
+                    diff.Before.Caller = ReplayState.Caller;
+                    diff.After.Caller = Turn;
+
+                    if (call <= Call.AllTrumps)
+                    {
+                        diff.Before.RoundCall = ReplayState.RoundCall;
+                        diff.After.RoundCall = call;
+                    }
+                }
+
+                AddState(diff);
+            }
 
             Calls.Add(call);
 
@@ -274,54 +327,29 @@ namespace BelotWebApp.BelotClasses
 
         public bool SuitDecided()
         {
-            if (RoundCall == Call.FiveUnderNine || (Calls.Count > 3 && Calls.TakeLast(3).All(c => c == Call.Pass)))
-            {
-                Log.Information("Call: {0}", String.Join(",", Calls));
-                return true;
-            }
-            return false;
+            return RoundCall == Call.FiveUnderNine || (Calls.Count > 3 && Calls.TakeLast(3).All(c => c == Call.Pass));
         }
 
         public int[] ValidCards()
         {
             int[] validCards = [1, 1, 1, 1, 1, 1, 1, 1];
             validCards = InvalidatePlayedCards(validCards);
-            if (validCards.Sum() == 0)
-            {
-
-            }
             if (TrickSuit != null) // if it's not the first card of the trick
             {
                 if (BelotHelpers.IsSuit(RoundCall) && (Suit)RoundCall == TrickSuit && PlayerHasCardsOfSuit((Suit)RoundCall)) // RoundSuit is C,D,H,S
                 {
                     validCards = InvalidateCardsNotOfSuit(validCards, (Suit)RoundCall);
-                    if (validCards.Sum() == 0)
-                    {
-
-                    }
                     if (PlayerHasHigherTrump())
                     {
                         validCards = InvalidateLowerTrumps(validCards);
-                        if (validCards.Sum() == 0)
-                        {
-
-                        }
                     }
                 }
                 else if (PlayerHasCardsOfSuit((Suit)TrickSuit))
                 {
                     validCards = InvalidateCardsNotOfSuit(validCards, (Suit)TrickSuit);
-                    if (validCards.Sum() == 0)
-                    {
-
-                    }
                     if (RoundCall == Call.AllTrumps && PlayerHasHigherTrump())
                     {
                         validCards = InvalidateLowerTrumps(validCards);
-                        if (validCards.Sum() == 0)
-                        {
-
-                        }
                     }
                 }
                 // condition 3 is why it's necessary to first check if trick suit is trumps
@@ -333,23 +361,10 @@ namespace BelotWebApp.BelotClasses
                         if (PlayerHasHigherTrump()) // if player has a higher trump than what has been played in this trick, must overtrump
                         {
                             validCards = InvalidateCardsNotOfSuit(validCards, (Suit)RoundCall);
-                            if (validCards.Sum() == 0)
-                            {
-
-                            }
                             validCards = InvalidateLowerTrumps(validCards);
-                            if (validCards.Sum() == 0)
-                            {
-
-                            }
                         }
                     }
                 }
-            }
-
-            if (validCards.Sum() == 0)
-            {
-
             }
 
             return validCards;
@@ -533,15 +548,20 @@ namespace BelotWebApp.BelotClasses
 
         public void DeclareBelot(bool declared = true)
         {
+            IEnumerable<Belot>? belots = null;
+
             if (BelotHelpers.IsSuit(RoundCall))
             {
-                if (Belots[Turn].Where(s => s.Suit == (Suit)RoundCall).Count() > 0) Belots[Turn].Where(s => s.Suit == (Suit)RoundCall).First().Declared = declared;
-                if (EnableLogging && declared) Log.Information("Belot: {0}", Turn);
+                belots = Belots[Turn].Where(s => s.Suit == (Suit)RoundCall);
             }
             else if (RoundCall == Call.AllTrumps)
             {
-                if (Belots[Turn].Where(s => s.Suit == TrickSuit).Count() > 0) Belots[Turn].Where(s => s.Suit == TrickSuit).First().Declared = declared;
-                if (EnableLogging && declared) Log.Information("Belot: {0}", Turn);
+                belots = Belots[Turn].Where(s => s.Suit == TrickSuit);
+            }
+
+            if (belots != null && belots.Any())
+            {
+                belots.First().Declared = declared;
             }
         }
 
@@ -551,9 +571,14 @@ namespace BelotWebApp.BelotClasses
             {
                 if (Runs[Turn][i].Declarable)
                 {
-                    if (declared == null) Runs[Turn][i].Declared = true;
-                    else Runs[Turn][i].Declared = declared[i];
-                    if (EnableLogging && Runs[Turn][i].Declared) Log.Information("{0}: {1}", BelotHelpers.GetRunNameFromLength(Runs[Turn][i].Length), Turn);
+                    if (declared == null)
+                    {
+                        Runs[Turn][i].Declared = true;
+                    }
+                    else
+                    {
+                        Runs[Turn][i].Declared = declared[i];
+                    }
                 }
             }
         }
@@ -562,9 +587,14 @@ namespace BelotWebApp.BelotClasses
         {
             for (int i = 0; i < Carres[Turn].Count; i++)
             {
-                if (declared == null) Carres[Turn][i].Declared = true;
-                else Carres[Turn][i].Declared = declared[i];
-                if (EnableLogging && Carres[Turn][i].Declared) Log.Information("Carre: {0}", Turn);
+                if (declared == null)
+                {
+                    Carres[Turn][i].Declared = true;
+                }
+                else
+                {
+                    Carres[Turn][i].Declared = declared[i];
+                }
             }
         }
 
@@ -578,7 +608,6 @@ namespace BelotWebApp.BelotClasses
             }
 
             TableCards[Turn] = card;
-            //if (EnableLogging) Log.Information("Play {0}, {1}", Turn, card);
 
             NumCardsPlayed++;
 
@@ -593,8 +622,6 @@ namespace BelotWebApp.BelotClasses
             CardsPlayedThisRound.Add(BelotHelpers.GetCardNumber(card));
 
             card.Played = true;
-
-            //if (EnableLogging && NumCardsPlayed % 4 == 0) Log.Information(GetDisplayName(DetermineWinner()) + " wins trick " + NumCardsPlayed / 4 + ", worth " + CalculateTrickPoints() + " points.");
         }
 
         #region Declarations
@@ -767,12 +794,7 @@ namespace BelotWebApp.BelotClasses
                     }
                 }
             }
-            if (EnableLogging && !TableCards.Any(c => c.IsNull()))
-            {
-                //Log.Information("Play: {0}", String.Join(",", TableCards));
-                Log.Information("Play: {0} XXXXXXXXXX");
-                Log.Information("Trick: {0}", winner);
-            }
+
             return winner;
         }
 
@@ -857,17 +879,14 @@ namespace BelotWebApp.BelotClasses
                         runComparer[1] = (int)NSRuns.Where(r => r.Length == runComparer[1]).OrderByDescending(r => r.Rank).First().Rank;
                     }
 
-                    if (runComparer[0] == runComparer[1])
-                    {
-                        if (EnableLogging) Log.Information("The Runs were tied. No extra points awarded for Runs.");
-                    }
-                    else if (runComparer[0] > runComparer[1])
+                    // no points for a tie
+                    if (runComparer[0] > runComparer[1])
                     {
                         DeclarationPoints[0] += 20 * EWRuns.Count(r => r.Length == 3);
                         DeclarationPoints[0] += 50 * EWRuns.Count(r => r.Length == 4);
                         DeclarationPoints[0] += 100 * EWRuns.Count(r => r.Length == 5);
                     }
-                    else
+                    else if (runComparer[0] < runComparer[1])
                     {
                         DeclarationPoints[1] += 20 * NSRuns.Count(r => r.Length == 3);
                         DeclarationPoints[1] += 50 * NSRuns.Count(r => r.Length == 4);
@@ -982,12 +1001,6 @@ namespace BelotWebApp.BelotClasses
             EWTotal += EWRoundPoints;
             NSTotal += NSRoundPoints;
 
-            if (EnableLogging)
-            {
-                Log.Information(String.Join(" ", message) + ".");
-                Log.Information("Round: {0},{1}", NSRoundPoints, EWRoundPoints);
-            }
-
             return String.Join(" ", message) + ".";
         }
 
@@ -1009,48 +1022,172 @@ namespace BelotWebApp.BelotClasses
             }
         }
 
+        #region Replay
+
+        public void SetLogger()
+        {
+            var logPath = Path.Combine(LogPath, GameId + ".txt");
+            File.Create(logPath).Close();
+        }
+
+        public void AddInitialState()
+        {
+            var logPath = Path.Combine(LogPath, GameId + ".txt");
+
+            ReplayState = new()
+            {
+                Players = Enumerable.Range(0, 4).Select(GetDisplayName).ToArray(),
+                Scores = [EWTotal, NSTotal],
+                Dealer = FirstPlayer,
+                RoundCall = Call.NoCall,
+                Caller = 4, // no caller
+                Turn = FirstPlayer,
+                Emotes = [null, null, null, null],
+                TableCards = [new(), new(), new(), new()],
+                Hand = [[null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null],
+                        [null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null]],
+            };
+            if (ReplayState.Dealer == 4)
+            {
+                ReplayState.Dealer = 0;
+            }
+
+            File.AppendAllText(logPath, JsonSerializer.Serialize(new BelotReplayDiff
+            {
+                Before = null,
+                After = ReplayState
+            }, JsonSettings.Compact) + "\n");
+        }
+
+        public void AddState(BelotReplayDiff diff)
+        {
+            var logPath = Path.Combine(LogPath, GameId + ".txt");
+
+            File.AppendAllText(logPath, JsonSerializer.Serialize(diff, JsonSettings.Compact) + "\n");
+
+            ApplyDiff(diff.After);
+        }
+
+        public void RecordCardPlayed() // one frame including hand change, tableCard change, and declaration emotes
+        {
+            if (RecordReplay)
+            {
+                BelotReplayDiff diff = new();
+
+                //diff.Before.AddEmote(ReplayState.Emotes[Turn], Turn);
+                //diff.After.AddEmote(((int)call).ToString(), Turn); // JS checks if the emote is a number to determine the icon/symbol/text to show (as it can also be a declaration, throw cards etc)
+
+                var card = TableCards[Turn];
+                var pos = Hand[Turn].IndexOf(card);
+
+                diff.Before.TableCards = [null, null, null, null];
+                diff.Before.TableCards[Turn] = ReplayState.TableCards[Turn];
+
+                diff.After.TableCards = [null, null, null, null];
+                diff.After.TableCards[Turn] = new((Suit)card.Suit, (Rank)card.Rank);
+
+                diff.Before.Turn = ReplayState.Turn;
+                diff.After.Turn = Turn;
+
+                AddState(diff);
+            }
+        }
+
+        public void RecordTrickEnd()
+        {
+            if (RecordReplay)
+            {
+                BelotReplayDiff diff = new();
+
+                diff.Before.TableCards = BelotStateDiff.CloneCards(ReplayState.TableCards);
+                diff.After.TableCards = [new(), new(), new(), new()];
+
+                diff.Before.Turn = ReplayState.Turn;
+                diff.After.Turn = Turn;
+
+                AddState(diff);
+            }
+        }
+
         public void CloseLog()
         {
-            if (Log != null)
+            if (!IsNewGame)
             {
-                Log.Dispose();
-                if (!IsNewGame)
-                {
-                    string source = LogPath + GameId + ".txt";
-                    string destination = LogPath + "Incomplete\\" + GameId + ".txt";
-                    if (File.Exists(source) && !File.Exists(destination))
-                    {
-                        try
-                        {
-                            File.Move(source, destination);
-                        }
-                        catch (Exception e)
-                        {
+                var source = Path.Combine(LogPath, GameId + ".txt");
+                string destination = Path.Combine(LogPath, "Incomplete", GameId + ".txt");
 
+                if (File.Exists(source) && !File.Exists(destination))
+                {
+                    try
+                    {
+                        File.Move(source, destination);
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+                }
+            }
+        }
+
+        private void ApplyDiff(BelotStateDiff diff)
+        {
+            List<Card?>? TableCards;
+            List<Card?>?[]? Hand;
+            bool? ShowTrickWinner;
+
+            if (diff.Scores != null)
+            {
+                ReplayState.Scores = diff.Scores;
+            }
+            if (diff.Dealer != null)
+            {
+                ReplayState.Dealer = diff.Dealer;
+            }
+            if (diff.RoundCall != null)
+            {
+                ReplayState.RoundCall = (Call)diff.RoundCall;
+            }
+            if (diff.Caller != null)
+            {
+                ReplayState.Caller = diff.Caller;
+            }
+            if (diff.Turn != null)
+            {
+                ReplayState.Turn = diff.Turn;
+            }
+            if (diff.Emotes != null)
+            {
+                ReplayState.Emotes = diff.Emotes;
+            }
+            if (diff.TableCards != null)
+            {
+                for (int i = 0; i < diff.TableCards.Count; i++)
+                {
+                    if (diff.TableCards[i] != null)
+                    {
+                        ReplayState.TableCards[i] = diff.TableCards[i];
+                    }
+                }
+            }
+            if (diff.Hand != null)
+            {
+                for (int i = 0; i < diff.Hand.Length; i++) // players
+                {
+                    if (diff.Hand[i] != null)
+                    {
+                        for (int j = 0; j < diff.Hand[i].Count; j++)
+                        {
+                            if (diff.Hand[i][j] != null)
+                            {
+                                ReplayState.Hand[i][j] = diff.Hand[i][j];
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    public class BelotLobbyGame
-    {
-        public BelotLobbyGame(BelotGame g)
-        {
-            West = g.Players[0].Username != "" ? g.GetDisplayName(0) : "Empty";
-            North = g.Players[1].Username != "" ? g.GetDisplayName(1) : "Empty";
-            East = g.Players[2].Username != "" ? g.GetDisplayName(2) : "Empty";
-            South = g.Players[3].Username != "" ? g.GetDisplayName(3) : "Empty";
-            Started = !g.IsNewGame;
-            RoomId = g.RoomId;
-        }
-        public string West { get; set; }
-        public string North { get; set; }
-        public string East { get; set; }
-        public string South { get; set; }
-        public bool Started { get; set; }
-        public string RoomId { get; set; }
+        #endregion
     }
-
 }

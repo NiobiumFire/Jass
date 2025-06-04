@@ -2,6 +2,7 @@
 {
     public enum Call
     {
+        NoCall = -1,
         Pass = 0,
         Clubs = 1,
         Diamonds = 2,

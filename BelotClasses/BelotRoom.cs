@@ -203,6 +203,7 @@ namespace BelotWebApp.BelotClasses
                         //game.Log.Information("Playing final card for human player");
                     }
                     game.PlayCard(game.Hand[game.Turn].FirstOrDefault(c => !c.Played)); // no extra declaration is possible on last card -> skip straight to PlayCardRequest
+                    game.RecordCardPlayed();
                     await CardPlayEnd();
                     continue;
                 }
@@ -227,13 +228,10 @@ namespace BelotWebApp.BelotClasses
 
                     game.PlayCard(card);
 
-                    //List<string> extras = new List<string>();
-
                     if (game.RoundCall != Call.NoTrumps)
                     {
                         if (game.CheckBelot(card))
                         {
-                            //extras.Add("Belot");
                             game.DeclareBelot();
                             belot = true;
                         }
@@ -243,11 +241,10 @@ namespace BelotWebApp.BelotClasses
                             game.DeclareRuns();
                             game.DeclareCarres();
                         }
-                        //await Task.Run(() => AnnounceExtras(belot));
                         await AnnounceExtras(belot);
                     }
 
-                    //await Task.Run(() => CardPlayEnd());
+                    game.RecordCardPlayed();
                     await CardPlayEnd();
                 }
             }
@@ -274,6 +271,7 @@ namespace BelotWebApp.BelotClasses
                     await Clients.Group(GetRoomId()).SendAsync("ResetTable");
                     game.Turn = winner;
                     game.TableCards = [new(), new(), new(), new()];
+                    game.RecordTrickEnd();
                 }
                 game.HighestTrumpInTrick = 0;
                 game.TrickSuit = null;
@@ -291,7 +289,7 @@ namespace BelotWebApp.BelotClasses
             if (game.EWTotal > game.NSTotal) winner = "E/W";
             //await Task.Run(() => SysAnnounce(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + "."));
             await SysAnnounce(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + ".");
-            game.Log.Information(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + ".");
+            //game.Log.Information(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + ".");
 
             await Clients.Group(GetRoomId()).SendAsync("SetDealerMarker", 4);
             await Clients.Group(GetRoomId()).SendAsync("NewRound");
@@ -433,8 +431,14 @@ namespace BelotWebApp.BelotClasses
             BelotGame game = GetGame();
             await Clients.Group(GetRoomId()).SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
             Thread.Sleep(game.BotDelay);
-            if (game.NumCardsPlayed % 4 != 0) if (--game.Turn == -1) game.Turn = 3;
-            if (game.NumCardsPlayed < 32) Clients.Group(GetRoomId()).SendAsync("SetTurnIndicator", game.Turn);
+            if (game.NumCardsPlayed % 4 != 0 && --game.Turn == -1)
+            {
+                game.Turn = 3;
+            }
+            if (game.NumCardsPlayed < 32)
+            {
+                Clients.Group(GetRoomId()).SendAsync("SetTurnIndicator", game.Turn);
+            }
             log.Information("Leaving CardPlayEnd.");
         }
 
@@ -444,16 +448,19 @@ namespace BelotWebApp.BelotClasses
             BelotGame game = GetGame();
             if (game.RoundCall != Call.NoTrumps)
             {
-                if (belot) game.DeclareBelot(belot);
-                if (game.NumCardsPlayed < 5)
+                if (belot)
+                {
+                    game.DeclareBelot(belot);
+                }
+                if (game.NumCardsPlayed < 5) // runs & carres can only be declared on the first round
                 {
                     game.DeclareRuns(runs);
                     game.DeclareCarres(carres);
                 }
-                //await Task.Run(() => AnnounceExtras(belot));
                 await AnnounceExtras(belot);
             }
-            //await Task.Run(() => CardPlayEnd());
+
+            game.RecordCardPlayed();
             await CardPlayEnd();
             game.WaitCard = false;
             GameController();
@@ -464,7 +471,7 @@ namespace BelotWebApp.BelotClasses
         {
             log.Information("Entering AnnounceExtras.");
             BelotGame game = GetGame();
-            List<string> emotes = new List<string>();
+            List<string> emotes = [];
             if (belotDeclared)
             {
                 //await Task.Run(() => SysAnnounce(game.GetDisplayName(game.Turn) + " called a Belot."));
@@ -515,7 +522,7 @@ namespace BelotWebApp.BelotClasses
             log.Information("Entering ThrowCards.");
             BelotGame game = GetGame();
 
-            game.Log.Information("Throw: " + game.Turn);
+            //game.Log.Information("Throw: " + game.Turn);
 
             int points = 10; // stoch
 
@@ -542,7 +549,8 @@ namespace BelotWebApp.BelotClasses
             game.WaitCard = false;
 
             await Clients.Group(GetRoomId()).SendAsync("ThrowCards", GetDisplayName(game.Turn), game.Hand);
-            Thread.Sleep(3500);
+            //Thread.Sleep(3500);
+            Thread.Sleep(5000);
             await Clients.Group(GetRoomId()).SendAsync("CloseThrowModal");
 
             GameController();
@@ -596,7 +604,7 @@ namespace BelotWebApp.BelotClasses
             log.Information("Leaving HubFinalisePoints.");
         }
 
-        // -------------------- Seat Management --------------------
+        #region Seat Management
 
         public async Task BookSeat(int position) // 0 = W, 1 = N, 2 = E, 3 = S, 4-7 = Robot
         {
@@ -724,6 +732,8 @@ namespace BelotWebApp.BelotClasses
             await UpdateConnectedUsers();
             log.Information("Leaving UnbookSeat.");
         }
+
+        #endregion
 
         // -------------------- Messaging & Alerts --------------------
 
