@@ -22,5 +22,14 @@
         {
             return Suit == null || Rank == null;
         }
+
+        public Card Clone()
+        {
+            return new Card()
+            {
+                Suit = Suit,
+                Rank = Rank
+            };
+        }
     }
 }

@@ -11,42 +11,8 @@ namespace BelotWebApp.BelotClasses.Replays
         public int? Caller { get; set; }
         public int? Turn { get; set; }
 
-        public string?[]? Emotes { get; set; }
-        public List<Card?>? TableCards { get; set; }
-        public List<Card?>?[]? Hand { get; set; }
-
-        public static List<Card?>? CloneCards(List<Card?>? cards)
-        {
-            if (cards == null)
-            {
-                return null;
-            }
-
-            return cards.Select(card => card == null ? null : new Card
-            {
-                Suit = card.Suit,
-                Rank = card.Rank
-            }).ToList();
-        }
-
-        public static Card?[]? CloneCards(Card?[]? cards)
-        {
-            if (cards == null)
-            {
-                return null;
-            }
-
-            return cards.Select(card => card == null ? null : new Card
-            {
-                Suit = card.Suit,
-                Rank = card.Rank
-            }).ToArray();
-        }
-
-        public void AddEmote(string value, int pos)
-        {
-            Emotes ??= [null, null, null, null];
-            Emotes[pos] = value;
-        }
+        public List<ReplayEmote> Emotes { get; set; }
+        public List<ReplayTableCard> TableCards { get; set; } // null card means blank table card
+        public List<ReplayHandCard> HandCards { get; set; } // null card means played or empty to be hidden in js
     }
 }

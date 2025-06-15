@@ -117,3 +117,48 @@ function GetCardFromResource(resource) {
 
     return card
 };
+
+function getRunNameFromLength(length) {
+    switch (length) {
+        case 3:
+            return "Tierce";
+        case 4:
+            return "Quarte";
+        case 5:
+            return "Quint";
+    }
+}
+
+function getSuitNameFromNumber(suit) {
+    switch (suit) {
+        case 1:
+            return "♣";
+        case 2:
+            return "♦";
+        case 3:
+            return "♥";
+        case 4:
+            return "♠";
+    }
+}
+
+function getRankNameFromNumber(rank) {
+    switch (rank) {
+        case 0:
+            return "7";
+        case 1:
+            return "8";
+        case 2:
+            return "9";
+        case 3:
+            return "10";
+        case 4:
+            return "J";
+        case 5:
+            return "Q";
+        case 6:
+            return "K";
+        case 7:
+            return "A";
+    }
+}

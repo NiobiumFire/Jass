@@ -22,6 +22,7 @@ namespace BelotWebApp.BelotClasses
         public static readonly int[] offSuitTrumpStrength = [1, 2, 7, 5, 8, 3, 4, 6]; // to help bots choose a card when losing
         public static readonly int[] onSuitNonTrumpStrength = [9, 10, 11, 15, 12, 13, 14, 16];
         public static readonly int[] onSuitTrumpStrength = [17, 18, 23, 21, 24, 19, 20, 22];
+        public static readonly List<string> declarationDisplayOrder = ["Belot", "Carre", "Tierce", "Quarte", "Quint"];
 
         public static bool IsSuit(Call call)
         {

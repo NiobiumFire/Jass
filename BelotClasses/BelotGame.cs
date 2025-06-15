@@ -4,7 +4,6 @@ using BelotWebApp.BelotClasses.Players;
 using BelotWebApp.BelotClasses.Replays;
 using BelotWebApp.Configuration;
 using System.Text.Json;
-using static System.Reflection.Metadata.BlobBuilder;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -12,6 +11,7 @@ namespace BelotWebApp.BelotClasses
     {
         public BelotGame(Player[] players, string roomId, string logPath = "")
         {
+            IsRunning = true;
             Players = players;
             RoomId = roomId;
             Spectators = [];
@@ -52,15 +52,13 @@ namespace BelotWebApp.BelotClasses
         public Card[] TableCards { get; set; }
         public List<int> CardsPlayedThisRound { get; set; }
         public int HighestTrumpInTrick { get; set; }
-        public List<Run>[] Runs { get; set; }
-        public List<Carre>[] Carres { get; set; }
-        public List<Belot>[] Belots { get; set; }
-        public List<string> CurrentExtras { get; set; }
+        public List<Declaration> Declarations { get; set; }
         public bool IsNewRound { get; set; } = true;
         public bool IsNewGame { get; set; } = true;
         public bool WaitDeal { get; set; }
         public bool WaitCall { get; set; }
         public bool WaitCard { get; set; }
+        public bool IsRunning { get; set; }
         public string LogPath { get; set; }
         public bool RecordReplay { get; set; }
         public BelotStateDiff ReplayState { get; set; }
@@ -99,15 +97,10 @@ namespace BelotWebApp.BelotClasses
             if (--FirstPlayer == -1) FirstPlayer = 3;
             Deck = [];
             Hand = new List<Card>[4];
-            Runs = new List<Run>[4];
-            Carres = new List<Carre>[4];
-            Belots = new List<Belot>[4];
+            Declarations = [];
             for (int i = 0; i < 4; i++)
             {
                 Hand[i] = [];
-                Runs[i] = [];
-                Carres[i] = [];
-                Belots[i] = [];
             }
             TableCards = [new(), new(), new(), new()];
             CardsPlayedThisRound = [];
@@ -149,14 +142,14 @@ namespace BelotWebApp.BelotClasses
                 masterDeck.RemoveAt(p);
             }
             //Deck = [
-            //    new(Suit.Diamonds, Rank.Eight), new(Suit.Diamonds, Rank.Nine), new(Suit.Diamonds, Rank.Ten), new(Suit.Hearts, Rank.Queen), new(Suit.Hearts, Rank.King),
-            //    new(Suit.Hearts, Rank.Eight), new(Suit.Hearts, Rank.Nine), new(Suit.Hearts, Rank.Ten), new(Suit.Clubs, Rank.Queen), new(Suit.Clubs, Rank.King),
-            //    new(Suit.Clubs, Rank.Eight), new(Suit.Clubs, Rank.Nine), new(Suit.Clubs, Rank.Ten), new(Suit.Spades, Rank.Queen), new(Suit.Spades, Rank.King),
-            //    new(Suit.Spades, Rank.Eight), new(Suit.Spades, Rank.Nine), new(Suit.Spades, Rank.Ten), new(Suit.Diamonds, Rank.Queen), new(Suit.Diamonds, Rank.King),
-            //    new(Suit.Hearts, Rank.Seven), new(Suit.Hearts, Rank.Jack), new(Suit.Hearts, Rank.Ace),
-            //    new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Jack), new(Suit.Clubs, Rank.Ace),
-            //    new(Suit.Spades, Rank.Seven), new(Suit.Spades, Rank.Jack), new(Suit.Spades, Rank.Ace),
-            //    new(Suit.Diamonds, Rank.Seven), new(Suit.Diamonds, Rank.Jack), new(Suit.Diamonds, Rank.Ace) ];
+            //    new(Suit.Clubs, Rank.Seven), new(Suit.Clubs, Rank.Eight), new(Suit.Clubs, Rank.Nine), new(Suit.Clubs, Rank.Ten), new(Suit.Clubs, Rank.Jack),
+            //    new(Suit.Diamonds, Rank.Seven), new(Suit.Diamonds, Rank.Eight), new(Suit.Diamonds, Rank.Ten), new(Suit.Diamonds, Rank.Jack), new(Suit.Diamonds, Rank.Queen),
+            //    new(Suit.Hearts, Rank.Seven), new(Suit.Hearts, Rank.Eight), new(Suit.Hearts, Rank.Ten), new(Suit.Hearts, Rank.Jack), new(Suit.Hearts, Rank.Queen),
+            //    new(Suit.Spades, Rank.Seven), new(Suit.Spades, Rank.Eight), new(Suit.Spades, Rank.Ten), new(Suit.Spades, Rank.Jack), new(Suit.Spades, Rank.Queen),
+            //    new(Suit.Diamonds, Rank.Nine), new(Suit.Hearts, Rank.Nine), new(Suit.Spades, Rank.Nine),
+            //    new(Suit.Clubs, Rank.Queen), new(Suit.Clubs, Rank.King), new(Suit.Diamonds, Rank.King),
+            //    new(Suit.Hearts, Rank.King), new(Suit.Spades, Rank.King), new(Suit.Clubs, Rank.Ace),
+            //    new(Suit.Diamonds, Rank.Ace), new(Suit.Hearts, Rank.Ace), new(Suit.Spades, Rank.Ace) ];
         }
 
         public List<Card> OrderCardsForHand(List<Card> hand)
@@ -199,6 +192,13 @@ namespace BelotWebApp.BelotClasses
 
         public void Deal(int numCards)
         {
+            List<ReplayHandCard>? oldHandCards = null;
+
+            if (RecordReplay) // Hand is already cleared by this point when dealing 5 -> use ReplayState to record the before state of the hand when dealing 5
+            {
+                oldHandCards = numCards == 3 ? BelotReplayDiff.CopyHandCards(Hand) : ReplayState.HandCards;
+            }
+
             Turn = FirstPlayer;
             for (int i = 0; i < 4; i++)
             {
@@ -218,33 +218,27 @@ namespace BelotWebApp.BelotClasses
 
                 if (numCards == 5)
                 {
-                    diff.Before.Caller = ReplayState.Caller;
-                    diff.After.Caller = 4; // no caller
+                    diff.SetCaller(ReplayState, 4); // no caller
 
-                    diff.Before.RoundCall = ReplayState.RoundCall;
-                    diff.After.RoundCall = Call.NoCall;
+                    diff.SetRoundCall(ReplayState, Call.NoCall);
 
-                    if (EWTotal != ReplayState.Scores[0] || NSTotal != ReplayState.Scores[1])
+                    if (NSTotal != ReplayState.Scores[0] || EWTotal != ReplayState.Scores[1])
                     {
                         diff.Before.Scores = ReplayState.Scores;
                         diff.After.Scores = [NSTotal, EWTotal];
                     }
+
+                    ReplayState.HandCards = BelotReplayDiff.CopyHandCards(Hand);
                 }
 
-                diff.Before.Hand = Enumerable.Range(0, ReplayState.Hand.Length).Select(i => BelotStateDiff.CloneCards(ReplayState.Hand[i])).ToArray();
-                diff.After.Hand = Hand != null ? Enumerable.Range(0, Hand.Length).Select(i => BelotStateDiff.CloneCards(Hand[i])).ToArray() : null;
+                diff.SetHandCards(oldHandCards, Hand);
 
-                diff.Before.TableCards = BelotStateDiff.CloneCards(ReplayState.TableCards);
-                diff.After.TableCards = [new(), new(), new(), new()];
+                diff.ClearEmotes(ReplayState);
 
-                diff.Before.AddEmote(ReplayState.Emotes[Turn], Turn);
-                diff.After.AddEmote(null, Turn);
+                int turn = FirstPlayer == 3 ? 0 : FirstPlayer + 1;
+                diff.SetTurn(ReplayState, turn);
 
-                diff.Before.Turn = ReplayState.Turn;
-                diff.After.Turn = FirstPlayer == 3 ? 0 : FirstPlayer + 1;
-
-                diff.Before.Dealer = ReplayState.Dealer;
-                diff.After.Dealer = diff.After.Turn;
+                diff.SetDealer(ReplayState, turn);
 
                 AddState(diff);
             }
@@ -282,21 +276,17 @@ namespace BelotWebApp.BelotClasses
             {
                 BelotReplayDiff diff = new();
 
-                diff.Before.AddEmote(ReplayState.Emotes[Turn], Turn);
-                diff.After.AddEmote(((int)call).ToString(), Turn); // JS checks if the emote is a number to determine the icon/symbol/text to show (as it can also be a declaration, throw cards etc)
+                diff.SetEmote(ReplayState, Turn, ((int)call).ToString()); // JS checks if the emote is a number to determine the icon/symbol/text to show (as it can also be a declaration, throw cards etc)
 
-                diff.Before.Turn = ReplayState.Turn;
-                diff.After.Turn = Turn;
+                diff.SetTurn(ReplayState, Turn);
 
                 if (call > Call.Pass)
                 {
-                    diff.Before.Caller = ReplayState.Caller;
-                    diff.After.Caller = Turn;
+                    diff.SetCaller(ReplayState, Turn);
 
                     if (call <= Call.AllTrumps)
                     {
-                        diff.Before.RoundCall = ReplayState.RoundCall;
-                        diff.After.RoundCall = call;
+                        diff.SetRoundCall(ReplayState, call);
                     }
                 }
 
@@ -525,76 +515,25 @@ namespace BelotWebApp.BelotClasses
             return trumpstrength;
         }
 
-        public bool CheckBelot(Card card)
+        public void DeclareCurrentDeclarables(List<Belot>? belots = null, List<Run>? runs = null, List<Carre>? carres = null)
         {
-            bool canDeclare = false;
-            if (RoundCall != Call.NoTrumps)
-            {
-                if (card.Rank == Rank.Queen || card.Rank == Rank.King)
-                {
-                    var belots = Belots[Turn].Where(b => b.Suit == card.Suit && b.Declarable);
-                    if (belots.Any())
-                    {
-                        belots.First().Declarable = false;
-                        if (BelotHelpers.IsSuit(RoundCall) || (RoundCall == Call.AllTrumps && card.Suit == TrickSuit))
-                        {
-                            canDeclare = true;
-                        }
-                    }
-                }
-            }
-            return canDeclare;
-        }
+            belots ??= Declarations.Where(b => b is Belot).Cast<Belot>().ToList();
+            runs ??= Declarations.Where(b => b is Run).Cast<Run>().ToList();
+            carres ??= Declarations.Where(b => b is Carre).Cast<Carre>().ToList();
 
-        public void DeclareBelot(bool declared = true)
-        {
-            IEnumerable<Belot>? belots = null;
-
-            if (BelotHelpers.IsSuit(RoundCall))
+            foreach (var belot in belots)
             {
-                belots = Belots[Turn].Where(s => s.Suit == (Suit)RoundCall);
-            }
-            else if (RoundCall == Call.AllTrumps)
-            {
-                belots = Belots[Turn].Where(s => s.Suit == TrickSuit);
+                belot.Declared = true;
             }
 
-            if (belots != null && belots.Any())
+            foreach (var run in runs)
             {
-                belots.First().Declared = declared;
+                run.Declared = true;
             }
-        }
 
-        public void DeclareRuns(bool[] declared = null)
-        {
-            for (int i = 0; i < Runs[Turn].Count; i++)
+            foreach (var carre in carres)
             {
-                if (Runs[Turn][i].Declarable)
-                {
-                    if (declared == null)
-                    {
-                        Runs[Turn][i].Declared = true;
-                    }
-                    else
-                    {
-                        Runs[Turn][i].Declared = declared[i];
-                    }
-                }
-            }
-        }
-
-        public void DeclareCarres(bool[] declared = null)
-        {
-            for (int i = 0; i < Carres[Turn].Count; i++)
-            {
-                if (declared == null)
-                {
-                    Carres[Turn][i].Declared = true;
-                }
-                else
-                {
-                    Carres[Turn][i].Declared = declared[i];
-                }
+                carre.Declared = true;
             }
         }
 
@@ -626,9 +565,25 @@ namespace BelotWebApp.BelotClasses
 
         #region Declarations
 
+        public void FindCarres()
+        {
+            Rank[] validCarreRanks = [Rank.Nine, Rank.Ten, Rank.Jack, Rank.Queen, Rank.King, Rank.Ace];
+
+            for (int i = 0; i < 4; i++) // players
+            {
+                foreach (var rank in validCarreRanks)
+                {
+                    if (Hand[i].Count(c => c.Rank == rank) == 4)
+                    {
+                        Declarations.Add(new Carre(this, i, rank));
+                    }
+                }
+            }
+        }
+
         public void FindRuns()
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++) // players
             {
                 List<Card> hand = OrderCardsForRuns(Hand[i]);
                 for (int j = 0; j < 6; j++)
@@ -655,102 +610,18 @@ namespace BelotWebApp.BelotClasses
 
                     if (runLength == 8)
                     {
-                        Runs[i].Add(new Run(3, suit, Rank.Nine, false, false));
-                        Runs[i].Add(new Run(5, suit, Rank.Ace, false, false));
+                        Declarations.Add(new Run(this, i, 3, suit, Rank.Nine).TruncateAndValidate());
+                        Declarations.Add(new Run(this, i, 5, suit, Rank.Ace).TruncateAndValidate());
                     }
                     else if (runLength > 2 && runLength < 6)
                     {
-                        Runs[i].Add(new Run(runLength, suit, rank + runLength - 1, false, false));
+                        Declarations.Add(new Run(this, i, runLength, suit, rank + runLength - 1).TruncateAndValidate());
                     }
                     else if (runLength > 5)
                     {
-                        Runs[i].Add(new Run(5, suit, rank + runLength - 1, false, false));
+                        Declarations.Add(new Run(this, i, 5, suit, rank + runLength - 1).TruncateAndValidate());
                     }
                     j += runLength - 1;
-                }
-            }
-        }
-
-        public void FindCarres()
-        {
-            Rank[] validCarreRanks = [Rank.Nine, Rank.Ten, Rank.Jack, Rank.Queen, Rank.King, Rank.Ace];
-
-            for (int i = 0; i < 4; i++) // players
-            {
-                foreach (var rank in validCarreRanks)
-                {
-                    if (Hand[i].Count(c => c.Rank == rank) == 4)
-                    {
-                        Carres[i].Add(new Carre(rank, false));
-                    }
-                }
-            }
-        }
-
-        public void TruncateRuns() // reduce overlapping runs where this still rewards points, and invalidate other runs
-        {
-            for (int i = 0; i < 4; i++) // players
-            {
-                for (int j = 0; j < Runs[i].Count; j++)
-                {
-                    Rank upper = Runs[i][j].Rank;
-                    Rank lower = upper - Runs[i][j].Length + 1;
-                    if (Carres[i].Count == 1) // if zero carres: no overlap, if two: can't have any runs
-                    {
-                        if (Carres[i][0].Rank >= lower && Carres[i][0].Rank <= upper)
-                        {
-                            if (Runs[i][j].Length == 3)
-                            {
-                                Runs[i][j].Declarable = false;
-                            }
-                            else // try truncate run
-                            {
-                                bool first = Carres[i][0].Rank == lower;
-                                bool second = Carres[i][0].Rank == lower + 1;
-                                bool secondLast = Carres[i][0].Rank == upper - 1;
-                                bool last = Carres[i][0].Rank == upper;
-                                if ((first || last) && Runs[i][j].Length > 3) // Quarte becomes Tierce, Quint becomes Quarte
-                                {
-                                    Runs[i][j].Length -= 1;
-                                    // if first, strength remains the same, reducing length by 1 is sufficient
-                                    if (last)
-                                    {
-                                        Runs[i][j].Rank -= 1;
-                                    }
-                                    Runs[i][j].Declarable = true;
-                                }
-                                else if (second || secondLast)
-                                {
-                                    if (Runs[i][j].Length == 4) // Quarte invalidated
-                                    {
-                                        Runs[i][j].Declarable = false;
-                                    }
-                                    else // Quint becomes Tierce
-                                    {
-                                        Runs[i][j].Length -= 2;
-                                        // if second, strength remains the same, reducing length by 2 is sufficient
-                                        if (secondLast)
-                                        {
-                                            Runs[i][j].Rank -= 2;
-                                        }
-                                        Runs[i][j].Declarable = true;
-                                    }
-                                }
-                                else // Run is a Quint, and Carre is in the middle, therefore no truncation is possible
-                                {
-                                    Runs[i][j].Declarable = false;
-                                }
-                            }
-                        }
-                        else // carre rank does not lie within the run
-                        {
-                            Runs[i][j].Declarable = true;
-                        }
-                    }
-                    else
-                    {
-                        Runs[i][j].Declarable = true;
-                    }
                 }
             }
         }
@@ -763,13 +634,50 @@ namespace BelotWebApp.BelotClasses
                 {
                     if ((BelotHelpers.IsSuit(RoundCall) && (Suit)RoundCall == suit) || RoundCall == Call.AllTrumps)
                     {
-                        if (Hand[i].Any(c => c.Rank == Rank.Queen && c.Suit == suit) && Hand[i].Any(c => c.Rank == Rank.King && c.Suit == suit))
+                        if (Hand[i].Count(c => c.Suit == suit && (c.Rank == Rank.Queen || c.Rank == Rank.King)) == 2)
                         {
-                            Belots[i].Add(new Belot(suit, false, true));
+                            Declarations.Add(new Belot(this, i, suit));
                         }
                     }
                 }
             }
+        }
+
+        public List<Declaration> DeclareDeclarations(IEnumerable<Declaration> declarations)
+        {
+            List<Declaration> declaredDeclarations = [];
+
+            foreach (var declaration in declarations.Where(d => d.Declared))
+            {
+                switch (declaration)
+                {
+                    case Belot declaredBelot:
+                        var existingBelot = Declarations.OfType<Belot>().FirstOrDefault(b => b.Player == Turn && b.IsDeclarable && b.Suit == declaredBelot.Suit);
+                        if (existingBelot != null)
+                        {
+                            existingBelot.Declared = true;
+                            declaredDeclarations.Add(existingBelot);
+                        }
+                        break;
+                    case Carre declaredCarre:
+                        var existingCarre = Declarations.OfType<Carre>().FirstOrDefault(c => c.Player == Turn && c.IsDeclarable && c.Rank == declaredCarre.Rank);
+                        if (existingCarre != null)
+                        {
+                            existingCarre.Declared = true;
+                            declaredDeclarations.Add(existingCarre);
+                        }
+                        break;
+                    case Run declaredRun:
+                        var existingRun = Declarations.OfType<Run>().FirstOrDefault(r => r.Player == Turn && r.IsDeclarable && r.IsValid && r.Suit == declaredRun.Suit && r.Rank == declaredRun.Rank);
+                        if (existingRun != null)
+                        {
+                            existingRun.Declared = true;
+                            declaredDeclarations.Add(existingRun);
+                        }
+                        break;
+                }
+            }
+            return declaredDeclarations;
         }
 
         #endregion
@@ -857,18 +765,18 @@ namespace BelotWebApp.BelotClasses
             else
             {
                 // Runs
-                List<Run> EWRuns = [.. Runs[0].Where(d => d.Declared), .. Runs[2].Where(d => d.Declared)];
-                List<Run> NSRuns = [.. Runs[1].Where(d => d.Declared), .. Runs[3].Where(d => d.Declared)];
-                if (EWRuns.Count + NSRuns.Count > 0)
+                var EWRuns = Declarations.Where(r => r is Run && (r.Player == 0 || r.Player == 2) && r.Declared).Cast<Run>();
+                var NSRuns = Declarations.Where(r => r is Run && (r.Player == 1 || r.Player == 3) && r.Declared).Cast<Run>();
+                if (EWRuns.Count() + NSRuns.Count() > 0)
                 {
                     // Compare runs by length first, and then by rank in case of a tie
                     int[] runComparer = [0, 0]; // EW, NS
-                    if (EWRuns.Count > 0)
+                    if (EWRuns.Any())
                     {
                         runComparer[0] = EWRuns.OrderByDescending(r => r.Length).First().Length;
                     }
 
-                    if (NSRuns.Count > 0)
+                    if (NSRuns.Any())
                     {
                         runComparer[1] = NSRuns.OrderByDescending(r => r.Length).First().Length;
                     }
@@ -895,19 +803,19 @@ namespace BelotWebApp.BelotClasses
                 }
 
                 // Carres
-                List<Carre> EWCarres = [.. Carres[0].Where(d => d.Declared), .. Carres[2].Where(d => d.Declared)];
-                List<Carre> NSCarres = [.. Carres[1].Where(d => d.Declared), .. Carres[3].Where(d => d.Declared)];
-                if (EWCarres.Count + NSCarres.Count > 0)
+                var EWCarres = Declarations.Where(c => c is Carre && (c.Player == 0 || c.Player == 2) && c.Declared).Cast<Carre>();
+                var NSCarres = Declarations.Where(c => c is Carre && (c.Player == 1 || c.Player == 3) && c.Declared).Cast<Carre>();
+                if (EWCarres.Count() + NSCarres.Count() > 0)
                 {
                     int[] carreStrength = [0, 0, 5, 3, 6, 1, 2, 4];
                     int[] carreComparer = [0, 0]; // EW, NS
 
-                    if (EWCarres.Count > 0)
+                    if (EWCarres.Any())
                     {
                         carreComparer[0] = carreStrength[(int)EWCarres.OrderByDescending(r => r.Rank).First().Rank];
                     }
 
-                    if (NSCarres.Count > 0)
+                    if (NSCarres.Any())
                     {
                         carreComparer[1] = carreStrength[(int)NSCarres.OrderByDescending(r => r.Rank).First().Rank];
                     }
@@ -930,8 +838,10 @@ namespace BelotWebApp.BelotClasses
                 NSRoundPoints += DeclarationPoints[1];
 
                 // Belots
-                BelotPoints[0] += 20 * (Belots[0].Count(d => d.Declared) + Belots[2].Count(d => d.Declared));
-                BelotPoints[1] += 20 * (Belots[1].Count(d => d.Declared) + Belots[3].Count(d => d.Declared));
+                var EWBelots = Declarations.Where(b => b is Belot && (b.Player == 0 || b.Player == 2) && b.Declared).Cast<Belot>();
+                var NSBelots = Declarations.Where(b => b is Belot && (b.Player == 1 || b.Player == 3) && b.Declared).Cast<Belot>();
+                BelotPoints[0] += 20 * EWBelots.Count();
+                BelotPoints[1] += 20 * NSBelots.Count();
 
                 EWRoundPoints += BelotPoints[0];
                 NSRoundPoints += BelotPoints[1];
@@ -1041,50 +951,50 @@ namespace BelotWebApp.BelotClasses
                 Dealer = FirstPlayer,
                 RoundCall = Call.NoCall,
                 Caller = 4, // no caller
-                Turn = FirstPlayer,
-                Emotes = [null, null, null, null],
-                TableCards = [new(), new(), new(), new()],
-                Hand = [[null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null],
-                        [null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null]],
+                Turn = FirstPlayer
             };
-            if (ReplayState.Dealer == 4)
-            {
-                ReplayState.Dealer = 0;
-            }
 
             File.AppendAllText(logPath, JsonSerializer.Serialize(new BelotReplayDiff
             {
                 Before = null,
                 After = ReplayState
             }, JsonSettings.Compact) + "\n");
+
+            ReplayState.Emotes = [];
         }
 
         public void AddState(BelotReplayDiff diff)
         {
-            var logPath = Path.Combine(LogPath, GameId + ".txt");
+            if (IsRunning)
+            {
+                var logPath = Path.Combine(LogPath, GameId + ".txt");
 
-            File.AppendAllText(logPath, JsonSerializer.Serialize(diff, JsonSettings.Compact) + "\n");
+                File.AppendAllText(logPath, JsonSerializer.Serialize(diff, JsonSettings.Compact) + "\n");
 
-            ApplyDiff(diff.After);
+                ApplyDiff(diff.After);
+            }
         }
 
-        public void RecordCardPlayed() // one frame including hand change, tableCard change, and declaration emotes
+        public void RecordCardPlayed(List<string> emotes) // one frame including hand change, tableCard change, and declaration emotes
         {
             if (RecordReplay)
             {
                 BelotReplayDiff diff = new();
 
-                //diff.Before.AddEmote(ReplayState.Emotes[Turn], Turn);
-                //diff.After.AddEmote(((int)call).ToString(), Turn); // JS checks if the emote is a number to determine the icon/symbol/text to show (as it can also be a declaration, throw cards etc)
+                if (emotes.Count > 0) // clears previous turn declarations if any
+                {
+                    diff.SetEmote(ReplayState, Turn, string.Join("\n", emotes)); // JS checks if the emote is a number to determine the icon/symbol/text to show (as it can also be a declaration, throw cards etc)
+                }
+                else
+                {
+                    diff.ClearEmotes(ReplayState);
+                }
 
                 var card = TableCards[Turn];
                 var pos = Hand[Turn].IndexOf(card);
 
-                diff.Before.TableCards = [null, null, null, null];
-                diff.Before.TableCards[Turn] = ReplayState.TableCards[Turn];
-
-                diff.After.TableCards = [null, null, null, null];
-                diff.After.TableCards[Turn] = new((Suit)card.Suit, (Rank)card.Rank);
+                diff.SetTableCard(Turn, TableCards[Turn]);
+                diff.SetHandCard(Turn, pos, TableCards[Turn]);
 
                 diff.Before.Turn = ReplayState.Turn;
                 diff.After.Turn = Turn;
@@ -1099,11 +1009,40 @@ namespace BelotWebApp.BelotClasses
             {
                 BelotReplayDiff diff = new();
 
-                diff.Before.TableCards = BelotStateDiff.CloneCards(ReplayState.TableCards);
-                diff.After.TableCards = [new(), new(), new(), new()];
+                if (NumCardsPlayed == 32 && Hand.Any(h => h.Any(c => !c.Played))) // cards thrown
+                {
+                    diff.SetEmote(ReplayState, Turn, "Throw");
+                    ReplayState.HandCards = BelotReplayDiff.CopyHandCards(Hand);
+                }
+                else
+                {
+                    diff.ClearEmotes(ReplayState);
+                }
 
-                diff.Before.Turn = ReplayState.Turn;
-                diff.After.Turn = Turn;
+                diff.ClearTableCards(TableCards);
+
+                diff.SetTurn(ReplayState, Turn);
+
+                AddState(diff);
+            }
+        }
+
+        public void RecordGameEnd()
+        {
+            if (RecordReplay)
+            {
+                BelotReplayDiff diff = new();
+
+                diff.ClearEmotes(ReplayState);
+
+                diff.ClearTableCards(TableCards);
+
+                diff.SetCaller(ReplayState, 4);
+
+                diff.SetRoundCall(ReplayState, Call.NoCall);
+
+                diff.Before.Scores = ReplayState.Scores;
+                diff.After.Scores = [NSTotal, EWTotal];
 
                 AddState(diff);
             }
@@ -1159,32 +1098,6 @@ namespace BelotWebApp.BelotClasses
             if (diff.Emotes != null)
             {
                 ReplayState.Emotes = diff.Emotes;
-            }
-            if (diff.TableCards != null)
-            {
-                for (int i = 0; i < diff.TableCards.Count; i++)
-                {
-                    if (diff.TableCards[i] != null)
-                    {
-                        ReplayState.TableCards[i] = diff.TableCards[i];
-                    }
-                }
-            }
-            if (diff.Hand != null)
-            {
-                for (int i = 0; i < diff.Hand.Length; i++) // players
-                {
-                    if (diff.Hand[i] != null)
-                    {
-                        for (int j = 0; j < diff.Hand[i].Count; j++)
-                        {
-                            if (diff.Hand[i][j] != null)
-                            {
-                                ReplayState.Hand[i][j] = diff.Hand[i][j];
-                            }
-                        }
-                    }
-                }
             }
         }
 

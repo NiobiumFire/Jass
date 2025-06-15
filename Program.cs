@@ -1,5 +1,6 @@
 using BelotWebApp.Areas.Identity.Data;
 using BelotWebApp.BelotClasses;
+using BelotWebApp.Configuration;
 using BelotWebApp.Data;
 using BelotWebApp.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +22,10 @@ internal class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
-        builder.Services.AddSignalR();
+        builder.Services.AddSignalR().AddJsonProtocol(options =>
+        {
+            options.PayloadSerializerOptions.Converters.Add(new DeclarationConverter());
+        });
 
         builder.Services.AddScoped<IEmailSender, EmailService>();
 

@@ -2,15 +2,27 @@
 
 namespace BelotWebApp.BelotClasses.Declarations
 {
-    public class Carre
+    public class Carre : Declaration
     {
-        public Carre(Rank rank, bool declared)
+        public Carre() : base(null, -1) // for deserialization only
         {
+            Type = DeclarationType.Carre;
+        }
+
+        public Carre(BelotGame game, int player, Rank rank) : base(game, player)
+        {
+            Type = DeclarationType.Carre;
             Rank = rank;
-            Declared = declared;
         }
 
         public Rank Rank { get; set; }
-        public bool Declared { get; set; }
+
+        public override bool IsDeclarable
+        {
+            get
+            {
+                return !Declared && game != null && game.NumCardsPlayed < 5;
+            }
+        }
     }
 }

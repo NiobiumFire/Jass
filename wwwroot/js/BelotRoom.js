@@ -2,6 +2,8 @@
 
 var room = new signalR.HubConnectionBuilder().withUrl("/belotroom/" + document.getElementById("roomId").innerHTML).build();
 
+var declarations;
+
 room.start();
 
 room.onclose(() => {
@@ -45,7 +47,7 @@ room.on("showThrowBtn", function () {
     document.getElementById("throw-cards-btn").hidden = false;
     document.getElementById("throw-cards-btn").onclick = function () {
         hideThrowBtn();
-        room.invoke("ThrowCards");
+        room.invoke("HubThrowCards");
     };
 });
 
@@ -252,7 +254,7 @@ function resetSuitSelection() {
 };
 
 $("#newGameBtn").on("click", function () {
-    room.invoke("GameController");
+    room.invoke("HubGameController");
 });
 
 room.on("newGame", function (gameId) {
@@ -387,31 +389,32 @@ room.on("deal", function (cards) {
     };
 });
 
-// -------------------- Extra Points --------------------
+// -------------------- Declarations --------------------
 
-room.on("declareExtras", function (extras) {
-    if (extras.length > 0) {
-        for (let i = 0; i < extras.length; i++) {
+room.on("declareExtras", function (newDeclarations) {
+    declarations = newDeclarations;
+    if (newDeclarations.length > 0) {
+        for (let i = 0; i < newDeclarations.length; i++) {
             const dv = document.createElement('div');
 
             const box = document.createElement('input');
             box.classList.add("form-check-input");
             box.type = ("checkbox");
-            if (extras[i].charAt(0) == "#") {
+            box.onclick = () => toggleDeclared(newDeclarations[i]);
+            if (!newDeclarations[i].isDeclarable || (newDeclarations[i].type == 2 && !newDeclarations[i].isValid)) {
                 box.checked = false;
                 box.disabled = true;
-                extras[i] = extras[i].substring(1, extras[i].length - 1);
+                newDeclarations[i].declared = false;
             }
             else {
                 box.checked = true;
+                newDeclarations[i].declared = true;
             }
-            box.id = extras[i];
 
             const lbl = document.createElement('label');
             lbl.classList.add("form-check-label");
             lbl.style = "margin-left: 10px";
-            lbl.for = extras[i];
-            lbl.innerHTML = extras[i];
+            lbl.innerHTML = getDeclarationText(newDeclarations[i]);
 
             dv.appendChild(box);
             dv.appendChild(lbl);
@@ -420,31 +423,29 @@ room.on("declareExtras", function (extras) {
         $('#extras-modal').modal('show');
     }
     else {
-        let belot = false;
-        let runs = [];
-        let carres = [];
-        room.invoke("HubExtrasDeclared", belot, runs, carres);
+        room.invoke("HubExtrasDeclared", declarations);
     }
 });
 
+function getDeclarationText(declaration) {
+    switch (declaration.type) {
+        case 0: // belot
+            return "Belot: " + getSuitNameFromNumber(declaration.suit);
+        case 1: // carre
+            return "Carre: " + getRankNameFromNumber(declaration.rank);
+        default: // 2: run
+            return getRunNameFromLength(declaration.length) + ": " + getSuitNameFromNumber(declaration.suit) + " " + getRankNameFromNumber(declaration.rank - declaration.length + 1) + "→" + getRankNameFromNumber(declaration.rank);
+    }
+}
+
+function toggleDeclared(declaration) {
+    declaration.declared = !declaration.declared;
+}
+
 function closeExtrasModal() {
     $('#extras-modal').modal('hide');
-
-    let belot = false;
-    let runs = [];
-    let carres = [];
-
-    let dv = document.getElementById('extras');
-    let boxes = dv.children;
-    for (let i = 0; i < boxes.length; i++) {
-        let box = boxes[i].children;
-        if (box[0].id.charAt(0) == "B") belot = box[0].checked;
-        else if (box[0].id.charAt(0) == "C") carres.push(box[0].checked);
-        else runs.push(box[0].checked);
-    };
-
     document.getElementById("extras").innerHTML = "";
-    room.invoke("HubExtrasDeclared", belot, runs, carres);
+    room.invoke("HubExtrasDeclared", declarations);
 };
 
 room.on("setExtrasEmote", function (extras, turn) {
@@ -539,7 +540,7 @@ function setCallerIndicator(turn) {
 // -------------------- Seat Management --------------------
 
 function requestSeatBooking(seat) {
-    room.invoke("BookSeat", seat);
+    room.invoke("HubBookSeat", seat);
 };
 
 room.on("disableRadios", function () {
@@ -638,13 +639,6 @@ room.on("seatAlreadyBooked", function (occupier) {
 room.on("setBotBadge", function (pos, isBot) {
     document.getElementById("BotBadge".concat(pos)).hidden = !isBot;
 });
-
-// required?
-//moveWest = function () {
-//    const w = document.getElementById("west");
-//    w.style.top = 0;
-//    w.style.left = 0;
-//};
 
 // -------------------- Seat Rotation --------------------
 
@@ -777,7 +771,7 @@ $("#messageToSend").keyup(function (event) {
 });
 
 $("#sendmessage").on("click", function () {
-    room.invoke("Announce", document.getElementById("messageToSend").value);
+    room.invoke("HubAnnounce", document.getElementById("messageToSend").value);
     document.getElementById("messageToSend").value = "";
 });
 

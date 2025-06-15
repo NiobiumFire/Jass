@@ -12,16 +12,7 @@ const playBtn = document.getElementById("pause-replay");
 const fwdBtn = document.getElementById("replay-fwd");
 const nextBtn = document.getElementById("replay-next");
 
-let state = {
-    "players": ["West", "North", "East", "South"],
-    "scores": [0, 0],
-    "dealer": 1,
-    "roundCall": -1,
-    "caller": 4,
-    "emotes": [null, null, null, null],
-    "tableCards": [{}, {}, {}, {}],
-    "hand": [[null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null]]
-};
+let state = {};
 
 document.getElementById("speed-slider").oninput = function () {
     speed = (11 - this.value) * 100 + 200;
@@ -45,6 +36,7 @@ function getReplay(replayId = "") {
                 }
                 maxState = data.stateChanges.length - 1;
                 currentState = 0;
+                resetState();
                 setState(data.stateChanges[currentState], true);
             }
             else {
@@ -117,26 +109,17 @@ function loopPlay() {
 }
 
 function prev() {
-    if (currentState > 1) {
-        do {
-            currentState--;
-        }
-        while (currentState > 0 && replay.States[currentState - 1].Dealer == replay.States[currentState].Dealer);
+    do {
+        back();
     }
-    if (currentState == 1) {
-        currentState--;
-    }
-    setState(replay.States[currentState]);
+    while (currentState > 0 && replay.stateChanges[currentState].before.dealer == replay.stateChanges[currentState].after.dealer);
 }
 
 function back() {
-    // apply current frame's "before", then go back a frame and apply "after"
-    setState(replay.stateChanges[currentState], false);
-
-    if (currentState > 0) {
-        currentState--;
-        setState(replay.stateChanges[currentState], true);
-    }
+    // apply current frame's "before", then go back a frame. For setting controls, currentState must be decremented before setState executes
+    const stateToProcess = currentState;
+    currentState--;
+    setState(replay.stateChanges[stateToProcess], false);
 }
 
 function fwd() {
@@ -145,16 +128,23 @@ function fwd() {
 }
 
 function next() {
-    if (currentState < maxState - 1) {
-        do {
-            currentState++;
-        }
-        while (currentState < maxState && replay.stateChanges[currentState + 1].dealer == replay.stateChanges[currentState].dealer);
+    do {
+        fwd();
     }
-    if (currentState < maxState) {
-        currentState++;
-    }
-    setState(replay.States[currentState]);
+    while (currentState < maxState && replay.stateChanges[currentState].before.dealer == replay.stateChanges[currentState].after.dealer);
+}
+
+function resetState() {
+    state = {
+        "players": ["West", "North", "East", "South"],
+        "scores": [0, 0],
+        "dealer": 1,
+        "roundCall": -1,
+        "caller": 4,
+        "emotes": [null, null, null, null],
+        "tableCards": [{}, {}, {}, {}],
+        "handCards": [[null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null], [null, null, null, null, null, null, null, null]]
+    };
 }
 
 function setState(diff, after) {
@@ -189,44 +179,19 @@ function setState(diff, after) {
         state.turn = newState.turn;
     }
     if (newState.emotes != null) {
-        state.emotes = newState.emotes;
+        for (const emote of newState.emotes) {
+            state.emotes[emote.player] = emote.emote;
+        }
     }
     if (newState.tableCards != null) {
-        for (let i = 0; i < 4; i++) {
-            if (newState.tableCards[i] != null) {
-                state.tableCards[i] = newState.tableCards[i];
-                if (after && newState.tableCards[i].suit != null && newState.tableCards[i].rank != null) { // forward
-                    const index = state.hand[i].findIndex(c => c != null && c.suit == newState.tableCards[i].suit && c.rank == newState.tableCards[i].rank);
-                    state.hand[i][index].played = true;
-                }
-                else if (!after && diff.after.tableCards[i]?.suit != null && diff.after.tableCards[i]?.rank != null) { // back
-                    const index = state.hand[i].findIndex(c => c != null && c.suit == diff.after.tableCards[i].suit && c.rank == diff.after.tableCards[i].rank);
-                    state.hand[i][index].played = false;
-                }
-            }
+        for (const tableCard of newState.tableCards) {
+            state.tableCards[tableCard.player] = tableCard.card;
         }
     }
 
-    // if rewinding mid-round, 'hand' isn't in the diff, so we don't set card.played here
-    // if rewinding & the dealer changed, we are viewing a frame before a new round was dealt -> all cards played
-    // if rewinding from first card of round to the second deal phase, dealer hasn't changed -> all cards unplayed
-    // if rewinding from second deal to first deal, dealer hasn't changed -> all cards unplayed
-    if (newState.hand != null) {
-        let allCardsPlayed = !after && diff.before.dealer != null && diff.after.dealer != null && diff.before.dealer != diff.after.dealer;
-        for (let i = 0; i < 4; i++) {
-            if (newState.hand[i] != null) {
-                for (let j = 0; j < 8; j++) {
-                    if (j >= newState.hand[i].length) {
-                        state.hand[i][j] = null;
-                    }
-                    else {
-                        state.hand[i][j] = newState.hand[i][j];
-                        if (state.hand[i][j] != null) {
-                            state.hand[i][j].played = allCardsPlayed;
-                        }
-                    }
-                }
-            }
+    if (newState.handCards != null) {
+        for (const handCard of newState.handCards) {
+            state.handCards[handCard.player][handCard.index] = handCard.card;
         }
     }
 
@@ -240,9 +205,8 @@ function setState(diff, after) {
     for (let i = 0; i < 4; i++) {
         setEmote(state.emotes[i], i);
         setTableCard(state.tableCards[i], i);
-        //for (let j = 0; j < state.hand[i].length; j++) {
         for (let j = 0; j < 8; j++) {
-            setHandCard(state.hand[i][j], i, j);
+            setHandCard(state.handCards[i][j], i, j);
         }
     }
 
