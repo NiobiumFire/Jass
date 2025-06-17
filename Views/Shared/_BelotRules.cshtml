@@ -1,0 +1,105 @@
+﻿<!-- Rules Modal -->
+<div class="modal fade" id="rulesModal" tabindex="-1" aria-labelledby="rulesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="rulesModalLabel">Belot Rules</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body" style="height: 60vh; max-height: 100vh; padding: 0; display: flex; flex-direction: column;">
+
+                <div id="rulesCarousel" class="carousel slide bg-info h-100" data-bs-ride="carousel" data-bs-interval="false">
+
+                    <!-- Prev control -->
+                    <button class="carousel-control-prev" type="button" data-bs-target="#rulesCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+
+                    <!-- Carousel inner - scrollable -->
+                    <div class="carousel-inner h-100">
+                        <div class="carousel-item active h-100">
+                            <div class="rules-slide-container">
+                                <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
+                                    <h3 class="">Objective of the Game</h3>
+                                    <p>Belot is a trick-taking card game played by four players in two teams. West and East play against North and South. The goal is for your team to score points by winning tricks and declaring valuable card combinations. The first team to reach the target score of 1501 wins the game.</p>
+                                    <img src="~/images/Other/Table.png" style="max-width: 100%; max-height: 50%;" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <div class="rules-slide-container">
+                                <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
+                                    <h3 class="">The Deck and Card Order</h3>
+                                    <p>Belot is played with a 32-card deck using the cards 7 through Ace in each suit. The ranking and values of cards change depending on whether the suit is trump. In trump suits, the order, from most-powerful to least-powerful, is: Jack (20 points), 9 (14), Ace (11), 10 (10), King (4), Queen (3), 8 and 7 (0). In non-trump suits, it's: Ace (11), 10 (10), King (4), Queen (3), Jack (2), and 9, 8, 7 (0).</p>
+                                    <img src="~/images/Other/CardOrder.png" style="max-width: 100%; max-height: 30%;" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <div class="rules-slide-container">
+                                <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
+                                    <h3 class="">Dealing and Choosing Trump</h3>
+                                    <p>Each player is dealt 5 cards. Starting with the player to the dealer’s right, players take turns calling a suit, "no trumps", "all trumps", doubling or passing. The call hierarchy is: Clubs < Diamonds < Hearts < Spades < No Trumps < All Trumps. Higher calls override lower ones. The opposing team may double (x2), and the callers may redouble (x4), increasing the stakes. Calling ends when a valid call is made and all others pass, or all players pass without a call — in which case the deal is void and the next player deals.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <div class="rules-slide-container">
+                                <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
+                                    <h3 class="">Playing Tricks</h3>
+                                    <p>Once a call is decided, players receive the rest of their hand (8 cards in total), and play begins with the player to the dealer's right.</p>
+                                    <ul>
+                                        <li>The leading player may play any card.</li>
+                                        <li>Other players must follow suit if they can.</li>
+                                        <li>If they can't, and their partner isn't winning the trick, they must play a trump.</li>
+                                        <li>If unable to follow or trump — or if their partner is winning the trick — they may play any card.</li>
+                                    </ul>
+                                    <p>Whenever a player must play a trump, they must play a higher trump than any so far played in the trick, if possible. This applies when following suit in all-trump rounds. The highest trump wins the trick, or the highest card of the led suit if no trump was played. The winner of the trick leads the next.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <div class="rules-slide-container">
+                                <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
+                                    <h3 class="">Declarations</h3>
+                                    <p>If a player has both the King and Queen of trump, they may declare “Belot” for 20 bonus points, upon playing the first of the pair. In all-trump rounds, all suits' Belots are valid, but are only declarable when following or determining the trick's suit. Discarding doesn't count.</p>
+                                    <p>Runs are sequences of 3 (Tierce, 20 points), 4 (Quarte, 50), or 5+ (Quint, 100) cards in the same suit. Carres are sets (four-of-a-kind), worth 100 points for Queens, Kings, Tens and Aces, 150 for Nines and 200 for Jacks. Sevens and Eights don't count. Runs and Carres are declared when a player plays their first card of the round.</p>
+                                    <p>A card cannot be used for more than one Run or Carre, but they can be shared with Belots.</p>
+                                    <p>Only the team with the strongest run scores theirs, determined by length before rank. Only the team with the strongest Carre scores theirs. Suit has no bearing on Runs or Carres.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <div class="rules-slide-container">
+                                <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
+                                    <h3 class="">Scoring and Winning</h3>
+                                    <p>Each team scores points from the tricks they've won and their valid declarations. Additionally, the final trick is worth an extra 10 points. The calling team must win more points than their opponents, otherwise their opponents take all points, including those from all valid declarations ("inside"). If a team wins all the tricks of a round, they receive an extra 90 points ("capot").</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next control -->
+                    <button class="carousel-control-next" type="button" data-bs-target="#rulesCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+
+                    <!-- Indicators below -->
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#rulesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#rulesCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#rulesCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                        <button type="button" data-bs-target="#rulesCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                        <button type="button" data-bs-target="#rulesCarousel" data-bs-slide-to="4" aria-label="Slide 5"></button>
+                        <button type="button" data-bs-target="#rulesCarousel" data-bs-slide-to="5" aria-label="Slide 6"></button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

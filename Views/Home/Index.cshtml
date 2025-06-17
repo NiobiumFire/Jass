@@ -4,7 +4,7 @@
 @inject SignInManager<ApplicationUser> signInManager
 @inject UserManager<ApplicationUser> userManager
 
-@section scripts{
+@section scripts {
     <script src="~/js/belotlobby.js"></script>
 }
 
@@ -37,21 +37,24 @@
             <p id="numRooms">Belot rooms: @ViewBag.numGames</p>
 
             <form id="createBelotGameForm" method="post">
-                <p><button asp-area="" asp-controller="Room" asp-action="Index" type="submit" class="btn btn-primary" style="width: 100%">Create &raquo;</button></p>
+                <p><button asp-area="" asp-controller="Room" asp-action="Index" type="submit" class="btn btn-primary" style="width: 100%">Create</button></p>
             </form>
 
-            <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join &raquo;</button></p>
+            <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join</button></p>
 
-            <p><button type="button" onclick="location.href='/Replay/Index'" class="btn btn-primary" style="width: 100%">Replay &raquo;</button></p>
+            <p><button type="button" class="btn btn-primary" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+
+            <p><button type="button" class="btn btn-primary" onclick="location.href='/Replay/Index'" style="width: 100%">Replay</button></p>
 
             @if (await userManager.IsInRoleAsync(await userManager.GetUserAsync(User), "Admin") == true)
             {
-                <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%">Training center &raquo;</button></p>
+                <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%">Training Center</button></p>
             }
         </div>
     }
 </div>
 
+<!-- Join Game Modal -->
 <div class="modal" tabindex="-1" id="belot-lobby-modal">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -84,3 +87,6 @@
         </div>
     </div>
 </div>
+
+<!-- Rules Modal -->
+@await Html.PartialAsync("_BelotRules")

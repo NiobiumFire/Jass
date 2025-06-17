@@ -51,3 +51,25 @@ body {
 .tab-card .card-body {
     padding: 10px 20px;
 }
+
+/* rule modal/carousel p and li tags should have justified text */
+.carousel-item p,
+.carousel-item li {
+    text-align: justify;
+}
+
+/* rule modal/carousel content body under carousel-item should be a vertically-scrollable and centered container */
+.rules-slide-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 90%;
+    /*max-height: 70%;*/
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+}
+
+    .rules-slide-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
+    }
