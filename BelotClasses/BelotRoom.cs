@@ -224,7 +224,7 @@ namespace BelotWebApp.BelotClasses
                 }
                 else
                 {
-                    var card = AgentBasic.SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.TableCards, game.Turn, game.DetermineWinner(), game.RoundCall, game.TrickSuit, game.EWCalled);
+                    var card = AgentBasic.SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.TableCards, game.Turn, game.DetermineWinner(), game.RoundCall, game.TrickSuit, game.EWCalled, game.Caller);
 
                     game.PlayCard(card);
 

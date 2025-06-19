@@ -1,16 +1,27 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
+using System.Diagnostics;
 
 namespace BelotWebApp.BelotClasses.Agents
 {
-    public class AgentBasic
+    public static class AgentBasic
     {
-        private static readonly Random rnd = new Random();
-
         // ignores extra points in suit nomination (for now)
         // doesn't double or redouble
         // always accepts all available extras
         // never throws the cards
         // never calls five-under-nine
+
+        private static readonly Random globalSeedRng = new();
+        private static readonly ThreadLocal<Random> threadLocalRng = new(() =>
+        {
+            int seed;
+            lock (globalSeedRng)
+            {
+                seed = globalSeedRng.Next();
+            }
+            return new Random(seed);
+        });
+
         public static Call CallSuit(List<Card> hand, int[] validCalls)
         {
             const double NO_TRUMP_MULTIPLIER = 1.5;
@@ -115,242 +126,366 @@ namespace BelotWebApp.BelotClasses.Agents
             return bestCall;
         }
 
-
-        public static Card SelectCard(List<Card> hand, int[] validCards, int[] winners, Card[] tableCards, int turn, int curWinner, Call roundCall, Suit? trickSuit, bool ewCalled)
+        public static Card SelectCard(List<Card> hand, int[] validCards, int[] winners, Card[] tableCards, int turn, int curWinner, Call roundCall, Suit? trickSuit, bool ewCalled, int caller)
         {
-            int choice = Array.IndexOf(validCards, 1);
-
-            if (validCards.Sum() > 1)
+            int validCount = validCards.Sum();
+            if (validCount == 1)
             {
-                int cardsPlayedInTrick = tableCards.Count(c => !c.IsNull());
+                int fallback = Array.IndexOf(validCards, 1);
+                Debug.Print("Only valid card");
+                return hand[fallback];
+            }
 
-                if (cardsPlayedInTrick == 0) // if I'm to lead
+            int trickNumber = hand.Count(c => c.Played);
+            int cardsPlayed = tableCards.Count(c => !c.IsNull());
+
+            if (cardsPlayed == 0)
+            {
+                return SelectCardFirst(hand, validCards, winners, trickNumber, turn, roundCall, ewCalled, caller);
+            }
+            else if (cardsPlayed == 1)
+            {
+                int prevTurn = turn == 3 ? 0 : turn + 1;
+                return SelectCardSecond(hand, validCards, winners, tableCards[prevTurn], roundCall, trickSuit);
+            }
+            else // 3rd or 4th to play
+            {
+                if (turn % 2 != curWinner % 2) // other team is currently winning trick
                 {
-                    int result = SelectCardForFirst(hand, validCards, winners, turn, roundCall, ewCalled);
-                    if (result < 8)
-                    {
-                        return hand[result];
-                    }
+                    int chanceToTryWin = cardsPlayed == 2 ? 60 : 100;
+                    return SelectCardWhenOpponentsWinning(hand, validCards, tableCards, roundCall, trickSuit, chanceToTryWin);
                 }
-                else if (cardsPlayedInTrick == 1) // if I'm second to play
+                else // partner is currently winning trick
                 {
-                    int result = SelectCardForSecond();
-                    if (result < 8)
+                    int chanceToWin = cardsPlayed == 2 ? 65 : 80;
+                    var hardWinCard = TryBeatPartnerWithHardWinner(hand, validCards, tableCards, winners, roundCall, trickSuit, chanceToWin);
+                    if (hardWinCard != null)
                     {
-                        return hand[result];
+                        Debug.Print("3,4: Beat partner with hard winner");
+                        return hardWinCard;
                     }
+
+                    if (cardsPlayed == 3)
+                    {
+                        return SelectDiscardWhenPartnerWinning(hand, validCards, winners, roundCall, trickSuit);
+                    }
+                    return SelectRandomValidCard(hand, validCards);
                 }
-                if (cardsPlayedInTrick > 1 && turn % 2 != curWinner % 2) // if I am 3rd or 4th to play and the other team is winning
+            }
+        }
+
+        private static Card SelectCardFirst(List<Card> hand, int[] validCards, int[] winners, int trickNumber, int turn, Call roundCall, bool ewCalled, int caller)
+        {
+            if (MyTeamCalled(ewCalled, turn) && roundCall != Call.NoTrumps)
+            {
+                int? jass = TryPlayTrumpJack(hand, validCards, roundCall);
+                if (jass.HasValue)
                 {
-                    bool discard = false;
-                    int bestValue = 0;
-                    for (int i = 0; i < 4; i++) // get highest winning power of cards played so far in trick
-                    {
-                        int value = 0;
-                        if (!tableCards[i].IsNull())
-                        {
-                            value = BelotHelpers.GetCardStrength(tableCards[i], roundCall, trickSuit);
-                        }
-                        if (value > bestValue)
-                        {
-                            bestValue = value;
-                        }
-                    }
-
-                    int[] winningCards = [0, 0, 0, 0, 0, 0, 0, 0];
-                    int[] myCardPower = [0, 0, 0, 0, 0, 0, 0, 0];
-                    int minValue = 25;
-
-                    for (int i = 0; i < 8; i++) // determine my cards' power
-                    {
-                        if (validCards[i] == 1)
-                        {
-                            myCardPower[i] = BelotHelpers.GetCardStrength(hand[i], roundCall, trickSuit);
-                            if (myCardPower[i] > bestValue) // determine if I can win the trick
-                            {
-                                winningCards[i] = 1;
-                            }
-                            // in case I can't or don't decide to win the trick, track which card I will discard:
-                            // if card[i] value < minValue - 1, discard card[i] regardless of which are winners
-                            // if card[i] == minValue - 1 or minValue, and card[i] is not a winner or both are winners, discard card[i]
-                            // if card[i] == minValue, and card[i] is a winner and card[choice] is not, discard card[choice]
-                            // if card[i] value = minValue - 1 but it's a winner and card[choice] is not, 50% chance to keep card[i]
-                            // if card[i] value = minValue + 1 but it's not a winner and card[choice] is, 50% chance to discard card[i]
-                            // if card[i] value >= minValue + 2, discard card[choice] regardless of which are winners
-                            lock (rnd)
-                            {
-                                bool discard_i = false;
-                                if (myCardPower[i] < minValue - 1) discard_i = true;
-                                else if ((myCardPower[i] == minValue - 1 || myCardPower[i] == minValue) && (winners[i] == 0 || winners[i] > 0 && winners[choice] > 0)) discard_i = true;
-                                else if (myCardPower[i] == minValue - 1 && winners[i] > 0 && winners[choice] == 0 && rnd.Next(100) + 1 > 50) discard_i = true;
-                                //else if (myCardPower[i] == minValue && winners[i] > 0 && winners[choice] == 0) discard_i = false;
-                                else if (myCardPower[i] == minValue + 1 && winners[i] == 0 && winners[choice] > 0 && rnd.Next(100) + 1 > 50) discard_i = true;
-                                if (discard_i)
-                                {
-                                    minValue = myCardPower[i];
-                                    choice = i;
-                                    discard = true;
-                                }
-                            }
-                        }
-                    }
-
-                    lock (rnd)
-                    {
-                        if (winningCards.Sum() > 0 && (cardsPlayedInTrick == 3 || rnd.Next(100) + 1 > 50)) // if any of my cards can beat the currently best card played in trick and I am last to play, play a random one of them. Do the same 50% of the time if I am 3rd to play
-                        {
-                            while (true)
-                            {
-                                choice = rnd.Next(winningCards.Length);
-                                if (winningCards[choice] == 1) return hand[choice];
-                            }
-                        }
-                        // The below does not account for potential winners, so I may discard something of low value which could win a future trick
-                        else if (discard) return hand[choice]; // if I can't win the trick, then regardless of whether I am playing 4th or 3rd, play the chosen discard
-                    }
-                }
-                while (true)
-                {
-                    lock (rnd)
-                    {
-                        choice = rnd.Next(validCards.Count());
-                    }
-                    if (validCards[choice] == 1)
-                    {
-                        return hand[choice];
-                    }
+                    Debug.Print("1: Play trump jack");
+                    return hand[jass.Value];
                 }
             }
 
-            return hand[choice];
+            if (trickNumber < 3 && MyTeamCalled(ewCalled, turn) && turn != caller && BelotHelpers.IsSuit(roundCall) && Roll(80))
+            {
+                int? trumpLead = TryPlayTrumpControl(hand, validCards, (Suit)roundCall);
+                if (trumpLead.HasValue)
+                {
+                    Debug.Print("1: Play high-value trump");
+                    return hand[trumpLead.Value];
+                }
+            }
+
+            if (roundCall < Call.AllTrumps)
+            {
+                int? ace = TryPlayNonTrumpAce(hand, validCards, roundCall);
+                if (ace.HasValue)
+                {
+                    Debug.Print("1: Play nontrump ace");
+                    return hand[ace.Value];
+                }
+            }
+
+            int? hardWinner = TryLeadWinner(hand, validCards, winners, roundCall, winnerLevel: 2, chance: 90);
+            if (hardWinner.HasValue)
+            {
+                Debug.Print("1: Play hard winner");
+                return hand[hardWinner.Value];
+            }
+
+            int? softWinner = TryLeadWinner(hand, validCards, winners, roundCall, winnerLevel: 1, chance: 70);
+            if (softWinner.HasValue)
+            {
+                Debug.Print("1: Play soft winner");
+                return hand[softWinner.Value];
+            }
+
+            Debug.Print("1: Play random");
+            return SelectRandomValidCard(hand, validCards);
         }
 
-        private static int SelectCardForFirst(List<Card> hand, int[] validCards, int[] winners, int turn, Call roundCall, bool ewCalled)
+        private static Card SelectCardSecond(List<Card> hand, int[] validCards, int[] winners, Card leadCard, Call roundCall, Suit? trickSuit)
         {
-            if ((ewCalled && turn % 2 == 0 || !ewCalled && turn % 2 == 1) && roundCall != Call.NoTrumps) // if we called, try play the Jass
+            int leadStrength = BelotHelpers.GetCardStrength(leadCard, roundCall, trickSuit);
+
+            List<int> hardWinners = [];
+            List<int> softWinners = [];
+            List<(int i, int power)> beaters = [];
+            List<(int i, int power)> losers = [];
+
+            for (int i = 0; i < hand.Count; i++)
             {
-                for (int i = 0; i < 8; i++) // cards
+                if (validCards[i] == 0)
                 {
-                    var card = hand[i];
-                    if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
+                    continue;
+                }
+
+                int power = BelotHelpers.GetCardStrength(hand[i], roundCall, trickSuit);
+                var suit = hand[i].Suit;
+
+                if ((int?)suit != (int?)roundCall && suit == trickSuit) // non-trump only and of the led suit
+                {
+                    if (winners[i] == 2 && power > leadStrength)
                     {
+                        hardWinners.Add(i);
                         continue;
                     }
-
-                    if (rank == Rank.Jack && validCards[i] == 1)
+                    if (winners[i] == 1 && power > leadStrength)
                     {
-                        lock (rnd)
-                        {
-                            if (BelotHelpers.IsSuit(roundCall) && suit == (Suit)roundCall && rnd.Next(100) + 1 > 10)  // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
-                            {
-                                return i;
-                            }
-                            else if (roundCall == Call.AllTrumps && rnd.Next(100) + 1 > 20)  // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
-                            {
-                                return i;
-                            }
-                        }
-                    }
-                }
-            }
-            //// if my team called and I am the first to play in a trick, for the first 3? tricks, play the highest trump
-            if (roundCall < Call.AllTrumps) // Try play a non-trump Ace (works for no trumps)
-            {
-                for (int i = 0; i < 8; i++)
-                {
-                    var card = hand[i];
-                    if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
-                    {
+                        softWinners.Add(i);
                         continue;
                     }
+                }
 
-                    lock (rnd)
-                    {
-                        if (rank == Rank.Ace && (int)suit != (int)roundCall && validCards[i] == 1 && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead an Ace if I have one (I may still end up playing one)
-                        {
-                            return i;
-                        }
-                        //else if (rank == Rank.Ace && (int)suit != (int)roundCall && validCards[i] == 1)
-                        //{
-
-                        //}
-                    }
+                if (power > leadStrength)
+                {
+                    beaters.Add((i, power));
+                }
+                else
+                {
+                    losers.Add((i, power));
                 }
             }
-            bool hardNontrumpWinner = false;
-            bool softNontrumpWinner = false;
-            if (winners.Any(w => w > 0))
+
+            var rnd = threadLocalRng.Value!;
+
+            if (hardWinners.Count > 0 && Roll(80))
             {
-                for (int i = 0; i < 8; i++)
-                {
-                    var card = hand[i];
-                    if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
-                    {
-                        continue;
-                    }
+                Debug.Print("2: Play hard winner");
+                return hand[hardWinners[rnd.Next(hardWinners.Count)]];
+            }
 
-                    if ((int)suit != (int)roundCall && validCards[i] == 1)
-                    {
-                        if (winners[i] == 2)
-                        {
-                            hardNontrumpWinner = true;
-                        }
-                        if (winners[i] == 1)
-                        {
-                            softNontrumpWinner = true;
-                        }
-                        if (hardNontrumpWinner && softNontrumpWinner)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-            lock (rnd)
+            if (softWinners.Count > 0 && Roll(75))
             {
-                if (hardNontrumpWinner && rnd.Next(100) + 1 > 10) // 90% of the time, I will lead a nontrump hard winner
-                {
-                    while (true)
-                    {
-                        int choice = rnd.Next(8);
-                        if (winners[choice] == 2 && validCards[choice] == 1 && hand[choice].Suit is Suit suit && (int)suit != (int)roundCall)
-                        {
-                            return choice;
-                        }
-                    }
-                }
-                if (softNontrumpWinner && rnd.Next(100) + 1 > 30) // 70% of the time, I will lead a nontrump soft winner
-                {
-                    while (true)
-                    {
-                        int choice = rnd.Next(8);
-                        if (winners[choice] == 1 && validCards[choice] == 1 && hand[choice].Suit is Suit suit && (int)suit != (int)roundCall)
-                        {
-                            return choice;
-                        }
-                    }
-                }
+                Debug.Print("2: Play soft winner");
+                return hand[softWinners[rnd.Next(softWinners.Count)]];
             }
-            return 8;
+
+            if (beaters.Count > 0 && Roll(70)) // 70% chance to try and beat the led card with the lowest strength beater
+            {
+                Debug.Print("2: Play lowest beater");
+                int choice = beaters.OrderBy(c => c.power).First().i;
+                return hand[choice];
+            }
+
+            if (losers.Count > 0 && Roll(90)) // If no winners, or decide not to try win, discard lowest valid option 90% of the time
+            {
+                Debug.Print("2: Play lowest loser");
+                int choice = losers.OrderBy(c => c.power).First().i;
+                return hand[choice];
+            }
+
+            Debug.Print("2: Play random");
+            return SelectRandomValidCard(hand, validCards);
         }
 
-        private static int SelectCardForSecond()
+        private static Card SelectCardWhenOpponentsWinning(List<Card> hand, int[] validCards, Card[] tableCards, Call roundCall, Suit? trickSuit, int chance)
         {
-            if (true)
+            int bestOnTable = tableCards.Where(c => !c.IsNull()).Max(c => BelotHelpers.GetCardStrength(c, roundCall, trickSuit)); // get highest winning power of cards played so far in trick
+
+            List<int> winning = [];
+            List<(int i, int power)> discards = [];
+
+            for (int i = 0; i < hand.Count; i++)
             {
+                if (validCards[i] == 0)
+                {
+                    continue;
+                }
 
+                int power = BelotHelpers.GetCardStrength(hand[i], roundCall, trickSuit);
+                if (power > bestOnTable)
+                {
+                    winning.Add(i);
+                }
+                else
+                {
+                    discards.Add((i, power));
+                }
             }
-            return 8;
+
+            var rnd = threadLocalRng.Value!;
+
+            if (winning.Count > 0 && Roll(chance)) // if any of my cards can beat the current best trick card and I am last to play, play a random one of them. Do the same 60% of the time if I am 3rd to play
+            {
+                Debug.Print("3,4: Play random winner");
+                return hand[winning[rnd.Next(winning.Count)]];
+            }
+
+            if (discards.Count > 0)
+            {
+                Debug.Print("3,4: Play lowest discard");
+                return hand[discards.OrderBy(c => c.power).First().i];
+            }
+
+            Debug.Print("3,4: Play random");
+            return SelectRandomValidCard(hand, validCards);
         }
 
-        private static int SelectCardForThird()
+        private static Card? TryBeatPartnerWithHardWinner(List<Card> hand, int[] validCards, Card[] tableCards, int[] winners, Call roundCall, Suit? trickSuit, int chance)
         {
-            return 0;
+            // must have a winner for current trick and at least one more winner for a future trick
+
+            var validWinners = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1 && winners[i] == 2).ToList();
+            // validWinners doesn't need to consider strength of what has been played so far this trick, because it is also for future tricks
+
+            if (validWinners.Count < 2) // current trick and at least one more
+            {
+                return null;
+            }
+
+            var bestOnTablePower = tableCards.Where(c => !c.IsNull()).Max(c => BelotHelpers.GetCardStrength(c, roundCall, trickSuit));
+
+            // Get all hard winners in hand that are valid and can beat the winning card (including trumps), order by lowest strength
+            var candidates = validWinners.Where(i => BelotHelpers.GetCardStrength(hand[i], roundCall, trickSuit) > bestOnTablePower && hand[i].Suit is Suit suit && (suit == trickSuit || (BelotHelpers.IsSuit(roundCall) && suit == (Suit)roundCall)))
+                .OrderBy(c => BelotHelpers.GetCardStrength(hand[c], roundCall, trickSuit)).ToList();
+
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            if (validWinners.Count > 2)
+            {
+                if (Roll(chance + 10))
+                {
+                    return hand[candidates[0]];
+                }
+            }
+            else if (validWinners.Count == 2)
+            {
+                if (Roll(chance))
+                {
+                    return hand[candidates[0]];
+                }
+            }
+
+            return null;
         }
 
-        private static int SelectCardForFourth()
+        private static Card SelectDiscardWhenPartnerWinning(List<Card> hand, int[] validCards, int[] winners, Call roundCall, Suit? trickSuit)
         {
-            return 0;
+            var candidates = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1 && hand[i].Suit is Suit s && (int)s != (int)roundCall && winners[i] == 0)
+                .OrderByDescending(i => BelotHelpers.GetCardStrength(hand[i], roundCall, trickSuit)).ToList(); // non-trump,  not winner
+
+            if (candidates.Count > 0 && Roll(80))
+            {
+                Debug.Print("4: Play best nonwinner");
+                return hand[candidates[0]]; // highest strength among candidates
+            }
+
+            Debug.Print("4: Play random");
+            return SelectRandomValidCard(hand, validCards);
+        }
+
+        private static bool MyTeamCalled(bool ewCalled, int turn)
+        {
+            return (ewCalled && turn % 2 == 0) || (!ewCalled && turn % 2 == 1);
+        }
+
+        private static int? TryPlayTrumpJack(List<Card> hand, int[] validCards, Call roundCall)
+        {
+            var jacks = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1 && hand[i].Rank == Rank.Jack && hand[i].Suit is Suit).ToList();
+
+            foreach (int i in jacks)
+            {
+                Suit suit = hand[i].Suit!.Value;
+                if (BelotHelpers.IsSuit(roundCall) && suit == (Suit)roundCall && Roll(90)) // 90% of the time in a single trump suit, I will lead the Jass here if I have it (I may still end up playing it)
+                {
+                    return i;
+                }
+
+                if (roundCall == Call.AllTrumps && Roll(80)) // 80% of the time in all trumps, I will lead a Jass here if I have one (I may still end up playing it)
+                {
+                    return i;
+                }
+            }
+
+            return null;
+        }
+
+        private static int? TryPlayTrumpControl(List<Card> hand, int[] validCards, Suit trump)
+        {
+            // Call and Suit enums are explicitly aligned and roundCall is checked to be a single suit (not AllTrumps or NoTrumps) before getting here, so (Call)trump should be fine
+            var trumps = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1 && hand[i].Suit == trump).OrderByDescending(i => BelotHelpers.GetCardStrength(hand[i], (Call)trump, trump)).ToList();
+
+            if (trumps.Count == 0)
+            {
+                return null;
+            }
+
+            // Avoid leading the 9 unless it's the only trump
+            if (trumps.Count == 1 || hand[trumps[0]].Rank != Rank.Nine)
+            {
+                return trumps[0];
+            }
+
+            return trumps[1];
+        }
+
+        private static int? TryPlayNonTrumpAce(List<Card> hand, int[] validCards, Call roundCall)
+        {
+            var aces = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1 && hand[i].Rank == Rank.Ace && hand[i].Suit is Suit suit && (int)suit != (int)roundCall).ToList();
+
+            foreach (int i in aces)
+            {
+                if (Roll(70)) // 70% of the time, I will lead an Ace (not of trumps) if I have one (I may still end up playing one)
+                {
+                    return i;
+                }
+            }
+
+            return null;
+        }
+
+        private static int? TryLeadWinner(List<Card> hand, int[] validCards, int[] winners, Call roundCall, int winnerLevel, int chance)
+        {
+            var candidates = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1 && winners[i] == winnerLevel && hand[i].Suit is Suit suit && (int)suit != (int)roundCall).ToList();
+
+            if (candidates.Count > 0)
+            {
+                if (Roll(chance))
+                {
+                    return candidates[threadLocalRng.Value!.Next(candidates.Count)];
+                }
+            }
+
+            return null;
+        }
+
+        private static Card SelectRandomValidCard(List<Card> hand, int[] validCards)
+        {
+            var options = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1).ToList();
+            Debug.Print("Play random");
+            return hand[options[threadLocalRng.Value!.Next(options.Count)]];
+        }
+
+        private static bool Roll(int chance)
+        {
+            return threadLocalRng.Value!.Next(100) < chance;
         }
     }
 }
+
+// consider having bots try to play the jack in a single trump suit if they themselves called. Maybe only if the tricksuit is also trumps. This gets them to take lead if anyone happens to lead trumps, which partner does sometimes
+// factor in soft winners for TryBeatPartnerWithHardWinner. If partner leads a random card and I have the Ace, I should try win
