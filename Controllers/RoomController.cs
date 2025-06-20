@@ -10,10 +10,12 @@ namespace BelotWebApp.Controllers
     public class RoomController : Controller
     {
         private readonly IConfiguration _config;
+        private readonly BelotGameRegistry _gameRegistry;
 
-        public RoomController(IConfiguration config)
+        public RoomController(IConfiguration config, BelotGameRegistry gameRegistry)
         {
             _config = config;
+            _gameRegistry = gameRegistry;
         }
 
         [HttpPost]
@@ -22,8 +24,7 @@ namespace BelotWebApp.Controllers
             if (creator != null)
             {
                 string id = Guid.NewGuid().ToString();
-                BelotRoom.games.Add(new BelotGame([new(), new(), new(), new()], id, _config.GetSection("SerilogPath:Path").Value));
-                //BelotRoom.log.Information("Creating new room. Redirecting to room " + id);
+                _gameRegistry.AddGame(id, new BelotGame([new(), new(), new(), new()], id, _config.GetSection("SerilogPath:Path").Value));
                 return RedirectToAction("Index", new { id });
             }
             return RedirectToAction("Index", "Home");
@@ -32,9 +33,9 @@ namespace BelotWebApp.Controllers
         // GET: Room
         public ActionResult Index(string id)
         {
-            if (BelotRoom.games.Any(g => g.RoomId == id))
+            var game = _gameRegistry.GetGame(id);
+            if (game != null)
             {
-                //BelotRoom.log.Information("Entering room: " + id);
                 ViewData["roomId"] = id;
                 return View();
             }

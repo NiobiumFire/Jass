@@ -10,10 +10,12 @@ namespace BelotWebApp.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly BelotGameRegistry _gameRegistry;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, BelotGameRegistry gameRegistry)
         {
             _logger = logger;
+            _gameRegistry = gameRegistry;
         }
 
         public IActionResult Index()
@@ -36,13 +38,13 @@ namespace BelotWebApp.Controllers
         // Belot lobby
         public int GetNumRooms()
         {
-            return BelotRoom.games.Count;
+            return _gameRegistry.GetAllGames().Count();
         }
 
         public string PopulateLobby()
         {
-            List<BelotLobbyGame> games = new List<BelotLobbyGame>();
-            foreach (BelotGame game in BelotRoom.games)
+            List<BelotLobbyGame> games = [];
+            foreach (BelotGame game in _gameRegistry.GetAllGames())
             {
                 games.Add(new BelotLobbyGame(game));
             }

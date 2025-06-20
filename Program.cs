@@ -29,6 +29,8 @@ internal class Program
 
         builder.Services.AddScoped<IEmailSender, EmailService>();
 
+        builder.Services.AddSingleton<BelotGameRegistry>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.

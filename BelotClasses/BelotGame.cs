@@ -72,7 +72,10 @@ namespace BelotWebApp.BelotClasses
         public void NewGame()
         {
             GameId = Guid.NewGuid().ToString();
-            lock (rnd) FirstPlayer = rnd.Next(4);
+            lock (rnd)
+            {
+                FirstPlayer = rnd.Next(4);
+            }
             //FirstPlayer = 0;
             WaitDeal = false;
             WaitCall = false;

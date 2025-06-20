@@ -9,7 +9,7 @@ namespace BelotWebApp.BelotClasses
 {
     public class BelotRoom : Hub
     {
-        public static List<BelotGame> games = [];
+        private readonly BelotGameRegistry _gameRegistry;
 
         public static Dictionary<string, string> allConnections = [];
 
@@ -18,9 +18,10 @@ namespace BelotWebApp.BelotClasses
 
         public static Serilog.Core.Logger log;// = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 
-        public BelotRoom(IConfiguration _config)
+        public BelotRoom(IConfiguration config, BelotGameRegistry gameRegistry)
         {
-            log ??= new LoggerConfiguration().WriteTo.File(_config.GetSection("SerilogPath:Path").Value + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
+            _gameRegistry = gameRegistry;
+            log ??= new LoggerConfiguration().WriteTo.File(config.GetSection("SerilogPath:Path").Value + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
             //log?.Information("Creating new Chat Room");
         }
 
@@ -70,7 +71,6 @@ namespace BelotWebApp.BelotClasses
             {
                 game.IsNewRound = false;
                 game.NewRound();
-                await group.SendAsync("SetTurnIndicator", game.Turn); // show dealer
                 await group.SendAsync("SetTurnIndicator", game.Turn); // show dealer
                 await group.SendAsync("SetDealerMarker", game.Turn);
                 await group.SendAsync("NewRound"); // reset table, reset board, disable cards, reset suit selection 
@@ -740,10 +740,13 @@ namespace BelotWebApp.BelotClasses
             }
         }
 
-        public BelotGame GetGame()
+        public BelotGame? GetGame()
         {
-            allConnections.TryGetValue(Context.ConnectionId, out string roomId);
-            return games.FirstOrDefault(i => i.RoomId == roomId);
+            if (!allConnections.TryGetValue(Context.ConnectionId, out string? roomId))
+            {
+                return null;
+            }
+            return _gameRegistry.GetGame(roomId);
         }
 
         // -------------------- Connection --------------------
@@ -964,7 +967,7 @@ namespace BelotWebApp.BelotClasses
 
                 if (game.Spectators.Count + game.Players.Count(p => p.IsHuman && !p.IsDisconnected) == 0)
                 {
-                    games.Remove(game);
+                    _gameRegistry.RemoveGame(game.RoomId);
                     game.IsRunning = false;
                     game.CloseLog();
                 }
@@ -972,7 +975,7 @@ namespace BelotWebApp.BelotClasses
 
             allConnections.Remove(Context.ConnectionId);
             log?.Information("Leaving OnDisconnected.");
-            if (games.Count == 0)
+            if (!_gameRegistry.GamesOngoing())
             {
                 log?.Dispose();
                 log = null;
