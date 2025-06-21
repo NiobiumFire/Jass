@@ -1,29 +1,39 @@
-﻿using System.Collections.Concurrent;
+﻿using BelotWebApp.BelotClasses.Observers;
+using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
 
 namespace BelotWebApp.BelotClasses
 {
     public class BelotGameRegistry
     {
-        private readonly ConcurrentDictionary<string, BelotGame> _games = new();
+        private readonly ConcurrentDictionary<string, BelotGameContext> _contexts = new();
 
-        public BelotGame? GetGame(string roomId)
+        public BelotGameContext? GetContext(string roomId)
         {
-            _games.TryGetValue(roomId, out var game);
-            return game;
+            _contexts.TryGetValue(roomId, out var context);
+            return context;
         }
 
-        public void AddGame(string roomId, BelotGame game)
+        public void AddContext(string roomId, BelotGameContext context)
         {
-            _games[roomId] = game;
+            _contexts[roomId] = context;
         }
 
-        public void RemoveGame(string roomId)
+        public void RemoveContext(string roomId)
         {
-            _games.TryRemove(roomId, out _);
+            _contexts.TryRemove(roomId, out _);
         }
 
-        public IEnumerable<BelotGame> GetAllGames() => _games.Values;
+        public void RefreshObserver(string roomId, IHubCallerClients newClients)
+        {
+            if (_contexts.TryGetValue(roomId, out var context) && context.Observer is LiveBelotObserver liveObserver)
+            {
+                liveObserver.UpdateClients(newClients);
+            }
+        }
 
-        public bool GamesOngoing() => !_games.IsEmpty;
+        public IEnumerable<BelotGame> GetAllGames() => _contexts.Values.Select(g => g.Game);
+
+        public bool GamesOngoing() => !_contexts.IsEmpty;
     }
 }

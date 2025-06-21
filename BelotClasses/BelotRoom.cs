@@ -1,6 +1,7 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
+using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Players;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
@@ -13,10 +14,11 @@ namespace BelotWebApp.BelotClasses
 
         public static Dictionary<string, string> allConnections = [];
 
-        public static readonly int scoreTarget = 1501;
         public static readonly string botGUID = "7eae0694-38c9-48c0-9016-40e7d9ab962c";
 
         public static Serilog.Core.Logger log;// = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
+
+        #region Game Loop Continuation
 
         public BelotRoom(IConfiguration config, BelotGameRegistry gameRegistry)
         {
@@ -25,491 +27,194 @@ namespace BelotWebApp.BelotClasses
             //log?.Information("Creating new Chat Room");
         }
 
-        // -------------------- Main --------------------
-
-        public async Task HubGameController() // called by client
+        public Task HubGameController() // called by client
         {
-            BelotGame game = GetGame();
-            GameController(game, Clients);
+            log?.Information("[HubGameController] enter");
+
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[HubGameController] GameContext/Game/Observer was null");
+                return Task.CompletedTask;
+            }
+
+            BelotGameEngine engine = new(gameContext.Game, gameContext.Observer);
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await engine.GameController();
+                }
+                catch (Exception ex)
+                {
+                    log?.Error($"[HubGameController] Unhandled exception: {ex}");
+                }
+            });
+
+            log?.Information("[HubGameController] exit");
+
+            return Task.CompletedTask;
         }
 
-        public async Task GameController(BelotGame game, IHubCallerClients clients)
+        public Task HubShuffle() // called by client
         {
-            log?.Information("Entering GameController.");
+            log?.Information("[HubShuffle] enter");
 
-            var group = clients.Group(game.RoomId);
-            if (game.IsNewGame)
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
             {
-                game.IsNewGame = false;
-                await group.SendAsync("HideDeck", true);
-                await group.SendAsync("DisableNewGame");
-                await group.SendAsync("CloseModalsAndButtons");
-                await group.SendAsync("DisableRadios");
-                game.NewGame();
-                await group.SendAsync("NewGame", game.GameId); // reset score table (offcanvas), reset score totals (card table), hide winner markers, set game id
-            }
-            while (game.IsRunning && ((game.EWTotal < scoreTarget && game.NSTotal < scoreTarget) || game.EWTotal == game.NSTotal || game.Capot) && !game.WaitDeal && !game.WaitCall & !game.WaitCard)
-            {
-                await RoundController(game, clients);
+                log?.Warning("[HubShuffle] GameContext/Game/Observer was null");
+                return Task.CompletedTask;
             }
 
-            if (!game.WaitDeal && !game.WaitCall & !game.WaitCard)
+            BelotGameEngine engine = new(gameContext.Game, gameContext.Observer);
+
+            gameContext.Game.WaitDeal = false;
+
+            _ = Task.Run(async () =>
             {
-                game.RecordGameEnd();
-                await EndGame(game, clients);
-            }
-            log?.Information("Leaving GameController.");
+                try
+                {
+                    await engine.GameController();
+                }
+                catch (Exception ex)
+                {
+                    log?.Error($"[HubShuffle] Unhandled exception: {ex}");
+                }
+            });
+
+            log?.Information("[HubShuffle] exit");
+
+            return Task.CompletedTask;
         }
-
-        public async Task RoundController(BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering RoundController.");
-
-            var group = clients.Group(game.RoomId);
-
-            if (game.IsNewRound)
-            {
-                game.IsNewRound = false;
-                game.NewRound();
-                await group.SendAsync("SetTurnIndicator", game.Turn); // show dealer
-                await group.SendAsync("SetDealerMarker", game.Turn);
-                await group.SendAsync("NewRound"); // reset table, reset board, disable cards, reset suit selection 
-                if (game.Players[game.Turn].IsHuman)
-                {
-                    game.WaitDeal = true;
-                    await clients.Client(game.Players[game.Turn].ConnectionId).SendAsync("EnableDealBtn");
-                    return;
-                }
-                else
-                {
-                    await Task.Delay(game.BotDelay);
-                }
-            }
-
-            if (!game.WaitDeal && game.CardsDealt == 0)
-            {
-                game.Shuffle();
-                game.Deal(5);
-                for (int i = 0; i < 4; i++)
-                {
-                    if (game.Players[i].IsHuman)
-                    {
-                        await clients.Client(game.Players[i].ConnectionId).SendAsync("Deal", game.Hand[i]);
-                        await clients.Client(game.Players[i].ConnectionId).SendAsync("RotateCards");
-                    }
-                }
-            }
-
-            if (game.NumCardsPlayed == 0)
-            {
-                while (game.IsRunning && !game.SuitDecided() && !game.WaitCall)
-                {
-                    await group.SendAsync("SetTurnIndicator", game.Turn);
-                    await CallController(game, clients);
-                }
-            }
-
-            if (game.RoundCall == Call.Pass && !game.WaitCall)
-            {
-                await SysAnnounce("No suit chosen.", game, clients);
-                game.IsNewRound = true;
-            }
-            else if (game.RoundCall == Call.FiveUnderNine)
-            {
-                game.IsNewRound = true;
-            }
-            else if (game.RoundCall != 0 && !game.WaitCall)
-            {
-                if (game.NumCardsPlayed == 0)
-                {
-                    await SysAnnounce("The round will be played in " + BelotHelpers.GetSuitNameFromNumber(game.RoundCall) + ".", game, clients);
-                    game.Turn = game.FirstPlayer;
-                    await group.SendAsync("SetTurnIndicator", game.Turn);
-                    game.Deal(3);
-                    for (int i = 0; i < 4; i++)
-                    {
-                        if (game.Players[i].IsHuman)
-                        {
-                            await clients.Client(game.Players[i].ConnectionId).SendAsync("Deal", game.Hand[i]);
-                            await clients.Client(game.Players[i].ConnectionId).SendAsync("RotateCards");
-                        }
-                    }
-                    if (game.RoundCall != Call.NoTrumps)
-                    {
-                        game.FindCarres();
-                        game.FindRuns();
-                        game.FindBelots();
-                    }
-                }
-                while (game.IsRunning && game.NumCardsPlayed < 32 && !game.WaitCard)
-                {
-                    await group.SendAsync("SetTurnIndicator", game.Turn);
-                    await TrickController(game, clients);
-                }
-                if (game.NumCardsPlayed == 32)
-                {
-                    await group.SendAsync("NewRound");
-                    await SysAnnounce(game.FinalisePoints(), game, clients);
-                    game.ScoreHistory.Add([game.EWRoundPoints, game.NSRoundPoints]);
-                    await group.SendAsync("AppendScoreHistory", game.EWRoundPoints, game.NSRoundPoints);
-                    await group.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal);
-                    await group.SendAsync("ShowRoundSummary", game.TrickPoints, game.DeclarationPoints, game.BelotPoints, game.Result, game.EWRoundPoints, game.NSRoundPoints);
-                    await Task.Delay(game.RoundSummaryDelay);
-                    await group.SendAsync("HideRoundSummary");
-                    game.IsNewRound = true;
-                    game.RecordTrickEnd();
-                }
-            }
-            log?.Information("Leaving RoundController.");
-        }
-
-        public async Task CallController(BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering CallController.");
-
-            int[] validCalls = game.ValidCalls();
-            if (validCalls.Sum() == 0)
-            {
-                game.NominateSuit(0); // auto-pass
-                await AnnounceSuit(game, clients);
-                if (--game.Turn == -1) game.Turn = 3;
-            }
-            else if (game.Players[game.Turn].IsHuman)
-            {
-                bool fiveUnderNine = game.Calls.Count < 4 && BelotHelpers.FiveUnderNine(game.Hand[game.Turn]);
-                await clients.Client(game.Players[game.Turn].ConnectionId).SendAsync("ShowSuitModal", validCalls, fiveUnderNine);
-                game.WaitCall = true;
-            }
-            else // bot
-            {
-                game.NominateSuit(AgentBasic.CallSuit(game.Hand[game.Turn], validCalls));
-                await AnnounceSuit(game, clients);
-                if (--game.Turn == -1) game.Turn = 3;
-            }
-            log?.Information("Leaving CallController.");
-        }
-
-        public async Task TrickController(BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering TrickController.");
-
-            var group = clients.Group(game.RoomId);
-
-            while (game.TableCards.Count(c => !c.IsNull()) < 4 && !game.WaitCard)
-            {
-                if (game.Hand[game.Turn].Count(c => !c.Played) == 1) // auto-play last card
-                {
-                    if (game.Players[game.Turn].IsHuman)
-                    {
-                        await clients.Client(game.Players[game.Turn].ConnectionId).SendAsync("PlayFinalCard");
-                    }
-                    game.PlayCard(game.Hand[game.Turn].FirstOrDefault(c => !c.Played)); // no extra declaration is possible on last card -> skip straight to PlayCardRequest
-                    game.RecordCardPlayed([]);
-                    await CardPlayEnd(game, clients);
-                    continue;
-                }
-                int[] validCards = game.ValidCards();
-                if (game.Players[game.Turn].IsHuman)
-                {
-                    game.WaitCard = true;
-                    if (game.TableCards.All(c => c.IsNull()))
-                    {
-                        if (game.GetWinners(game.Turn).Count(w => w == 2) == game.Hand[game.Turn].Count(c => !c.Played) && game.NumCardsPlayed > 3)
-                        {
-                            await clients.Client(game.Players[game.Turn].ConnectionId).SendAsync("ShowThrowBtn");
-                        }
-                    }
-                    await clients.Client(game.Players[game.Turn].ConnectionId).SendAsync("EnableCards", validCards);
-                    // once a card is clicked, declarable extras are calculated in hub method, human selects and declares extras, then the card is played and game loop reinitiates
-                }
-                else
-                {
-                    var card = AgentBasic.SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.TableCards, game.Turn, game.DetermineWinner(), game.RoundCall, game.TrickSuit, game.EWCalled, game.Caller);
-
-                    game.PlayCard(card);
-
-                    List<string> emotes = [];
-
-                    if (game.RoundCall != Call.NoTrumps)
-                    {
-                        List<Declaration> declaredDeclarations = [];
-                        foreach (var declaration in game.Declarations.Where(d => d.Player == game.Turn && (d is not Run run || run.IsValid) && d.IsDeclarable))
-                        {
-                            declaration.Declared = true;
-                            declaredDeclarations.Add(declaration);
-                        }
-
-                        emotes = await AnnounceExtras(declaredDeclarations, game, clients);
-                    }
-
-                    game.RecordCardPlayed(emotes);
-                    await CardPlayEnd(game, clients);
-                }
-            }
-            if (!game.WaitCard) // trick end
-            {
-                int winner = game.DetermineWinner();
-                if (winner == 0 || winner == 2)
-                {
-                    game.EWRoundPoints += game.CalculateTrickPoints();
-                    game.EWWonATrick = true;
-                }
-                else
-                {
-                    game.NSRoundPoints += game.CalculateTrickPoints();
-                    game.NSWonATrick = true;
-                }
-
-                await group.SendAsync("ShowTrickWinner", winner);
-                await Task.Delay(1000);
-
-                if (game.NumCardsPlayed < 32)
-                {
-                    await group.SendAsync("ResetTable");
-                    game.Turn = winner;
-                    game.RecordTrickEnd();
-                    game.TableCards = [new(), new(), new(), new()];
-                }
-                game.HighestTrumpInTrick = 0;
-                game.TrickSuit = null;
-            }
-            log?.Information("Leaving TrickController.");
-        }
-
-        // -------------------- Reset --------------------
-
-        public async Task EndGame(BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering EndGame.");
-
-            var group = clients.Group(game.RoomId);
-
-            string winner = game.EWTotal > game.NSTotal ? "E/W" : "N/S";
-
-            await SysAnnounce(winner + " win the game: " + game.EWTotal + " to " + game.NSTotal + ".", game, clients);
-
-            await group.SendAsync("SetDealerMarker", 4);
-            await group.SendAsync("NewRound");
-            await group.SendAsync("SetTurnIndicator", 4);
-            // animation and modal to indicate winning team?
-            if (game.EWTotal > game.NSTotal)
-            {
-                await group.SendAsync("ShowGameWinner", 0);
-                await group.SendAsync("ShowGameWinner", 2);
-            }
-            else
-            {
-                await group.SendAsync("ShowGameWinner", 1);
-                await group.SendAsync("ShowGameWinner", 3);
-            }
-            await group.SendAsync("EnableNewGame");
-            await group.SendAsync("EnableRadios");
-            game.IsNewGame = true;
-            game.CloseLog();
-            log?.Information("Leaving EndGame.");
-        }
-
-        // -------------------- Setup --------------------
-
-        public void HubShuffle() // called by client
-        {
-            log?.Information("Entering HubShuffle.");
-
-            BelotGame game = GetGame();
-            var clients = Clients;
-
-            game.WaitDeal = false;
-            GameController(game, clients);
-
-            log?.Information("Leaving HubShuffle.");
-        }
-
-        // -------------------- Suit Nomination --------------------
 
         public async Task HubNominateSuit(Call call) // called by client
         {
-            log?.Information("Entering HubNominateSuit.");
-            BelotGame game = GetGame();
-            var clients = Clients;
+            log?.Information("[HubNominateSuit] enter");
 
-            game.NominateSuit(call);
-
-            // this method is only called by human interaction with the html elements
-            game.WaitCall = false;
-            await AnnounceSuit(game, clients);
-            if (--game.Turn == -1) game.Turn = 3;
-            GameController(game, clients);
-            log?.Information("Leaving HubNominateSuit.");
-        }
-
-        public async Task AnnounceSuit(BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering AnnounceSuit.");
-
-            var group = clients.Group(game.RoomId);
-
-            string username = GetDisplayName(game);
-
-            string message = username;
-
-            Call call = game.Calls[^1];
-
-            if (call == Call.Pass)
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
             {
-                message += " passed.";
-            }
-            else
-            {
-                await group.SendAsync("SuitNominated", call);
-                await group.SendAsync("setCallerIndicator", game.Turn);
-
-                if (call == Call.Double)
-                {
-                    message += " doubled!";
-                }
-                else if (call == Call.Redouble)
-                {
-                    message += " redoubled!!";
-                }
-                else if (call == Call.FiveUnderNine)
-                {
-                    message += " called five-under-nine.";
-                }
-                else
-                {
-                    message += " called " + BelotHelpers.GetSuitNameFromNumber(call) + ".";
-                }
+                log?.Warning("[HubNominateSuit] GameContext/Game/Observer was null");
+                return;
             }
 
-            await SysAnnounce(message, game, clients);
-            await group.SendAsync("EmoteSuit", call, game.Turn);
-            await Emote(game.Turn, game.BotDelay, game, clients);
-            log?.Information("Leaving AnnounceSuit.");
+            BelotGameEngine engine = new(gameContext.Game, gameContext.Observer);
+
+            gameContext.Game.NominateSuit(call);
+            gameContext.Game.WaitCall = false;
+            if (gameContext.Observer is LiveBelotObserver live)
+            {
+                await live.AnnounceSuit();
+            }
+            if (--gameContext.Game.Turn == -1) gameContext.Game.Turn = 3;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await engine.GameController();
+                }
+                catch (Exception ex)
+                {
+                    log?.Error($"[HubNominateSuit] Unhandled exception: {ex}");
+                }
+            });
+
+            log?.Information("[HubNominateSuit] exit");
+
+            return;
         }
-
-        // -------------------- Card Validation --------------------
-
-        // -------------------- Gameplay --------------------
 
         public async Task HubPlayCard(Card card) // called by client
         {
-            log?.Information("Entering HubPlayCard.");
+            log?.Information("[HubPlayCard] enter");
 
-            BelotGame game = GetGame();
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[HubPlayCard] GameContext/Game/Observer was null");
+                return;
+            }
+
+            var game = gameContext.Game;
             var clients = Clients;
 
-            game.PlayCard(card);
-            await clients.Caller.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
+            BelotGameEngine engine = new(game, gameContext.Observer);
 
+            gameContext.Game.PlayCard(card);
+            await clients.Caller.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
             await clients.Caller.SendAsync("DeclareExtras", game.Declarations.Where(d => d.Player == game.Turn && d.IsDeclarable));
 
-            log?.Information("Leaving HubPlayCard.");
-        }
-
-        public async Task CardPlayEnd(BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering CardPlayEnd.");
-
-            var group = clients.Group(game.RoomId);
-
-            await group.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
-            await Task.Delay(game.BotDelay);
-            if (game.NumCardsPlayed % 4 != 0 && --game.Turn == -1)
-            {
-                game.Turn = 3;
-            }
-            if (game.NumCardsPlayed < 32)
-            {
-                group.SendAsync("SetTurnIndicator", game.Turn);
-            }
-            log?.Information("Leaving CardPlayEnd.");
+            log?.Information("[HubPlayCard] exit");
         }
 
         public async Task HubExtrasDeclared(List<Declaration> declarations) // called by client
         {
-            log?.Information("Entering HubExtrasDeclared.");
+            log?.Information("[HubExtrasDeclared] enter");
 
-            BelotGame game = GetGame();
-            var clients = Clients;
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[HubExtrasDeclared] GameContext/Game/Observer was null");
+                return;
+            }
 
-            var validDeclarations = declarations.Where(d => d != null);
+            var game = gameContext.Game;
 
+            BelotGameEngine engine = new(game, gameContext.Observer);
+
+            var validDeclarations = declarations?.Where(d => d != null) ?? [];
+
+            List<string> messages = [];
             List<string> emotes = [];
 
             if (game.RoundCall != Call.NoTrumps)
             {
                 var declaredDeclarations = game.DeclareDeclarations(validDeclarations);
-                emotes = await AnnounceExtras(declaredDeclarations, game, clients);
+                (messages, emotes) = BelotHelpers.GetDeclarationMessagesAndEmotes(declaredDeclarations, game);
+
+                if (gameContext.Observer is LiveBelotObserver live)
+                {
+                    await live.OnDeclaration(messages, emotes);
+                }
             }
 
             game.RecordCardPlayed(emotes);
-            await CardPlayEnd(game, clients);
+            await engine.CardPlayEnd();
             game.WaitCard = false;
-            GameController(game, clients);
 
-            log?.Information("Leaving HubExtrasDeclared.");
-        }
-
-        public async Task<List<string>> AnnounceExtras(List<Declaration> declarations, BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering AnnounceExtras.");
-
-            List<string> emotes = [];
-
-            foreach (var declaration in declarations.OfType<Belot>())
+            _ = Task.Run(async () =>
             {
-                await SysAnnounce(game.GetDisplayName(game.Turn) + " called a Belot.", game, clients);
-                emotes.Add("Belot");
-            }
-            foreach (var declaration in declarations.OfType<Carre>())
-            {
-                await SysAnnounce(game.GetDisplayName(game.Turn) + " called a Carre.", game, clients);
-                emotes.Add("Carre");
-            }
-            foreach (var declaration in declarations.OfType<Run>())
-            {
-                string runName = BelotHelpers.GetRunNameFromLength(declaration.Length);
-                await SysAnnounce(game.GetDisplayName(game.Turn) + " called a " + runName + ".", game, clients);
-                emotes.Add(runName);
-            }
-
-            if (emotes.Count > 0)
-            {
-                emotes = emotes.OrderBy(i =>
+                try
                 {
-                    int index = BelotHelpers.declarationDisplayOrder.IndexOf(i);
-                    return index == -1 ? int.MaxValue : BelotHelpers.declarationDisplayOrder.IndexOf(i);
-                }).ToList();
+                    await engine.GameController();
+                }
+                catch (Exception ex)
+                {
+                    log?.Error($"[HubExtrasDeclared] Unhandled exception: {ex}");
+                }
+            });
 
-                await clients.Group(game.RoomId).SendAsync("SetExtrasEmote", emotes, game.Turn);
-                await Emote(game.Turn, game.BotDelay, game, clients);
-            }
-
-            log?.Information("Leaving AnnounceExtras.");
-
-            return emotes;
-        }
-
-        public async Task Emote(int seat, int duration, BelotGame game, IHubCallerClients clients)
-        {
-            log?.Information("Entering Emote.");
-
-            var group = clients.Group(game.RoomId);
-
-            await group.SendAsync("ShowEmote", seat);
-            await Task.Delay(duration);
-            await group.SendAsync("HideEmote", seat);
-
-            log?.Information("Leaving Emote.");
+            log?.Information("[HubExtrasDeclared] exit");
         }
 
         public async Task HubThrowCards() // called by client
         {
-            log?.Information("Entering ThrowCards.");
+            log?.Information("[HubThrowCards] enter");
 
-            BelotGame game = GetGame();
-            var clients = Clients;
-            var group = clients.Group(game.RoomId);
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[HubThrowCards] GameContext/Game/Observer was null");
+                return;
+            }
+
+            var game = gameContext.Game;
+            var group = Clients.Group(game.RoomId);
+
+            BelotGameEngine engine = new(game, gameContext.Observer);
 
             int points = 10; // stoch
 
@@ -542,24 +247,41 @@ namespace BelotWebApp.BelotClasses
             await Task.Delay(5000);
             await group.SendAsync("CloseThrowModal");
 
-            GameController(game, clients);
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await engine.GameController();
+                }
+                catch (Exception ex)
+                {
+                    log?.Error($"[HubThrowCards] Unhandled exception: {ex}");
+                }
+            });
 
-            log?.Information("Leaving ThrowCards.");
+            log?.Information("[HubThrowCards] exit");
         }
+
+        #endregion
 
         #region Seat Management
 
         public async Task HubBookSeat(int position) // called by client // 0 = W, 1 = N, 2 = E, 3 = S, 4-7 = Robot, 8 = vacate
         {
-            log?.Information("Entering BookSeat.");
+            log?.Information("[HubBookSeat] enter");
 
-            BelotGame game = GetGame();
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[HubBookSeat] GameContext/Game/Observer was null");
+                return;
+            }
+
+            var game = gameContext.Game;
             var clients = Clients;
+            var group = Clients.Group(game.RoomId);
 
-            var roomId = game.RoomId;
-            var group = clients.Group(roomId);
-
-            string[] seat = ["West", "North", "East", "South"];
+            string[] seats = ["West", "North", "East", "South"];
 
             string requestor = GetCallerUsername();
 
@@ -575,7 +297,11 @@ namespace BelotWebApp.BelotClasses
                     occupier = game.Players[position].Username;
                 }
 
-                if ((occupier == "" || occupier == botGUID) && position < 4) // empty seat or bot-occupied requested by human
+                var isBot = occupier == botGUID;
+                var isEmpty = string.IsNullOrEmpty(occupier);
+                var isSelf = occupier == requestor;
+
+                if ((isEmpty || isBot) && position < 4) // empty seat or bot-occupied requested by human
                 {
                     await UnbookSeat(game, clients);
                     var spectator = game.Spectators.FirstOrDefault(s => s.Username == requestor);
@@ -585,21 +311,21 @@ namespace BelotWebApp.BelotClasses
                     }
                     game.Players[position] = new Player(requestor, Context.ConnectionId, true);
                     await UpdateConnectedUsers(game, clients);
-                    await clients.OthersInGroup(roomId).SendAsync("seatBooked", position, requestor, false);
+                    await clients.OthersInGroup(game.RoomId).SendAsync("seatBooked", position, requestor, false);
                     await clients.Caller.SendAsync("seatBooked", position, requestor, true);
                     await clients.Caller.SendAsync("enableRotation", true);
                     string[] scoreSummary = { "Us", "Them" };
                     await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(position + 1) % 2], scoreSummary[position % 2]);
 
-                    await clients.OthersInGroup(roomId).SendAsync("EnableSeatOptions", position, false);
+                    await clients.OthersInGroup(game.RoomId).SendAsync("EnableSeatOptions", position, false);
                     await group.SendAsync("EnableOccupySeat", position, false);
-                    await clients.OthersInGroup(roomId).SendAsync("EnableAssignBotToSeat", position, false);
+                    await clients.OthersInGroup(game.RoomId).SendAsync("EnableAssignBotToSeat", position, false);
                     await clients.Caller.SendAsync("EnableAssignBotToSeat", position, true);
                     await clients.Caller.SendAsync("EnableVacateSeat", position, true);
 
                     await group.SendAsync("SetBotBadge", position, false);
                 }
-                else if (occupier == "" && position > 3) // empty seat requested by bot
+                else if (isEmpty && position > 3) // empty seat requested by bot
                 {
                     position -= 4;
                     string botName = GetBotName(position);
@@ -611,7 +337,7 @@ namespace BelotWebApp.BelotClasses
                     await clients.Caller.SendAsync("EnableVacateSeat", position, false);
                 }
                 // if bot occupied seat requested by bot -> do nothing
-                else if (occupier == requestor && position > 3) // human assigns bot to his own occupied seat
+                else if (isSelf && position > 3) // human assigns bot to his own occupied seat
                 {
                     position -= 4;
                     string botName = GetBotName(position);
@@ -625,7 +351,7 @@ namespace BelotWebApp.BelotClasses
                     await group.SendAsync("EnableAssignBotToSeat", position, false);
                 }
                 // if human tries to occupy his own seat, do nothing
-                else if (occupier != "" && occupier != botGUID && occupier != requestor) // human-occupied seat is requested by another human or by a bot on behalf of another human
+                else if (!isEmpty && !isBot && !isSelf) // human-occupied seat is requested by another human or by a bot on behalf of another human
                 {
                     await clients.Caller.SendAsync("SeatAlreadyBooked", occupier);
                 }
@@ -645,12 +371,12 @@ namespace BelotWebApp.BelotClasses
                 }
             }
 
-            log?.Information("Leaving BookSeat.");
+            log?.Information("[HubBookSeat] exit");
         }
 
-        public async Task UnbookSeat(BelotGame game, IHubCallerClients clients)
+        private async Task UnbookSeat(BelotGame game, IHubCallerClients clients)
         {
-            log?.Information("Entering UnbookSeat.");
+            log?.Information("[UnbookSeat] enter");
             var group = clients.Group(game.RoomId);
             string username = GetCallerUsername();
 
@@ -677,32 +403,39 @@ namespace BelotWebApp.BelotClasses
             }
 
             await UpdateConnectedUsers(game, clients);
-            log?.Information("Leaving UnbookSeat.");
+            log?.Information("[UnbookSeat] exit");
         }
 
         #endregion
 
-        // -------------------- Messaging & Alerts --------------------
+        #region Messaging
 
-        public string MsgHead()
+        private string MsgHead()
         {
             return GetServerDateTime() + ", " + GetCallerUsername();
         }
 
         public async void HubAnnounce(string message) // called by client
         {
-            BelotGame game = GetGame();
-            var group = Clients.Group(game.RoomId);
+            log?.Information("[HubAnnounce] enter");
+
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[HubBookSeat] GameContext/Game/Observer was null");
+                return;
+            }
+
+            var group = Clients.Group(gameContext.Game.RoomId);
             await group.SendAsync("Announce", MsgHead() + " >> " + message);
             await group.SendAsync("showChatNotification");
+
+            log?.Information("[HubAnnounce] exit");
         }
 
-        public async Task SysAnnounce(string message, BelotGame game, IHubCallerClients clients)
-        {
-            await clients.Group(game.RoomId).SendAsync("Announce", GetServerDateTime() + " >> " + message);
-        }
+        #endregion
 
-        // -------------------- Get Stuff --------------------
+        #region Helpers
 
         public string GetServerDateTime()
         {
@@ -740,16 +473,18 @@ namespace BelotWebApp.BelotClasses
             }
         }
 
-        public BelotGame? GetGame()
+        private BelotGameContext? GetGameContext()
         {
             if (!allConnections.TryGetValue(Context.ConnectionId, out string? roomId))
             {
                 return null;
             }
-            return _gameRegistry.GetGame(roomId);
+            return _gameRegistry.GetContext(roomId);
         }
 
-        // -------------------- Connection --------------------
+        #endregion
+
+        #region Connection
 
         public async Task UpdateConnectedUsers(BelotGame game, IHubCallerClients clients)
         {
@@ -791,7 +526,7 @@ namespace BelotWebApp.BelotClasses
                 // Update table cards
                 if (!game.IsNewGame)
                 {
-                    clients.Caller.SendAsync("SetTableCard", i, game.TableCards[i]);
+                    await clients.Caller.SendAsync("SetTableCard", i, game.TableCards[i]);
                 }
             }
 
@@ -882,16 +617,35 @@ namespace BelotWebApp.BelotClasses
 
         public override async Task OnConnectedAsync()
         {
-            log?.Information("Entering OnConnected.");
+            log?.Information("[OnConnected] enter");
 
-            var roomId = Context.GetHttpContext().GetRouteValue("roomId") as string;
+            if (Context?.GetHttpContext()?.GetRouteValue("roomId") is not string roomId)
+            {
+                log?.Warning("[OnConnected] roomId was null");
+                return;
+            }
 
             allConnections.Add(Context.ConnectionId, roomId);
-
-            BelotGame game = GetGame();
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
             var clients = Clients;
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null)
+            {
+                log?.Warning("[OnConnected] GameContext/Game was null");
+                return;
+            }
+
+            if (gameContext.Observer == null)
+            {
+                gameContext.Observer = new LiveBelotObserver(gameContext.Game, Clients);
+            }
+            else
+            {
+                _gameRegistry.RefreshObserver(roomId, Clients);
+            }
+
+            BelotGame game = gameContext.Game;
 
             string username = GetCallerUsername();
             var player = game.Players?.FirstOrDefault(p => p.Username == username);
@@ -908,20 +662,31 @@ namespace BelotWebApp.BelotClasses
             }
             await UpdateConnectedUsers(game, clients);
 
-            await SysAnnounce(username + " connected.", game, clients);
+            if (gameContext.Observer is LiveBelotObserver liveObserver)
+            {
+                await liveObserver.SysAnnounce(username + " connected.");
+            }
+
             log?.Information(username + " Connected.");
 
             await LoadContext(game, clients);
 
-            log?.Information("Leaving OnConnected.");
+            log?.Information("[OnConnected] exit");
             await base.OnConnectedAsync();
         }
 
         public async override Task OnDisconnectedAsync(Exception? ex)
         {
-            log?.Information("Entering OnDisconnected.");
+            log?.Information("[OnDisconnected] enter");
 
-            BelotGame game = GetGame();
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[OnDisconnected] GameContext/Game/Observer was null");
+                return;
+            }
+
+            BelotGame game = gameContext.Game;
             var clients = Clients;
 
             string username = GetCallerUsername();
@@ -931,6 +696,11 @@ namespace BelotWebApp.BelotClasses
             if (spectator != null)
             {
                 game.Spectators.Remove(spectator);
+                await UpdateConnectedUsers(game, clients);
+                if (gameContext.Observer is LiveBelotObserver live)
+                {
+                    await live.SysAnnounce(username + " disconnected.");
+                }
                 playerReallyDisconnected = true;
             }
             else
@@ -940,13 +710,16 @@ namespace BelotWebApp.BelotClasses
                 if (player != null && player.ConnectionId == Context.ConnectionId) // player has not reconnected, connectionId is stale
                 {
                     await UnbookSeat(game, clients); // this will mark them as disconnected
-                    await SysAnnounce(username + " disconnected.", game, clients);
-                    log?.Information($"{username} marked as disconnected after delay.");
+                    if (gameContext.Observer is LiveBelotObserver live)
+                    {
+                        await live.SysAnnounce(username + " disconnected.");
+                    }
+                    log?.Information($"[OnDisconnected] {username} disconnected after delay.");
                     playerReallyDisconnected = true;
                 }
                 else // player reconnected, don't proceed with disconnection
                 {
-                    log?.Information($"{username} reconnected before disconnect cleanup.");
+                    log?.Information($"[OnDisconnected] {username} reconnected before disconnect cleanup.");
                 }
 
             }
@@ -967,14 +740,18 @@ namespace BelotWebApp.BelotClasses
 
                 if (game.Spectators.Count + game.Players.Count(p => p.IsHuman && !p.IsDisconnected) == 0)
                 {
-                    _gameRegistry.RemoveGame(game.RoomId);
+                    _gameRegistry.RemoveContext(game.RoomId);
                     game.IsRunning = false;
                     game.CloseLog();
                 }
             }
 
             allConnections.Remove(Context.ConnectionId);
-            log?.Information("Leaving OnDisconnected.");
+
+            _gameRegistry.RefreshObserver(game.RoomId, Clients);
+
+            log?.Information("[OnDisconnected] exit");
+
             if (!_gameRegistry.GamesOngoing())
             {
                 log?.Dispose();
@@ -983,5 +760,10 @@ namespace BelotWebApp.BelotClasses
 
             await base.OnDisconnectedAsync(ex);
         }
+
+        #endregion
     }
 }
+
+// when human to deal, nominate suit modal is shown before dealing
+// agent still console logging for the play decisions they make

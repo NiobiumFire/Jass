@@ -19,6 +19,8 @@ namespace BelotWebApp.BelotClasses
             LogPath = logPath;
         }
 
+        public static readonly int scoreTarget = 1501;
+
         public string RoomId { get; set; }
         public string GameId { get; set; } = "";
         public Player[] Players { get; set; }
@@ -140,7 +142,10 @@ namespace BelotWebApp.BelotClasses
             for (int i = 0; i < suits.Length * ranks.Length; i++)
             {
                 int p;
-                lock (rnd) p = rnd.Next(masterDeck.Count);
+                lock (rnd)
+                {
+                    p = rnd.Next(masterDeck.Count);
+                }
                 Deck.Add(masterDeck[p]);
                 masterDeck.RemoveAt(p);
             }
@@ -1074,10 +1079,6 @@ namespace BelotWebApp.BelotClasses
 
         private void ApplyDiff(BelotStateDiff diff)
         {
-            List<Card?>? TableCards;
-            List<Card?>?[]? Hand;
-            bool? ShowTrickWinner;
-
             if (diff.Scores != null)
             {
                 ReplayState.Scores = diff.Scores;

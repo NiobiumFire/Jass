@@ -24,7 +24,8 @@ namespace BelotWebApp.Controllers
             if (creator != null)
             {
                 string id = Guid.NewGuid().ToString();
-                _gameRegistry.AddGame(id, new BelotGame([new(), new(), new(), new()], id, _config.GetSection("SerilogPath:Path").Value));
+                var game = new BelotGame([new(), new(), new(), new()], id, _config.GetSection("SerilogPath:Path").Value);
+                _gameRegistry.AddContext(id, new(game, null));
                 return RedirectToAction("Index", new { id });
             }
             return RedirectToAction("Index", "Home");
@@ -33,7 +34,7 @@ namespace BelotWebApp.Controllers
         // GET: Room
         public ActionResult Index(string id)
         {
-            var game = _gameRegistry.GetGame(id);
+            var game = _gameRegistry.GetContext(id);
             if (game != null)
             {
                 ViewData["roomId"] = id;

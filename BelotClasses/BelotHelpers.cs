@@ -1,4 +1,7 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
+using BelotWebApp.BelotClasses.Declarations;
+using Microsoft.AspNetCore.SignalR;
+using Serilog;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -39,32 +42,11 @@ namespace BelotWebApp.BelotClasses
             };
         }
 
-        //public static int GetSuitNumberFromName(string suit)
-        //{
-        //    string[] suitNames = { "Clubs", "Diamonds", "Hearts" };
-        //    for (int i = 0; i < 3; i++)
-        //    {
-        //        if (suit == suitNames[i]) return i + 1;
-        //    }
-        //    return 4;
-        //}
-
         public static string GetCardRankFromNumber(Rank rank)
         {
             string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K", "A" };
             return rankNames[(int)rank];
         }
-
-        //public static int GetRankFromChar(string rank)
-        //{
-        //    string[] rankNames = { "7", "8", "9", "10", "J", "Q", "K" };
-        //    for (int i = 0; i < 7; i++)
-        //    {
-        //        if (rank == rankNames[i])
-        //            return i + 6;
-        //    }
-        //    return 13;
-        //}
 
         public static string GetRunNameFromLength(int length)
         {
@@ -80,12 +62,6 @@ namespace BelotWebApp.BelotClasses
             }
             return ((int)suit - 1) * 8 + (int)rank + 1;
         }
-
-        //public static int GetSuitFromCard(string card)
-        //{
-        //    if (card == "c0-00") return 0;
-        //    return Int32.Parse(card.Substring(1, 1));
-        //}
 
         public static int GetCardStrength(Card card, Call roundSuit, Suit? trickSuit)
         {
@@ -138,6 +114,40 @@ namespace BelotWebApp.BelotClasses
         public static bool FiveUnderNine(List<Card> hand)
         {
             return hand.Count(c => c.Rank < Rank.Nine) == 5;
+        }
+
+        public static (List<string>, List<string>) GetDeclarationMessagesAndEmotes(List<Declaration> declarations, BelotGame game)
+        {
+            List<string> messages = [];
+            List<string> emotes = [];
+
+            foreach (var declaration in declarations.OfType<Belot>())
+            {
+                messages.Add(game.GetDisplayName(game.Turn) + " called a Belot.");
+                emotes.Add("Belot");
+            }
+            foreach (var declaration in declarations.OfType<Carre>())
+            {
+                messages.Add(game.GetDisplayName(game.Turn) + " called a Carre.");
+                emotes.Add("Carre");
+            }
+            foreach (var declaration in declarations.OfType<Run>())
+            {
+                string runName = GetRunNameFromLength(declaration.Length);
+                messages.Add(game.GetDisplayName(game.Turn) + " called a " + runName + ".");
+                emotes.Add(runName);
+            }
+
+            if (emotes.Count > 0)
+            {
+                emotes = emotes.OrderBy(i =>
+                {
+                    int index = declarationDisplayOrder.IndexOf(i);
+                    return index == -1 ? int.MaxValue : declarationDisplayOrder.IndexOf(i);
+                }).ToList();
+            }
+
+            return (messages, emotes);
         }
     }
 }
