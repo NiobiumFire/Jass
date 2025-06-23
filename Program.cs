@@ -1,5 +1,6 @@
 using BelotWebApp.Areas.Identity.Data;
 using BelotWebApp.BelotClasses;
+using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.Configuration;
 using BelotWebApp.Data;
 using BelotWebApp.Services.EmailService;
@@ -31,6 +32,10 @@ internal class Program
 
         builder.Services.AddSingleton<BelotGameRegistry>();
 
+        builder.Services.AddSingleton<BelotGameSimulator>();
+
+        builder.Services.AddSingleton<SimulationResult>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -46,67 +51,70 @@ internal class Program
 
         app.UseRouting();
 
-        // Ensure roles exist at startup
-        using (var scope = app.Services.CreateScope())
-        {
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            await EnsureRolesExist(roleManager);
-        }
-
-        // Grant primary admin
-        using (var scope = app.Services.CreateScope())
-        {
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-
-            var username = config["PrimaryAdmin:Username"];
-            var email = config["PrimaryAdmin:Email"];
-            var password = config["PrimaryAdmin:Password"];
-
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
-            {
-                var user = await userManager.FindByNameAsync(username);
-
-                if (user == null)
-                {
-                    user = new ApplicationUser
-                    {
-                        UserName = username,
-                        Email = email,
-                        EmailConfirmed = true
-                    };
-
-                    var createResult = await userManager.CreateAsync(user, password);
-
-                    if (!createResult.Succeeded)
-                    {
-                        var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                        throw new Exception($"Failed to create admin user: {errors}");
-                    }
-                }
-
-                if (!await userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    await userManager.AddToRoleAsync(user, "Admin");
-                }
-            }
-        }
-
-        app.UseAuthentication(); ;
+        app.UseAuthentication();
 
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapHub<BelotRoom>("/belotroom/{roomId}");
-        });
+        app.MapHub<BelotRoom>("/belotroom/{roomId}");
 
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
         app.MapRazorPages();
 
+        // Ensure roles exist at startup
+        await EnsureRolesAsync(app);
+
+        // Grant primary admin
+        await EnsurePrimaryAdminAsync(app);
+
         app.Run();
+    }
+
+    private static async Task EnsureRolesAsync(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        await EnsureRolesExist(roleManager); // Your existing method
+    }
+
+    private static async Task EnsurePrimaryAdminAsync(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+        var username = config["PrimaryAdmin:Username"];
+        var email = config["PrimaryAdmin:Email"];
+        var password = config["PrimaryAdmin:Password"];
+
+        if (!string.IsNullOrWhiteSpace(username) &&
+            !string.IsNullOrWhiteSpace(email) &&
+            !string.IsNullOrWhiteSpace(password))
+        {
+            var user = await userManager.FindByNameAsync(username);
+            if (user == null)
+            {
+                user = new ApplicationUser
+                {
+                    UserName = username,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                var createResult = await userManager.CreateAsync(user, password);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to create admin user: {errors}");
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(user, "Admin"))
+            {
+                await userManager.AddToRoleAsync(user, "Admin");
+            }
+        }
     }
 
     private static async Task EnsureRolesExist(RoleManager<IdentityRole> roleManager)

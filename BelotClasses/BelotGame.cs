@@ -9,7 +9,7 @@ namespace BelotWebApp.BelotClasses
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players, string roomId, string logPath = "")
+        public BelotGame(Player[] players, string roomId, string? logPath = null)
         {
             IsRunning = true;
             Players = players;
@@ -61,7 +61,7 @@ namespace BelotWebApp.BelotClasses
         public bool WaitCall { get; set; }
         public bool WaitCard { get; set; }
         public bool IsRunning { get; set; }
-        public string LogPath { get; set; }
+        public string? LogPath { get; set; }
         public bool RecordReplay { get; set; }
         public BelotStateDiff ReplayState { get; set; }
 
@@ -566,7 +566,7 @@ namespace BelotWebApp.BelotClasses
                 HighestTrumpInTrick = trumpstrength;
             }
 
-            CardsPlayedThisRound.Add(BelotHelpers.GetCardNumber(card));
+            CardsPlayedThisRound.Add(BelotHelpers.GetCardIndex(card));
 
             card.Played = true;
         }
@@ -930,7 +930,7 @@ namespace BelotWebApp.BelotClasses
 
         public string GetDisplayName(int pos)
         {
-            if (Players[pos].IsHuman)
+            if (Players[pos].PlayerType == PlayerType.Human)
             {
                 return Players[pos].Username;
             }

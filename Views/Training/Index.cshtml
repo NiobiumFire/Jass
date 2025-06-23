@@ -1,0 +1,52 @@
+﻿@model BelotWebApp.Models.Training.TrainingConfigViewModel
+
+<h2>AI Training Room</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<form asp-action="Index" method="post">
+    <div class="form-group py-1">
+        <label for="PopulationSize">Population Size</label>
+        <input asp-for="PopulationSize" class="form-control" />
+        <span asp-validation-for="PopulationSize" class="text-danger"></span>
+        <label for="NumGenerations">Number of Simulations</label>
+        <input asp-for="NumGenerations" class="form-control" />
+        <span asp-validation-for="NumGenerations" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Start Training</button>
+</form>
+
+<div id="progress-container">
+    <p>Generation: <span id="gen"></span> / <span id="total"></span></p>
+    <p>Best Fitness: <span id="best"></span></p>
+    <p>Average Fitness: <span id="avg"></span></p>
+</div>
+
+<script>
+    function fetchProgress() {
+        fetch('/Training/GetTrainingProgress')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('gen').innerText = data.currentGeneration;
+                document.getElementById('total').innerText = data.totalGenerations;
+                document.getElementById('best').innerText = data.bestFitness.toFixed(2);
+                document.getElementById('avg').innerText = data.averageFitness.toFixed(2);
+
+                if (!data.isComplete) {
+                    setTimeout(fetchProgress, 2000);
+                }
+            });
+    }
+
+    fetchProgress();
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

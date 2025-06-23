@@ -309,7 +309,7 @@ namespace BelotWebApp.BelotClasses
                     {
                         game.Spectators.Remove(spectator);
                     }
-                    game.Players[position] = new Player(requestor, Context.ConnectionId, true);
+                    game.Players[position] = new Player(requestor, Context.ConnectionId, PlayerType.Human);
                     await UpdateConnectedUsers(game, clients);
                     await clients.OthersInGroup(game.RoomId).SendAsync("seatBooked", position, requestor, false);
                     await clients.Caller.SendAsync("seatBooked", position, requestor, true);
@@ -329,7 +329,7 @@ namespace BelotWebApp.BelotClasses
                 {
                     position -= 4;
                     string botName = GetBotName(position);
-                    game.Players[position] = new Player(botGUID, "", false);
+                    game.Players[position] = new Player(botGUID, "", PlayerType.Basic);
                     await UpdateConnectedUsers(game, clients);
                     await group.SendAsync("SeatBooked", position, botName, false);
                     await group.SendAsync("SetBotBadge", position, true);
@@ -343,7 +343,7 @@ namespace BelotWebApp.BelotClasses
                     string botName = GetBotName(position);
                     await UnbookSeat(game, clients);
                     game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
-                    game.Players[position] = new Player(botGUID, "", false);
+                    game.Players[position] = new Player(botGUID, "", PlayerType.Basic);
                     await UpdateConnectedUsers(game, clients);
                     await group.SendAsync("SeatBooked", position, botName, false);
                     await group.SendAsync("SetBotBadge", position, true);
@@ -463,7 +463,7 @@ namespace BelotWebApp.BelotClasses
 
         public string GetDisplayName(BelotGame game)
         {
-            if (game.Players[game.Turn].IsHuman)
+            if (game.Players[game.Turn].PlayerType == PlayerType.Human)
             {
                 return game.Players[game.Turn].Username;
             }
@@ -500,7 +500,7 @@ namespace BelotWebApp.BelotClasses
             for (int i = 0; i < 4; i++)
             {
                 // Update table seats
-                if (game.Players[i].IsHuman)
+                if (game.Players[i].PlayerType == PlayerType.Human)
                 {
                     await clients.Caller.SendAsync("EnableOccupySeat", i, false);
                     if (game.Players[i].Username == Context.User.Identity.Name)
@@ -724,7 +724,7 @@ namespace BelotWebApp.BelotClasses
 
             }
 
-            if (playerReallyDisconnected && game.Spectators.Count + game.Players.Count(p => p.IsHuman && !p.IsDisconnected) == 0)
+            if (playerReallyDisconnected && game.Spectators.Count + game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected) == 0)
             {
 
                 int oldwinnerDelay = game.WinnerDelay;
@@ -738,7 +738,7 @@ namespace BelotWebApp.BelotClasses
                 game.BotDelay = oldBotDelay;
                 game.RoundSummaryDelay = oldRoundSummaryDelay;
 
-                if (game.Spectators.Count + game.Players.Count(p => p.IsHuman && !p.IsDisconnected) == 0)
+                if (game.Spectators.Count + game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected) == 0)
                 {
                     _gameRegistry.RemoveContext(game.RoomId);
                     game.IsRunning = false;

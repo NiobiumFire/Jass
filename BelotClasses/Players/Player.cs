@@ -6,7 +6,7 @@ namespace BelotWebApp.BelotClasses.Players
     {
         public string Username { get; set; }
         public string ConnectionId { get; set; }
-        public bool IsHuman { get; set; }
+        public PlayerType PlayerType { get; set; }
         public bool IsDisconnected { get; set; }
         public AgentAdvanced Agent { get; set; }
 
@@ -14,14 +14,24 @@ namespace BelotWebApp.BelotClasses.Players
         {
             Username = "";
             ConnectionId = "";
-            IsHuman = false;
+            PlayerType = PlayerType.Basic;
         }
 
-        public Player(string username, string connectionId, bool isHuman)
+        public Player(string username, string connectionId, PlayerType playerType, BelotGame? game = null)
         {
             Username = username;
             ConnectionId = connectionId;
-            IsHuman = isHuman;
+            PlayerType = playerType;
+
+            if (playerType == PlayerType.Advanced && game != null)
+            {
+                int inputs = AgentAdvanced.BuildNNInputVector(game).Length;
+                Agent = new(inputs, 128, 8);
+            }
+            else
+            {
+                PlayerType = PlayerType.Basic;
+            }
         }
     }
 }

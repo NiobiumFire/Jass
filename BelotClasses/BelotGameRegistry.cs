@@ -10,6 +10,10 @@ namespace BelotWebApp.BelotClasses
 
         public BelotGameContext? GetContext(string roomId)
         {
+            if (roomId == null)
+            {
+                return null;
+            }
             _contexts.TryGetValue(roomId, out var context);
             return context;
         }

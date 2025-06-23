@@ -2,6 +2,7 @@
 using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Observers;
+using BelotWebApp.BelotClasses.Players;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -45,14 +46,14 @@ namespace BelotWebApp.BelotClasses
                 _game.IsNewRound = false;
                 _game.NewRound();
 
-                if (_game.Players[_game.Turn].IsHuman)
+                if (_game.Players[_game.Turn].PlayerType == PlayerType.Human)
                 {
                     _game.WaitDeal = true;
                 }
 
                 await _observer.OnNewRound().ConfigureAwait(false);
 
-                if (_game.Players[_game.Turn].IsHuman)
+                if (_game.Players[_game.Turn].PlayerType == PlayerType.Human)
                 {
                     return;
                 }
@@ -125,7 +126,7 @@ namespace BelotWebApp.BelotClasses
                 }
             }
         }
-        
+
         public async Task CallController()
         {
             int[] validCalls = _game.ValidCalls();
@@ -140,7 +141,7 @@ namespace BelotWebApp.BelotClasses
 
                 if (--_game.Turn == -1) _game.Turn = 3;
             }
-            else if (player.IsHuman)
+            else if (player.PlayerType == PlayerType.Human)
             {
                 _game.WaitCall = true;
 
@@ -161,9 +162,10 @@ namespace BelotWebApp.BelotClasses
             while (_game.TableCards.Count(c => !c.IsNull()) < 4 && !_game.WaitCard)
             {
                 var hand = _game.Hand[_game.Turn];
+                var player = _game.Players[_game.Turn];
                 if (hand.Count(c => !c.Played) == 1) // auto-play last card
                 {
-                    if (_game.Players[_game.Turn].IsHuman)
+                    if (player.PlayerType == PlayerType.Human)
                     {
                         await _observer.OnHumanLastCard().ConfigureAwait(false);
                     }
@@ -173,7 +175,7 @@ namespace BelotWebApp.BelotClasses
                     continue;
                 }
                 int[] validCards = _game.ValidCards();
-                if (_game.Players[_game.Turn].IsHuman)
+                if (player.PlayerType == PlayerType.Human)
                 {
                     _game.WaitCard = true;
 
@@ -181,7 +183,7 @@ namespace BelotWebApp.BelotClasses
                 }
                 else
                 {
-                    var card = AgentBasic.SelectCard(_game.Hand[_game.Turn], validCards, _game.GetWinners(_game.Turn), _game.TableCards, _game.Turn, _game.DetermineWinner(), _game.RoundCall, _game.TrickSuit, _game.EWCalled, _game.Caller);
+                    Card card = _observer.OnBotSelectCard(_game, validCards);
 
                     _game.PlayCard(card);
 

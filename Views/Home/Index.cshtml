@@ -1,5 +1,6 @@
 ﻿@using BelotWebApp.Areas.Identity.Data;
 @using Microsoft.AspNetCore.Identity;
+@using System.Security.Claims
 @model BelotRoomCreator
 @inject SignInManager<ApplicationUser> signInManager
 @inject UserManager<ApplicationUser> userManager
@@ -46,7 +47,7 @@
 
             <p><button type="button" class="btn btn-primary" onclick="location.href='/Replay/Index'" style="width: 100%">Replay</button></p>
 
-            @if (await userManager.IsInRoleAsync(await userManager.GetUserAsync(User), "Admin") == true)
+            @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
             {
                 <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%">Training Center</button></p>
             }

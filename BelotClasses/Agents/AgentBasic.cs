@@ -132,7 +132,7 @@ namespace BelotWebApp.BelotClasses.Agents
             if (validCount == 1)
             {
                 int fallback = Array.IndexOf(validCards, 1);
-                Debug.Print("Only valid card");
+                //Debug.Print("Only valid card");
                 return hand[fallback];
             }
 
@@ -161,7 +161,7 @@ namespace BelotWebApp.BelotClasses.Agents
                     var hardWinCard = TryBeatPartnerWithHardWinner(hand, validCards, tableCards, winners, roundCall, trickSuit, chanceToWin);
                     if (hardWinCard != null)
                     {
-                        Debug.Print("3,4: Beat partner with hard winner");
+                        //Debug.Print("3,4: Beat partner with hard winner");
                         return hardWinCard;
                     }
 
@@ -181,7 +181,7 @@ namespace BelotWebApp.BelotClasses.Agents
                 int? jass = TryPlayTrumpJack(hand, validCards, roundCall);
                 if (jass.HasValue)
                 {
-                    Debug.Print("1: Play trump jack");
+                    //Debug.Print("1: Play trump jack");
                     return hand[jass.Value];
                 }
             }
@@ -191,7 +191,7 @@ namespace BelotWebApp.BelotClasses.Agents
                 int? trumpLead = TryPlayTrumpControl(hand, validCards, (Suit)roundCall);
                 if (trumpLead.HasValue)
                 {
-                    Debug.Print("1: Play high-value trump");
+                    //Debug.Print("1: Play high-value trump");
                     return hand[trumpLead.Value];
                 }
             }
@@ -201,7 +201,7 @@ namespace BelotWebApp.BelotClasses.Agents
                 int? ace = TryPlayNonTrumpAce(hand, validCards, roundCall);
                 if (ace.HasValue)
                 {
-                    Debug.Print("1: Play nontrump ace");
+                    //Debug.Print("1: Play nontrump ace");
                     return hand[ace.Value];
                 }
             }
@@ -209,18 +209,18 @@ namespace BelotWebApp.BelotClasses.Agents
             int? hardWinner = TryLeadWinner(hand, validCards, winners, roundCall, winnerLevel: 2, chance: 90);
             if (hardWinner.HasValue)
             {
-                Debug.Print("1: Play hard winner");
+                //Debug.Print("1: Play hard winner");
                 return hand[hardWinner.Value];
             }
 
             int? softWinner = TryLeadWinner(hand, validCards, winners, roundCall, winnerLevel: 1, chance: 70);
             if (softWinner.HasValue)
             {
-                Debug.Print("1: Play soft winner");
+                //Debug.Print("1: Play soft winner");
                 return hand[softWinner.Value];
             }
 
-            Debug.Print("1: Play random");
+            //Debug.Print("1: Play random");
             return SelectRandomValidCard(hand, validCards);
         }
 
@@ -271,31 +271,31 @@ namespace BelotWebApp.BelotClasses.Agents
 
             if (hardWinners.Count > 0 && Roll(80))
             {
-                Debug.Print("2: Play hard winner");
+                //Debug.Print("2: Play hard winner");
                 return hand[hardWinners[rnd.Next(hardWinners.Count)]];
             }
 
             if (softWinners.Count > 0 && Roll(75))
             {
-                Debug.Print("2: Play soft winner");
+                //Debug.Print("2: Play soft winner");
                 return hand[softWinners[rnd.Next(softWinners.Count)]];
             }
 
             if (beaters.Count > 0 && Roll(70)) // 70% chance to try and beat the led card with the lowest strength beater
             {
-                Debug.Print("2: Play lowest beater");
+                //Debug.Print("2: Play lowest beater");
                 int choice = beaters.OrderBy(c => c.power).First().i;
                 return hand[choice];
             }
 
             if (losers.Count > 0 && Roll(90)) // If no winners, or decide not to try win, discard lowest valid option 90% of the time
             {
-                Debug.Print("2: Play lowest loser");
+                //Debug.Print("2: Play lowest loser");
                 int choice = losers.OrderBy(c => c.power).First().i;
                 return hand[choice];
             }
 
-            Debug.Print("2: Play random");
+            //Debug.Print("2: Play random");
             return SelectRandomValidCard(hand, validCards);
         }
 
@@ -328,17 +328,17 @@ namespace BelotWebApp.BelotClasses.Agents
 
             if (winning.Count > 0 && Roll(chance)) // if any of my cards can beat the current best trick card and I am last to play, play a random one of them. Do the same 60% of the time if I am 3rd to play
             {
-                Debug.Print("3,4: Play random winner");
+                //Debug.Print("3,4: Play random winner");
                 return hand[winning[rnd.Next(winning.Count)]];
             }
 
             if (discards.Count > 0)
             {
-                Debug.Print("3,4: Play lowest discard");
+                //Debug.Print("3,4: Play lowest discard");
                 return hand[discards.OrderBy(c => c.power).First().i];
             }
 
-            Debug.Print("3,4: Play random");
+            //Debug.Print("3,4: Play random");
             return SelectRandomValidCard(hand, validCards);
         }
 
@@ -390,11 +390,11 @@ namespace BelotWebApp.BelotClasses.Agents
 
             if (candidates.Count > 0 && Roll(80))
             {
-                Debug.Print("4: Play best nonwinner");
+                //Debug.Print("4: Play best nonwinner");
                 return hand[candidates[0]]; // highest strength among candidates
             }
 
-            Debug.Print("4: Play random");
+            //Debug.Print("4: Play random");
             return SelectRandomValidCard(hand, validCards);
         }
 
@@ -476,7 +476,7 @@ namespace BelotWebApp.BelotClasses.Agents
         private static Card SelectRandomValidCard(List<Card> hand, int[] validCards)
         {
             var options = Enumerable.Range(0, hand.Count).Where(i => validCards[i] == 1).ToList();
-            Debug.Print("Play random");
+            //Debug.Print("Play random");
             return hand[options[threadLocalRng.Value!.Next(options.Count)]];
         }
 

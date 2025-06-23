@@ -54,13 +54,9 @@ namespace BelotWebApp.BelotClasses
             return types[length - 3];
         }
 
-        public static int GetCardNumber(Card card) // 0 for already played, 1-32 for the possible cards
+        public static int GetCardIndex(Card card) // 0-31 for the possible cards
         {
-            if (card.Played || card.Suit is not Suit suit || card.Rank is not Rank rank)
-            {
-                return 0;
-            }
-            return ((int)suit - 1) * 8 + (int)rank + 1;
+            return ((int)card.Suit! - 1) * 8 + (int)card.Rank!;
         }
 
         public static int GetCardStrength(Card card, Call roundSuit, Suit? trickSuit)

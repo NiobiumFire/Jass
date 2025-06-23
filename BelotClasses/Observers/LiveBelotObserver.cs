@@ -1,4 +1,6 @@
-﻿using BelotWebApp.BelotClasses.Cards;
+﻿using BelotWebApp.BelotClasses.Agents;
+using BelotWebApp.BelotClasses.Cards;
+using BelotWebApp.BelotClasses.Players;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BelotWebApp.BelotClasses.Observers
@@ -57,7 +59,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
             var clients = GetClients();
 
-            if (player.IsHuman)
+            if (player.PlayerType == PlayerType.Human)
             {
                 await clients.Client(player.ConnectionId).SendAsync("EnableDealBtn").ConfigureAwait(false);
             }
@@ -74,7 +76,7 @@ namespace BelotWebApp.BelotClasses.Observers
             for (int i = 0; i < 4; i++)
             {
                 var player = _game.Players[i];
-                if (player.IsHuman)
+                if (player.PlayerType == PlayerType.Human)
                 {
                     await clients.Client(player.ConnectionId).SendAsync("Deal", _game.Hand[i]).ConfigureAwait(false);
                     await clients.Client(player.ConnectionId).SendAsync("RotateCards").ConfigureAwait(false);
@@ -119,6 +121,14 @@ namespace BelotWebApp.BelotClasses.Observers
             }
             await clients.Client(_game.Players[_game.Turn].ConnectionId).SendAsync("EnableCards", validCards).ConfigureAwait(false);
             // once a card is clicked, declarable extras are calculated in hub method, human selects and declares extras, then the card is played and game loop reinitiates
+        }
+
+        public Card OnBotSelectCard(BelotGame game, int[] validCards)
+        {
+            //if (game.Players[game.Turn].PlayerType == PlayerType.Basic)
+            //{
+            return AgentBasic.SelectCard(game.Hand[game.Turn], validCards, game.GetWinners(game.Turn), game.TableCards, game.Turn, game.DetermineWinner(), game.RoundCall, game.TrickSuit, game.EWCalled, game.Caller);
+            //}
         }
 
         public async Task OnDeclaration(List<string> messages, List<string> emotes)
@@ -258,7 +268,7 @@ namespace BelotWebApp.BelotClasses.Observers
         private string GetDisplayName()
         {
             var player = _game.Players[_game.Turn];
-            if (player.IsHuman)
+            if (player.PlayerType == PlayerType.Human)
             {
                 return player.Username;
             }
