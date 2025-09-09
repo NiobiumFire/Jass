@@ -1,5 +1,4 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
-using Microsoft.AspNetCore.Components.Forms;
 
 namespace BelotWebApp.BelotClasses.Training
 {
@@ -35,7 +34,7 @@ namespace BelotWebApp.BelotClasses.Training
                 nextGen.Add(child);
             }
 
-            // Add completely random agents to maintain diversity
+            // Add randomised agents to maintain diversity
             for (int i = 0; i < numRandomAgents; i++)
             {
                 nextGen.Add(new AgentAdvanced(inputSize, hiddenSize, outputSize));

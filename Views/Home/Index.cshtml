@@ -13,18 +13,18 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="row bg-info p-5 rounded mb-5 mt-5" style="text-align:center">
+<div class="row bg-info p-5 rounded mb-5 mt-5" style="text-align:center; min-height:150px;">
     <div class="col-1 col-sm-2 d-flex justify-content-center align-items-center">
         <img class="crystal" src="~/images/NiobiumCrystal.png" />
     </div>
-    <div class="col-10 col-sm-8">
-        <h1>NiobiumFire Web App</h1>
-        <p class="lead" style="text-align:center">ASP.NET Core</p>
+    <div class="col-10 col-sm-8 d-flex align-items-center justify-content-center">
+        <h1 class="mb-0" style="font-family: 'Old English Text MT'">NiobiumFire Jass</h1>
     </div>
     <div class="col-1 col-sm-2 d-flex justify-content-center align-items-center">
         <img class="crystal" src="~/images/NiobiumCrystal.png" />
     </div>
 </div>
+
 
 <div class="row justify-content-center">
     @if (!signInManager.IsSignedIn(User))
@@ -34,8 +34,8 @@
     else
     {
         <div class="col-6 col-lg-3">
-            <h2>Belot</h2>
-            <p id="numRooms">Belot rooms: @ViewBag.numGames</p>
+            <h2>Jass</h2>
+            <p id="numRooms">Jass rooms: @ViewBag.numGames</p>
 
             <form id="createBelotGameForm" method="post">
                 <p><button asp-area="" asp-controller="Room" asp-action="Index" type="submit" class="btn btn-primary" style="width: 100%">Create</button></p>
