@@ -3,6 +3,7 @@ using BelotWebApp.BelotClasses;
 using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.Configuration;
 using BelotWebApp.Data;
+using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +13,21 @@ internal class Program
     private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        var connectionString = builder.Configuration.GetConnectionString("AuthDbContextConnection") ?? throw new InvalidOperationException("Connection string 'AuthDbContextConnection' not found.");
 
-        builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(connectionString));
+        // Add services to the container.
+
+        builder.Services.AddSingleton<IAppPaths, AppPaths>();
+
+        builder.Services.AddDbContext<AuthDbContext>((serviceProvider, options) =>
+        {
+            var appPaths = serviceProvider.GetRequiredService<IAppPaths>();
+            options.UseSqlite($"Data Source={appPaths.DatabaseFile}");
+        });
 
         builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
 
-        // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
         builder.Services.AddSignalR().AddJsonProtocol(options =>
@@ -108,6 +115,11 @@ internal class Program
                     var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
                     throw new Exception($"Failed to create admin user: {errors}");
                 }
+            }
+
+            if (!await userManager.IsInRoleAsync(user, "Player"))
+            {
+                await userManager.AddToRoleAsync(user, "Player");
             }
 
             if (!await userManager.IsInRoleAsync(user, "Admin"))

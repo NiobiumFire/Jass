@@ -1,5 +1,6 @@
 ﻿using BelotWebApp.BelotClasses;
 using BelotWebApp.Models;
+using BelotWebApp.Services.AppPathService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,12 +10,12 @@ namespace BelotWebApp.Controllers
     [Authorize(Roles = "Player")]
     public class RoomController : Controller
     {
-        private readonly IConfiguration _config;
+        private readonly IAppPaths _appPaths;
         private readonly BelotGameRegistry _gameRegistry;
 
-        public RoomController(IConfiguration config, BelotGameRegistry gameRegistry)
+        public RoomController(IAppPaths appPaths, BelotGameRegistry gameRegistry)
         {
-            _config = config;
+            _appPaths = appPaths;
             _gameRegistry = gameRegistry;
         }
 
@@ -24,7 +25,7 @@ namespace BelotWebApp.Controllers
             if (creator != null)
             {
                 string id = Guid.NewGuid().ToString();
-                var game = new BelotGame([new(), new(), new(), new()], id, _config.GetSection("SerilogPath:Path").Value);
+                var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, true);
                 _gameRegistry.AddContext(id, new(game, null));
                 return RedirectToAction("Index", new { id });
             }

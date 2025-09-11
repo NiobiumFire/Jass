@@ -3,23 +3,25 @@ using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Players;
 using BelotWebApp.BelotClasses.Replays;
 using BelotWebApp.Configuration;
+using BelotWebApp.Services.AppPathService;
 using System.Text.Json;
 
 namespace BelotWebApp.BelotClasses
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players, string roomId, string? logPath = null)
+        public BelotGame(Player[] players, string roomId, IAppPaths appPaths, bool recordReplay)
         {
             IsRunning = true;
             Players = players;
             RoomId = roomId;
             Spectators = [];
-            RecordReplay = !string.IsNullOrEmpty(logPath);
-            LogPath = logPath;
+            RecordReplay = recordReplay;
+            _appPaths = appPaths;
         }
 
         public static readonly int scoreTarget = 1501;
+        private readonly IAppPaths _appPaths;
 
         public string RoomId { get; set; }
         public string GameId { get; set; } = "";
@@ -61,7 +63,7 @@ namespace BelotWebApp.BelotClasses
         public bool WaitCall { get; set; }
         public bool WaitCard { get; set; }
         public bool IsRunning { get; set; }
-        public string? LogPath { get; set; }
+        //public string? LogPath { get; set; }
         public bool RecordReplay { get; set; }
         public BelotStateDiff ReplayState { get; set; }
 
@@ -944,13 +946,13 @@ namespace BelotWebApp.BelotClasses
 
         public void SetLogger()
         {
-            var logPath = Path.Combine(LogPath, GameId + ".txt");
+            var logPath = Path.Combine(_appPaths.LogFolder, GameId + ".txt");
             File.Create(logPath).Close();
         }
 
         public void AddInitialState()
         {
-            var logPath = Path.Combine(LogPath, GameId + ".txt");
+            var logPath = Path.Combine(_appPaths.LogFolder, GameId + ".txt");
 
             ReplayState = new()
             {
@@ -975,7 +977,7 @@ namespace BelotWebApp.BelotClasses
         {
             if (IsRunning)
             {
-                var logPath = Path.Combine(LogPath, GameId + ".txt");
+                var logPath = Path.Combine(_appPaths.LogFolder, GameId + ".txt");
 
                 File.AppendAllText(logPath, JsonSerializer.Serialize(diff, JsonSettings.Compact) + "\n");
 
@@ -1060,8 +1062,8 @@ namespace BelotWebApp.BelotClasses
         {
             if (!IsNewGame)
             {
-                var source = Path.Combine(LogPath, GameId + ".txt");
-                string destination = Path.Combine(LogPath, "Incomplete", GameId + ".txt");
+                var source = Path.Combine(_appPaths.LogFolder, $"{GameId}.txt");
+                string destination = Path.Combine(_appPaths.IncompleteGames, $"{GameId}.txt");
 
                 if (File.Exists(source) && !File.Exists(destination))
                 {

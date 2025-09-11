@@ -3,6 +3,7 @@ using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.Services.AppPathService;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
 
@@ -20,11 +21,11 @@ namespace BelotWebApp.BelotClasses
 
         #region Game Loop Continuation
 
-        public BelotRoom(IConfiguration config, BelotGameRegistry gameRegistry)
+        public BelotRoom(IAppPaths appPaths, BelotGameRegistry gameRegistry)
         {
             _gameRegistry = gameRegistry;
-            log ??= new LoggerConfiguration().WriteTo.File(config.GetSection("SerilogPath:Path").Value + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
-            //log?.Information("Creating new Chat Room");
+
+            log ??= new LoggerConfiguration().WriteTo.File(Path.Combine(appPaths.LogFolder, "BelotServerLog-.txt"), rollingInterval: RollingInterval.Day).CreateLogger();
         }
 
         public Task HubGameController() // called by client
