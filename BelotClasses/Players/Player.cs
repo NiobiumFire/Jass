@@ -23,15 +23,15 @@ namespace BelotWebApp.BelotClasses.Players
             ConnectionId = connectionId;
             PlayerType = playerType;
 
-            if (playerType == PlayerType.Advanced && game != null)
-            {
-                int inputs = AgentAdvanced.BuildNNInputVector(game).Length;
-                Agent = new(inputs, 128, 8);
-            }
-            else
-            {
-                PlayerType = PlayerType.Basic;
-            }
+            //if (playerType == PlayerType.Advanced && game != null)
+            //{
+            //    int inputs = AgentAdvanced.BuildNNInputVector(game).Length;
+            //    Agent = new(inputs, 128, 8);
+            //}
+            //else
+            //{
+            //    PlayerType = PlayerType.Basic;
+            //}
         }
     }
 }

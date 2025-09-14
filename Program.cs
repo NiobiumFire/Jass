@@ -45,6 +45,21 @@ internal class Program
 
         var app = builder.Build();
 
+        // Ensure database and migrations are applied at startup
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<AuthDbContext>();
+                context.Database.Migrate();
+            }
+            catch (Exception ex)
+            {
+                //Console.WriteLine($"Error applying migrations: {ex.Message}");
+            }
+        }
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {

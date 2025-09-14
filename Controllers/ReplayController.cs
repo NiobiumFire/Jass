@@ -1,4 +1,5 @@
-﻿using BelotWebApp.BelotClasses.Replays;
+﻿using BelotWebApp.Services.AppPathService;
+using BelotWebApp.BelotClasses.Replays;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -9,11 +10,11 @@ namespace BelotWebApp.Controllers
     public class ReplayController : Controller
     {
 
-        private readonly IConfiguration _config;
+        private readonly IAppPaths _appPaths;
 
-        public ReplayController(IConfiguration config)
+        public ReplayController(IAppPaths appPaths)
         {
-            _config = config;
+            _appPaths = appPaths;
 
         }
 
@@ -26,7 +27,7 @@ namespace BelotWebApp.Controllers
         {
             BelotReplay replay = new();
 
-            string path = _config.GetSection("SerilogPath:Path").Value + replayId + ".txt";
+            string path = Path.Combine($"{_appPaths.LogFolder}", replayId + ".txt");
 
             string[] lines;
             try
@@ -49,7 +50,7 @@ namespace BelotWebApp.Controllers
         public string GetMyReplays()
         {
             List<string[]> myReplays = [];
-            string[] allFiles = new DirectoryInfo(_config.GetSection("SerilogPath:Path").Value).GetFiles()
+            string[] allFiles = new DirectoryInfo(_appPaths.LogFolder).GetFiles()
                 .OrderByDescending(f => f.LastWriteTime)
                 .Select(f => f.FullName)
                 .Where(f => !f.Contains("BelotServerLog"))
