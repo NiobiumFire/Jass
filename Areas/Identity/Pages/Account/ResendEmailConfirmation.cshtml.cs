@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using BelotWebApp.Areas.Identity.Data;
+using BelotWebApp.EmailTemplates;
+using BelotWebApp.Services.EmailService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using BelotWebApp.Services.EmailService;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Encodings.Web;
 
 namespace BelotWebApp.Areas.Identity.Pages.Account
 {
@@ -52,7 +51,7 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
         {
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync() // not used
         {
             if (!ModelState.IsValid)
             {
@@ -76,10 +75,12 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
                 pageHandler: null,
                 values: new { userId = userId, code = code },
                 protocol: Request.Scheme);
-            await _emailSender.SendEmailAsync(
-                user.Email,
-                "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+            await _emailSender.SendEmailAsync(user.Email, EmailTemplate.ConfirmEmail, new Dictionary<string, string>
+            {
+                { "UserName", user.UserName },
+                { "ConfirmLink", HtmlEncoder.Default.Encode(callbackUrl) }
+            });
 
             ModelState.AddModelError(string.Empty, "If you have an unverified account, a verification email has been sent to the registered email address.");
             return Page();

@@ -37,4 +37,13 @@
     <None Include="wwwroot\images\Other\Dealer.svg" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="EmailTemplates\ConfirmEmailChange.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="EmailTemplates\ConfirmEmail.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using BelotWebApp.Services.EmailService;
+using BelotWebApp.EmailTemplates;
 
 namespace BelotWebApp.Areas.Identity.Pages.Account
 {
@@ -122,8 +123,11 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    await _emailSender.SendEmailAsync(user.Email, EmailTemplate.ConfirmEmail, new Dictionary<string, string>
+                    {
+                        { "UserName", user.UserName },
+                        { "ConfirmLink", HtmlEncoder.Default.Encode(callbackUrl) }
+                    });
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
