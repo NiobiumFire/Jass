@@ -10,6 +10,7 @@
 }
 
 @{
+    bool isSignedIn = signInManager.IsSignedIn(User);
     ViewData["Title"] = "Home";
 }
 
@@ -27,13 +28,19 @@
 
 
 <div class="row justify-content-center">
-    @if (!signInManager.IsSignedIn(User))
+    @if (!isSignedIn)
     {
         <p style="text-align:center">Welcome! <a asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a asp-area="Identity" asp-page="/Account/Register">create an account</a> to play.</p>
     }
-    else
-    {
-        <div class="col-6 col-lg-3">
+
+    <div class="col-6 col-lg-3">
+        @if (!isSignedIn)
+        {
+            <p><button type="button" class="btn btn-primary" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+        }
+        else
+        {
+
             <h2>Jass</h2>
             <p id="numRooms">Jass rooms: @ViewBag.numGames</p>
 
@@ -47,12 +54,13 @@
 
             <p><button type="button" class="btn btn-primary" onclick="location.href='/Replay/Index'" style="width: 100%">Replay</button></p>
 
-            @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
+            if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
             {
                 <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%">Training Center</button></p>
             }
-        </div>
-    }
+
+        }
+    </div>
 </div>
 
 <!-- Join Game Modal -->
