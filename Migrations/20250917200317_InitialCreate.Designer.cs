@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BelotWebApp.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20250911182425_InitialCreate")]
+    [Migration("20250917200317_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -32,11 +32,20 @@ namespace BelotWebApp.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CurrentSessionId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GamesTotal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GamesWon")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("LockoutEnabled")
@@ -61,6 +70,9 @@ namespace BelotWebApp.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<float>("Score")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");

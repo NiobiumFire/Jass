@@ -129,15 +129,7 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
                         { "ConfirmLink", HtmlEncoder.Default.Encode(callbackUrl) }
                     });
 
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, username = Input.UserName, returnUrl = returnUrl });
-                    }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
+                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email, username = Input.UserName, returnUrl = returnUrl });
                 }
                 foreach (var error in result.Errors)
                 {

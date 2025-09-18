@@ -113,7 +113,7 @@ namespace BelotWebApp.Areas.Identity.Pages.Account.Manage
                     { "ConfirmLink", HtmlEncoder.Default.Encode(callbackUrl) }
                 });
 
-                StatusMessage = "Confirmation link to change email sent. Please check your email.";
+                StatusMessage = "Confirmation link to change email sent. Please check your email. Your current registered email address has not been changed.";
                 return RedirectToPage();
             }
             else

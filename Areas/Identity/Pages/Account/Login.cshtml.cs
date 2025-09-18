@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using BelotWebApp.Areas.Identity.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace BelotWebApp.Areas.Identity.Pages.Account
 {
@@ -49,8 +44,9 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
         {
 
             [Required]
+            [Display(Name ="Username or Email")]
             [DataType(DataType.Text)]
-            public string UserName { get; set; }
+            public string Login { get; set; }
 
             [Required]
             [DataType(DataType.Password)]
@@ -62,7 +58,7 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string returnUrl = null)
         {
-            if(User.Identity.IsAuthenticated)
+            if (User.Identity.IsAuthenticated)
             {
                 Response.Redirect("/");
             }
@@ -88,35 +84,39 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
 
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            //ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded)
-                {
-                    _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
-                }
-                //if (result.RequiresTwoFactor)
-                //{
-                //    return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
-                //}
-                //if (result.IsLockedOut)
-                //{
-                //    _logger.LogWarning("User account locked out.");
-                //    return RedirectToPage("./Lockout");
-                //}
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt. Ensure your credentials are correct and the account email address has been confirmed.");
-                    return Page();
-                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt. Ensure your credentials are correct.");
+                return Page();
             }
 
-            // If we got this far, something failed, redisplay form
+            var input = Input.Login.Trim();
+
+            ApplicationUser? user = await _userManager.FindByNameAsync(input) ?? await _userManager.FindByEmailAsync(input);
+
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt. Ensure your credentials are correct.");
+                return Page();
+            }
+
+            // Update sessionId to enforce single active session
+            var sessionId = Guid.NewGuid().ToString();
+            user.CurrentSessionId = sessionId;
+            await _userManager.UpdateAsync(user);
+
+            var result = await _signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User logged in.");
+                return LocalRedirect(returnUrl);
+            }
+
+            // confirmed email address is not required for first-time account creation, but is for changing email address. The email stays the same until the change is confirmed.
+            ModelState.AddModelError(string.Empty, "Invalid login attempt. Ensure your credentials are correct and that your account email address has been confirmed.");
             return Page();
         }
     }
