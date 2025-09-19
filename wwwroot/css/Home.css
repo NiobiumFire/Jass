@@ -1,25 +1,32 @@
-﻿.casual-btn-group {
+﻿.menu-buttons .btn {
+    background-color: rgba(159, 82, 178, 1);
+    border: 1px solid black;
+    color: white;
+}
+
+    .menu-buttons .btn:hover {
+        background-color: rgba(159, 226, 252, 1);
+        border-color: black;
+        color: #fff;
+        box-shadow: none;
+    }
+
+    .menu-buttons .btn:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+.casual-btn-group {
     display: flex;
     width: 100%;
 }
 
-    .casual-btn-group .btn {
+    .casual-btn-group .menu-buttons .btn {
         white-space: nowrap;
         flex: 1 1 0;
     }
 
-        .casual-btn-group .btn:first-child {
-            border-left: none;
-            border-right: 1px solid #000;
-        }
-
-        .casual-btn-group .btn:not(:first-child):not(:last-child) {
-            border-left: 1px solid #000;
-            border-right: 1px solid #000;
-        }
-
-
-        .casual-btn-group .btn:last-child {
-            border-left: 1px solid #000;
-            border-right: none;
-        }
+.banner {
+    background: #9fe2fc;
+    background: radial-gradient(circle,rgba(159, 226, 252, 1) 0%, rgba(159, 82, 178, 1) 100%, rgba(252, 70, 107, 1) 70%);
+}

@@ -8,10 +8,10 @@
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item dropdown">
-            <btn id="manage" class="nav-link text-dark d-flex align-items-center gap-2 btn" title="Manage" data-bs-toggle="dropdown">
+            <a id="manage" class="nav-link text-dark d-flex align-items-center gap-2 btn" title="Manage" data-bs-toggle="dropdown">
                 @UserManager.GetUserName(User)
                 <i class="bi-person-fill" style="font-size: 1.5em; color: darkmagenta;"></i>
-            </btn>
+            </a>
             <ul class="dropdown-menu dropdown-menu-end" style="border-color:darkmagenta">
                 @* <ul class="dropdown-menu border-info"> *@
                 <li><a title="Manage" class="dropdown-item" href="/Identity/Account/Manage/Index">Manage</a></li>

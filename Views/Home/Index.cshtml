@@ -18,7 +18,7 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="row bg-info p-5 rounded mb-5 mt-5" style="text-align:center; min-height:150px;">
+<div class="row banner p-5 rounded mb-5 mt-5" style="text-align:center; min-height:150px;">
     <div class="col-1 col-sm-2 d-flex justify-content-center align-items-center">
         <img class="crystal" src="~/images/NiobiumCrystal.png" />
     </div>
@@ -37,10 +37,10 @@
         <p style="text-align:center">Welcome! <a asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a asp-area="Identity" asp-page="/Account/Register">create an account</a> to play.</p>
     }
 
-    <div class="col-6 col-lg-3">
+    <div class=" menu-buttons col-6 col-lg-3">
         @if (!isSignedIn)
         {
-            <p><button type="button" class="btn btn-primary" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+            <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
         }
         else
         {
@@ -52,7 +52,7 @@
 
             <p class="my-0" style="text-align:center">═════ ◆ Ranked ◆ ═════</p>
 
-            <p class="mb-0"><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Match</button></p>
+            <p class="mb-0"><button type="button" class="btn" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Match</button></p>
 
             <p class="my-0" style="text-align:center">═════ ◆ Casual ◆ ═════</p>
 
@@ -61,20 +61,20 @@
             </form>
 
             <div class="btn-group casual-btn-group" style="width: 100%" role="group">
-                <button type="button" class="btn btn-primary">Match</button>
-                <button type="button" class="btn btn-primary" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
-                <button type="submit" class="btn btn-primary" form="createJassGameForm">Create</button>
+                <button type="button" class="btn">Match</button>
+                <button type="button" class="btn" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
+                <button type="submit" class="btn" form="createJassGameForm">Create</button>
             </div>
 
             <p class="my-0" style="text-align:center">═════ ◆ General ◆ ═════</p>
 
-            <p><button type="button" class="btn btn-primary" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+            <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
 
-            <p><button type="button" class="btn btn-primary" onclick="location.href='/Replay/Index'" style="width: 100%">Replay</button></p>
+            <p><button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">Replay</button></p>
 
             if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
             {
-                <p><button type="button" onclick="location.href='/Training/Index'" class="btn btn-primary" style="width: 100%">Training Center</button></p>
+                <p><button type="button" onclick="location.href='/Training/Index'" class="btn" style="width: 100%">Training Center</button></p>
             }
 
         }
