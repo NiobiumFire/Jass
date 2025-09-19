@@ -48,7 +48,7 @@ function getNumRooms() {
         url: "/Home/GetNumRooms",
         method: "GET",
         success: function (data) {
-            document.getElementById("numRooms").innerHTML = "Belot rooms: " + data;
+            document.getElementById("gameCount").innerHTML = data;
         }
     });
 };

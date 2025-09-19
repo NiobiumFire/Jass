@@ -9,6 +9,10 @@
     <script src="~/js/belotlobby.js"></script>
 }
 
+@section styles {
+    <link rel="stylesheet" href="~/css/Home.css" asp-append-version="true" />
+}
+
 @{
     bool isSignedIn = signInManager.IsSignedIn(User);
     ViewData["Title"] = "Home";
@@ -40,15 +44,29 @@
         }
         else
         {
-
             <h2>Jass</h2>
-            <p id="numRooms">Jass rooms: @ViewBag.numGames</p>
+            <p id="numRooms">
+                Jass rooms:
+                <span id="gameCount">@ViewBag.numGames</span>
+            </p>
 
-            <form id="createBelotGameForm" method="post">
-                <p><button asp-area="" asp-controller="Room" asp-action="Index" type="submit" class="btn btn-primary" style="width: 100%">Create</button></p>
+            <p class="my-0" style="text-align:center">═════ ◆ Ranked ◆ ═════</p>
+
+            <p class="mb-0"><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Match</button></p>
+
+            <p class="my-0" style="text-align:center">═════ ◆ Casual ◆ ═════</p>
+
+            <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
+                @Html.AntiForgeryToken()
             </form>
 
-            <p><button type="button" class="btn btn-primary" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#belot-lobby-modal">Join</button></p>
+            <div class="btn-group casual-btn-group" style="width: 100%" role="group">
+                <button type="button" class="btn btn-primary">Match</button>
+                <button type="button" class="btn btn-primary" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
+                <button type="submit" class="btn btn-primary" form="createJassGameForm">Create</button>
+            </div>
+
+            <p class="my-0" style="text-align:center">═════ ◆ General ◆ ═════</p>
 
             <p><button type="button" class="btn btn-primary" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
 
@@ -64,11 +82,11 @@
 </div>
 
 <!-- Join Game Modal -->
-<div class="modal" tabindex="-1" id="belot-lobby-modal">
+<div class="modal" tabindex="-1" id="jass-lobby-modal">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Belot Lobby</h5>
+                <h5 class="modal-title">Jass Lobby</h5>
                 <div class="d-flex justify-content-center align-items-center">
                     <i class="bi bi-arrow-repeat me-2" style="transform: rotate(25deg); font-size: 1.5em; font-weight:500; color:black; cursor:pointer" onclick="populateLobby()"></i>
                     <button type="button" class="btn-close" style="opacity:initial" data-bs-dismiss="modal"></button>
@@ -98,4 +116,4 @@
 </div>
 
 <!-- Rules Modal -->
-@await Html.PartialAsync("_BelotRules")
+@await Html.PartialAsync("_JassRules")

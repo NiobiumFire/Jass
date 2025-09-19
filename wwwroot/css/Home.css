@@ -1,0 +1,25 @@
+﻿.casual-btn-group {
+    display: flex;
+    width: 100%;
+}
+
+    .casual-btn-group .btn {
+        white-space: nowrap;
+        flex: 1 1 0;
+    }
+
+        .casual-btn-group .btn:first-child {
+            border-left: none;
+            border-right: 1px solid #000;
+        }
+
+        .casual-btn-group .btn:not(:first-child):not(:last-child) {
+            border-left: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+
+        .casual-btn-group .btn:last-child {
+            border-left: 1px solid #000;
+            border-right: none;
+        }

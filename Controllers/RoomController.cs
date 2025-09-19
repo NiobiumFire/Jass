@@ -20,6 +20,7 @@ namespace BelotWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Index(BelotRoomCreator creator)
         {
             if (creator != null)
