@@ -1,15 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using BelotWebApp.Areas.Identity.Data
 
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
-
 <ul class="navbar-nav">
-    @if (SignInManager.IsSignedIn(User))
+    @if (signInManager.IsSignedIn(User))
     {
         <li class="nav-item dropdown">
             <a id="manage" class="nav-link d-flex align-items-center gap-2 btn" title="Manage" data-bs-toggle="dropdown">
-                @UserManager.GetUserName(User)
+                @userManager.GetUserName(User)
                 <i class="bi-person-fill" style="font-size: 1.5em;"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">

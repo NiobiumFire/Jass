@@ -1,6 +1,5 @@
 ﻿@using BelotWebApp.Areas.Identity.Data;
 @using Microsoft.AspNetCore.Identity;
-@inject SignInManager<ApplicationUser> signInManager
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,10 +25,12 @@
                 <div class="d-flex justify-content-start align-items-center">
                     <img src="~/images/NiobiumCrystal.png" height="30" />
                     <ul class="navbar-nav d-flex align-items-center">
-                        <li class="nav-item me-1">
+                        <li class="nav-item me-3">
                             <a class="navbar-brand mx-0 px-1" asp-area="" asp-controller="Home" asp-action="Index">NiobiumFire Jass</a>
                         </li>
-
+                        <li class="nav-item me-1">
+                            <a class="nav-link mx-0 px-1" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
                         @if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
@@ -50,12 +51,11 @@
 
     <footer class="footer">
         <div class="container">
-            &copy; 2025 - NiobiumFire - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - NiobiumFire
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    @* <script src="~/js/site.js" asp-append-version="true"></script> *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

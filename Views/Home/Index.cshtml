@@ -2,8 +2,6 @@
 @using Microsoft.AspNetCore.Identity;
 @using System.Security.Claims
 @model BelotRoomCreator
-@inject SignInManager<ApplicationUser> signInManager
-@inject UserManager<ApplicationUser> userManager
 
 @section scripts {
     <script src="~/js/belotlobby.js"></script>
@@ -15,11 +13,12 @@
 
 @{
     bool isSignedIn = signInManager.IsSignedIn(User);
+    bool emailConfirmed = User.IsInRole("Player");
     ViewData["Title"] = "Home";
 }
 
 <div class="d-flex justify-content-center">
-    <div class="row banner py-4 rounded mb-5 mt-5" style="text-align:center; min-height:125px; max-width: 90vw;">
+    <div class="row banner py-4 rounded mb-5 mt-3" style="text-align:center; min-height:125px; max-width: 90vw;">
         <div class="col-1"></div>
         <div class="p-0 col-1 d-flex justify-content-center align-items-center">
             <img class="crystal" style="width:100%; height:auto" src="~/images/NiobiumCrystal.png" />
@@ -41,56 +40,82 @@
     </filter>
 </svg> *@
 
+    @if (!isSignedIn)
+{
+    <p style="text-align:center">Welcome! <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Register">create an account</a> for all features.</p>
+}
+else if (!emailConfirmed)
+{
+    <p style="text-align:center">Welcome @userManager.GetUserName(User)! <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features.</p>
+}
+else
+{
+    <p style="text-align:center">Welcome @userManager.GetUserName(User)!</P>
+}
+
 
 <div class="row justify-content-center">
-    @if (!isSignedIn)
-    {
-        <p style="text-align:center">Welcome! <a asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a asp-area="Identity" asp-page="/Account/Register">create an account</a> to play.</p>
-    }
 
     <div class="col-3 d-flex justify-content-center align-items-center">
         <img style="width:100%" src="~/images/Jack.png" />
     </div>
-
     <div class=" menu-buttons col-6 col-lg-3">
-        @if (!isSignedIn)
+        <p style="text-align: center">
+            Jass rooms:
+            <span id="gameCount">@ViewBag.numGames</span>
+        </p>
+
+        <p class="my-0" style="text-align:center">═══ ◆ Ranked ◆ ═══</p>
+
+        @if (!isSignedIn || !emailConfirmed)
         {
-            <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+            <span title="Sign into an account with a confirmed email address">
+                <button type="button" class="btn" style="width: 100%" disabled>
+                    Match <i class="bi bi-lock-fill"></i>
+                </button>
+            </span>
         }
         else
         {
-            <p id="numRooms">
-                Jass rooms:
-                <span id="gameCount">@ViewBag.numGames</span>
-            </p>
+            <button type="button" class="btn" style="width: 100%" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">
+                Match
+            </button>
+        }
 
-            <p class="my-0" style="text-align:center">═══ ◆ Ranked ◆ ═══</p>
+        <p class="my-0" style="text-align:center">═══ ◆ Casual ◆ ═══</p>
 
-            <p class="mb-0"><button type="button" class="btn" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Match</button></p>
+        <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
+            @Html.AntiForgeryToken()
+        </form>
 
-            <p class="my-0" style="text-align:center">═══ ◆ Casual ◆ ═══</p>
+        <div class="btn-group casual-btn-group" style="width: 100%" role="group">
+            <button type="button" class="btn">Match</button>
+            <button type="button" class="btn" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
+            <button type="submit" class="btn" form="createJassGameForm">Create</button>
+        </div>
 
-            <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
-                @Html.AntiForgeryToken()
-            </form>
+        <p class="my-0" style="text-align:center">═══ ◆ General ◆ ═══</p>
 
-            <div class="btn-group casual-btn-group" style="width: 100%" role="group">
-                <button type="button" class="btn">Match</button>
-                <button type="button" class="btn" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
-                <button type="submit" class="btn" form="createJassGameForm">Create</button>
-            </div>
+        <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
 
-            <p class="my-0" style="text-align:center">═══ ◆ General ◆ ═══</p>
+        @if (!isSignedIn || !emailConfirmed)
+        {
+            <span title="Sign into an account with a confirmed email address">
+                <button type="button" class="btn" style="width: 100%" disabled>
+                    Replay <i class="bi bi-lock-fill"></i>
+                </button>
+            </span>
+        }
+        else
+        {
+            <button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">
+                Replay
+            </button>
+        }
 
-            <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
-
-            <p><button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">Replay</button></p>
-
-            if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
-            {
-                <p><button type="button" onclick="location.href='/Training/Index'" class="btn" style="width: 100%">Training Center</button></p>
-            }
-
+        @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
+        {
+            <p><button type="button" onclick="location.href='/Training/Index'" class="btn" style="width: 100%">Training Center</button></p>
         }
     </div>
 

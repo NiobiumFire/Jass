@@ -15,7 +15,7 @@
     background: var(--dark-grey);
 }
 
-.nav-link {
+.navbar .nav-link {
     color: white !important;
 }
 
@@ -52,7 +52,6 @@ footer {
 /*Modals and banners*/
 
 .banner {
-    /*max-width: 90vw;*/
     box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset; /*parchment edges*/
     background: #fffef0; /*parchment*/
     /*filter: url(#wavy2);*/
