@@ -40,7 +40,7 @@
     </filter>
 </svg> *@
 
-    @if (!isSignedIn)
+@if (!isSignedIn)
 {
     <p style="text-align:center">Welcome! <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Register">create an account</a> for all features.</p>
 }
@@ -53,7 +53,6 @@ else
     <p style="text-align:center">Welcome @userManager.GetUserName(User)!</P>
 }
 
-
 <div class="row justify-content-center">
 
     <div class="col-3 d-flex justify-content-center align-items-center">
@@ -65,7 +64,7 @@ else
             <span id="gameCount">@ViewBag.numGames</span>
         </p>
 
-        <p class="my-0" style="text-align:center">═══ ◆ Ranked ◆ ═══</p>
+        <p class="my-0" style="text-align:center; white-space:nowrap">═══ ◆ Ranked ◆ ═══</p>
 
         @if (!isSignedIn || !emailConfirmed)
         {
@@ -82,7 +81,7 @@ else
             </button>
         }
 
-        <p class="my-0" style="text-align:center">═══ ◆ Casual ◆ ═══</p>
+        <p class="my-0" style="text-align:center; white-space:nowrap">═══ ◆ Casual ◆ ═══</p>
 
         <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
             @Html.AntiForgeryToken()
@@ -94,23 +93,23 @@ else
             <button type="submit" class="btn" form="createJassGameForm">Create</button>
         </div>
 
-        <p class="my-0" style="text-align:center">═══ ◆ General ◆ ═══</p>
+        <p class="my-0" style="text-align:center; white-space:nowrap">═══ ◆ General ◆ ═══</p>
 
         <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
 
         @if (!isSignedIn || !emailConfirmed)
         {
             <span title="Sign into an account with a confirmed email address">
-                <button type="button" class="btn" style="width: 100%" disabled>
+                <p><button type="button" class="btn" style="width: 100%" disabled>
                     Replay <i class="bi bi-lock-fill"></i>
-                </button>
+                </button></p>
             </span>
         }
         else
         {
-            <button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">
+            <p><button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">
                 Replay
-            </button>
+            </button></p>
         }
 
         @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
