@@ -1,0 +1,70 @@
+﻿:root { /*variables*/
+    --dark-grey: rgb(24, 23, 23);
+    --medium-grey: rgb(57, 60, 82);
+    --col-1: rgb(89, 35, 111); /*dark purple*/
+    --bg-gradient-pt-1: 30%;
+    --col-2: rgb(136, 53, 169); /*light purple*/
+    --bg-gradient-pt-2: 70%;
+    --col-3: rgb(127, 96, 0); /*gold*/
+    --col-4: rgb(159, 226, 252); /*pale blue*/
+}
+
+/*header and footer*/
+
+.navbar {
+    background: var(--dark-grey);
+}
+
+.nav-link {
+    color: white !important;
+}
+
+    .nav-link.show { /*when dropdown is active*/
+        background: var(--medium-grey);
+        border-radius: 5px 5px 0 0 !important;
+    }
+
+.dropdown-menu.show {
+    background: var(--medium-grey);
+    border-radius: 0 0 5px 5px;
+}
+
+.nav-item.dropdown > .dropdown-menu {
+    min-width: 0;
+    width: 100%;
+    background: var(--medium-grey);
+    -moz-border-radius: 10px 10px 0 0;
+}
+
+.dropdown-menu a {
+    color: white;
+}
+
+footer {
+    background: var(--dark-grey);
+}
+
+    footer div {
+        color: white;
+    }
+
+
+/*Modals and banners*/
+
+.banner {
+    /*max-width: 90vw;*/
+    box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset; /*parchment edges*/
+    background: #fffef0; /*parchment*/
+    /*filter: url(#wavy2);*/
+}
+
+.rules-carousel p,
+.rules-carousel h3,
+.rules-carousel ul {
+    color: black;
+}
+
+.rules-carousel span,
+.rules-carousel .carousel-indicators {
+    filter: invert(100%);
+}

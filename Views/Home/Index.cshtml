@@ -18,17 +18,28 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="row banner p-5 rounded mb-5 mt-5" style="text-align:center; min-height:150px;">
-    <div class="col-1 col-sm-2 d-flex justify-content-center align-items-center">
-        <img class="crystal" src="~/images/NiobiumCrystal.png" />
-    </div>
-    <div class="col-10 col-sm-8 d-flex align-items-center justify-content-center">
-        <h1 class="mb-0" style="font-family: 'Old English Text MT'">NiobiumFire Jass</h1>
-    </div>
-    <div class="col-1 col-sm-2 d-flex justify-content-center align-items-center">
-        <img class="crystal" src="~/images/NiobiumCrystal.png" />
+<div class="d-flex justify-content-center">
+    <div class="row banner py-4 rounded mb-5 mt-5" style="text-align:center; min-height:125px; max-width: 90vw;">
+        <div class="col-1"></div>
+        <div class="p-0 col-1 d-flex justify-content-center align-items-center">
+            <img class="crystal" style="width:100%; height:auto" src="~/images/NiobiumCrystal.png" />
+        </div>
+        <div class="col-8 d-flex align-items-center justify-content-center">
+            <h1 class="mb-0" style="font-family: 'Old English Text MT'">NiobiumFire Jass</h1>
+        </div>
+        <div class="p-0 col-1 d-flex justify-content-center align-items-center">
+            <img class="crystal" style="width:100%; height:auto" src="~/images/NiobiumCrystal.png" />
+        </div>
+        <div class="col-1"></div>
     </div>
 </div>
+
+@* <svg class="d-none">
+    <filter id="wavy2">
+        <feTurbulence x="0" y="0" baseFrequency="0.02" numOctaves="5" seed="1"></feTurbulence>
+        <feDisplacementMap in="SourceGraphic" scale="20" />
+    </filter>
+</svg> *@
 
 
 <div class="row justify-content-center">
@@ -37,6 +48,10 @@
         <p style="text-align:center">Welcome! <a asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a asp-area="Identity" asp-page="/Account/Register">create an account</a> to play.</p>
     }
 
+    <div class="col-3 d-flex justify-content-center align-items-center">
+        <img style="width:100%" src="~/images/Jack.png" />
+    </div>
+
     <div class=" menu-buttons col-6 col-lg-3">
         @if (!isSignedIn)
         {
@@ -44,17 +59,16 @@
         }
         else
         {
-            <h2>Jass</h2>
             <p id="numRooms">
                 Jass rooms:
                 <span id="gameCount">@ViewBag.numGames</span>
             </p>
 
-            <p class="my-0" style="text-align:center">═════ ◆ Ranked ◆ ═════</p>
+            <p class="my-0" style="text-align:center">═══ ◆ Ranked ◆ ═══</p>
 
             <p class="mb-0"><button type="button" class="btn" onclick="populateLobby()" style="width: 100%" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Match</button></p>
 
-            <p class="my-0" style="text-align:center">═════ ◆ Casual ◆ ═════</p>
+            <p class="my-0" style="text-align:center">═══ ◆ Casual ◆ ═══</p>
 
             <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
                 @Html.AntiForgeryToken()
@@ -66,7 +80,7 @@
                 <button type="submit" class="btn" form="createJassGameForm">Create</button>
             </div>
 
-            <p class="my-0" style="text-align:center">═════ ◆ General ◆ ═════</p>
+            <p class="my-0" style="text-align:center">═══ ◆ General ◆ ═══</p>
 
             <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
 
@@ -78,6 +92,10 @@
             }
 
         }
+    </div>
+
+    <div class="col-3 d-flex justify-content-center align-items-center">
+        <img style="width:100%" src="~/images/Nine.png" />
     </div>
 </div>
 

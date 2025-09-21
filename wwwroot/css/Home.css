@@ -1,19 +1,35 @@
-﻿.menu-buttons .btn {
-    background-color: rgba(159, 82, 178, 1);
-    border: 1px solid black;
-    color: white;
+﻿body {
+    background: linear-gradient(to bottom, var(--col-1) var(--bg-gradient-pt-1), var(--col-2) var(--bg-gradient-pt-2), var(--col-3));
 }
 
-    .menu-buttons .btn:hover {
-        background-color: rgba(159, 226, 252, 1);
-        border-color: black;
-        color: #fff;
-        box-shadow: none;
+.menu-buttons .btn:focus,
+.menu-buttons .btn {
+    background: linear-gradient(var(--dark-grey), var(--medium-grey) 70%);
+    border: .5px solid black;
+    box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset;
+    color: white;
+    font-weight: 600;
+    top: 0;
+    outline: 3px black;
+    text-shadow: black 0 -2px .5px;
+    line-height: 100%;
+    padding: 12px 2px 12px;
+    align-items: center;
+    transition: none;
+}
+
+    .menu-buttons .btn:active {
+        top: 1px; /* Slight drop */
+        transform: scale(0.98); /* Slight shrink */
+        box-shadow: rgba(0, 0, 0, 0.8) 0 0.5px 1px inset, rgba(255, 255, 255, 0.1) 0 -0.5px 1px inset, black 0 0 0 0.5px inset;
     }
 
-    .menu-buttons .btn:focus {
-        outline: none;
-        box-shadow: none;
+    .menu-buttons .btn:hover {
+        transition: none;
+        background: linear-gradient(var(--col-4), var(--medium-grey));
+        border: .5px solid black;
+        box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset, 0px 0px 12px 8px var(--col-4);
+        color: white;
     }
 
 .casual-btn-group {
@@ -26,7 +42,6 @@
         flex: 1 1 0;
     }
 
-.banner {
-    background: #9fe2fc;
-    background: radial-gradient(circle,rgba(159, 226, 252, 1) 0%, rgba(159, 82, 178, 1) 100%, rgba(252, 70, 107, 1) 70%);
+p {
+    color: white;
 }

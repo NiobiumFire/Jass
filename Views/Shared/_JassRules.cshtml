@@ -1,20 +1,19 @@
 ﻿<!-- Rules Modal -->
 <div class="modal fade" id="rulesModal" tabindex="-1" aria-labelledby="rulesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content banner">
 
-            <div class="modal-header">
-                <h5 class="modal-title" id="rulesModalLabel">Jass Rules</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="d-flex">
+                <button type="button" class="btn-close pe-2 pt-2 ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body" style="height: 60vh; max-height: 100vh; padding: 0; display: flex; flex-direction: column;">
 
-                <div id="rulesCarousel" class="carousel slide bg-info h-100" data-bs-ride="carousel" data-bs-interval="false">
+                <div id="rulesCarousel" class="carousel slide rules-carousel h-100" data-bs-ride="carousel" data-bs-interval="false">
 
                     <!-- Prev control -->
-                    <button class="carousel-control-prev" type="button" data-bs-target="#rulesCarousel" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <button class="carousel-control-prev my-3" type="button" data-bs-target="#rulesCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" style="filter:invert(100%)" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
 
@@ -23,7 +22,7 @@
                         <div class="carousel-item active h-100">
                             <div class="rules-slide-container">
                                 <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
-                                    <h3 class="">Objective of the Game</h3>
+                                    <h3>1: Objective of the Game</h3>
                                     <p>Jass is a trick-taking card game played by four players in two teams. West and East play against North and South. The goal is for your team to score points by winning tricks and declaring valuable card combinations. The first team to reach the target score of 1501 wins the game.</p>
                                     <img src="~/images/Other/Table.png" style="max-width: 100%; max-height: 50%;" />
                                 </div>
@@ -32,7 +31,7 @@
                         <div class="carousel-item h-100">
                             <div class="rules-slide-container">
                                 <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
-                                    <h3 class="">The Deck and Card Order</h3>
+                                    <h3>2: Deck and Card Order</h3>
                                     <p>Jass is played with a 32-card deck using the cards 7 through Ace in each suit. The ranking and values of cards change depending on whether the suit is trump. In trump suits, the order, from most-powerful to least-powerful, is: Jack (20 points), 9 (14), Ace (11), 10 (10), King (4), Queen (3), 8 and 7 (0). In non-trump suits, it's: Ace (11), 10 (10), King (4), Queen (3), Jack (2), and 9, 8, 7 (0).</p>
                                     <img src="~/images/Other/CardOrder.png" style="max-width: 100%; max-height: 30%;" />
                                 </div>
@@ -41,7 +40,7 @@
                         <div class="carousel-item h-100">
                             <div class="rules-slide-container">
                                 <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
-                                    <h3 class="">Dealing and Choosing Trump</h3>
+                                    <h3>3: Dealing and Choosing Trump</h3>
                                     <p>Each player is dealt 5 cards. Starting with the player to the dealer’s right, players take turns calling a suit, "no trumps", "all trumps", doubling or passing. The call hierarchy is: Clubs < Diamonds < Hearts < Spades < No Trumps < All Trumps. Higher calls override lower ones. The opposing team may double (x2), and the callers may redouble (x4), increasing the stakes. Calling ends when a valid call is made and all others pass, or all players pass without a call — in which case the deal is void and the next player deals.</p>
                                 </div>
                             </div>
@@ -49,9 +48,9 @@
                         <div class="carousel-item h-100">
                             <div class="rules-slide-container">
                                 <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
-                                    <h3 class="">Playing Tricks</h3>
+                                    <h3>4: Playing Tricks</h3>
                                     <p>Once a call is decided, players receive the rest of their hand (8 cards in total), and play begins with the player to the dealer's right.</p>
-                                    <ul>
+                                    <ul class="px-0 mx-0">
                                         <li>The leading player may play any card.</li>
                                         <li>Other players must follow suit if they can.</li>
                                         <li>If they can't, and their partner isn't winning the trick, they must play a trump.</li>
@@ -64,7 +63,7 @@
                         <div class="carousel-item h-100">
                             <div class="rules-slide-container">
                                 <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
-                                    <h3 class="">Declarations</h3>
+                                    <h3>5: Declarations</h3>
                                     <p>If a player has both the King and Queen of trump, they may declare “Belot” for 20 bonus points, upon playing the first of the pair. In all-trump rounds, all suits' Belots are valid, but are only declarable when following or determining the trick's suit. Discarding doesn't count.</p>
                                     <p>Runs are sequences of 3 (Tierce, 20 points), 4 (Quarte, 50), or 5+ (Quint, 100) cards in the same suit. Carres are sets (four-of-a-kind), worth 100 points for Queens, Kings, Tens and Aces, 150 for Nines and 200 for Jacks. Sevens and Eights don't count. Runs and Carres are declared when a player plays their first card of the round.</p>
                                     <p>A card cannot be used for more than one Run or Carre, but they can be shared with Belots.</p>
@@ -75,7 +74,7 @@
                         <div class="carousel-item h-100">
                             <div class="rules-slide-container">
                                 <div class="carousel-caption position-static h-100 p-0 pt-2 m-0" style="width: 65%;">
-                                    <h3 class="">Scoring and Winning</h3>
+                                    <h3>6: Scoring and Winning</h3>
                                     <p>Each team scores points from the tricks they've won and their valid declarations. Additionally, the final trick is worth an extra 10 points. The calling team must win more points than their opponents, otherwise their opponents take all points, including those from all valid declarations ("inside"). If a team wins all the tricks of a round, they receive an extra 90 points ("capot").</p>
                                 </div>
                             </div>
@@ -83,7 +82,7 @@
                     </div>
 
                     <!-- Next control -->
-                    <button class="carousel-control-next" type="button" data-bs-target="#rulesCarousel" data-bs-slide="next">
+                    <button class="carousel-control-next my-3" type="button" data-bs-target="#rulesCarousel" data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Next</span>
                     </button>

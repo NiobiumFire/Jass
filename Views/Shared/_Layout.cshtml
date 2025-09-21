@@ -9,7 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" type="image/ico" href="~/images/NiobiumCrystal.ico">
     <title>@ViewData["Title"] - NiobiumFire</title>
+    @* CSS *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/Global.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/StyleSheet.css" />
     <link rel="stylesheet" href="~/BelotWebApp.styles.css" asp-append-version="true" />
@@ -19,13 +21,13 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand navbar-dark box-shadow mb-3">
             <div class="container">
                 <div class="d-flex justify-content-start align-items-center">
                     <img src="~/images/NiobiumCrystal.png" height="30" />
                     <ul class="navbar-nav d-flex align-items-center">
                         <li class="nav-item me-1">
-                            <a class="navbar-brand mx-0 px-1" asp-area="" asp-controller="Home" asp-action="Index">NiobiumFire</a>
+                            <a class="navbar-brand mx-0 px-1" asp-area="" asp-controller="Home" asp-action="Index">NiobiumFire Jass</a>
                         </li>
 
                         @if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
@@ -46,7 +48,7 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="footer">
         <div class="container">
             &copy; 2025 - NiobiumFire - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
