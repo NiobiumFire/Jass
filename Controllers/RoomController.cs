@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BelotWebApp.Controllers
 {
 
-    [Authorize(Roles = "Player")]
+    //[Authorize(Roles = "Player")]
     public class RoomController : Controller
     {
         private readonly IAppPaths _appPaths;
@@ -19,6 +19,7 @@ namespace BelotWebApp.Controllers
             _gameRegistry = gameRegistry;
         }
 
+        // Create casual game then join it
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Index(BelotRoomCreator creator)
@@ -33,7 +34,7 @@ namespace BelotWebApp.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: Room
+        // GET: Room - Join casual game
         public ActionResult Index(string id)
         {
             var game = _gameRegistry.GetContext(id);

@@ -3,6 +3,7 @@ using BelotWebApp.BelotClasses;
 using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.Configuration;
 using BelotWebApp.Data;
+using BelotWebApp.Middleware;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
@@ -80,6 +81,8 @@ internal class Program
         app.UseAuthentication();
 
         app.UseAuthorization();
+
+        app.UseMiddleware<GuestMiddleware>();
 
         app.MapHub<BelotRoom>("/belotroom/{roomId}");
 

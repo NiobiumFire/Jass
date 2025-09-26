@@ -1,5 +1,4 @@
-﻿using BelotWebApp.BelotClasses.Agents;
-using BelotWebApp.BelotClasses.Cards;
+﻿using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Players;
@@ -13,7 +12,7 @@ namespace BelotWebApp.BelotClasses
     {
         private readonly BelotGameRegistry _gameRegistry;
 
-        public static Dictionary<string, string> allConnections = [];
+        public static Dictionary<string, string> allConnections = []; // connectionId, roomId
 
         public static readonly string botGUID = "7eae0694-38c9-48c0-9016-40e7d9ab962c";
 
@@ -315,7 +314,7 @@ namespace BelotWebApp.BelotClasses
                     await clients.OthersInGroup(game.RoomId).SendAsync("seatBooked", position, requestor, false);
                     await clients.Caller.SendAsync("seatBooked", position, requestor, true);
                     await clients.Caller.SendAsync("enableRotation", true);
-                    string[] scoreSummary = { "Us", "Them" };
+                    string[] scoreSummary = ["Us", "Them"];
                     await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(position + 1) % 2], scoreSummary[position % 2]);
 
                     await clients.OthersInGroup(game.RoomId).SendAsync("EnableSeatOptions", position, false);
@@ -446,14 +445,7 @@ namespace BelotWebApp.BelotClasses
 
         public string GetCallerUsername()
         {
-            if (Context.User.Identity.IsAuthenticated)
-            {
-                return Context.User.Identity.Name;
-            }
-            else
-            {
-                return "Unknown"; // This should never happen
-            }
+            return Context.User?.Identity?.Name ?? "Unknown Entity";
         }
 
         public string GetBotName(int pos)
