@@ -75,7 +75,7 @@
                 <span id="gameCount">@ViewBag.numGames</span>
             </p>
         
-            <p class="my-0" style="text-align:center; white-space:nowrap">◆ Ranked ◆</p>
+            <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Ranked ◆</p>
 
             @if (!isSignedIn || !emailConfirmed)
             {
@@ -92,7 +92,7 @@
                 </button>
             }
 
-            <p class="my-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
+            <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
 
             <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
                 @Html.AntiForgeryToken()
@@ -104,21 +104,21 @@
                 <button type="submit" class="btn" form="createJassGameForm">Create</button>
             </div>
 
-            <p class="my-0" style="text-align:center; white-space:nowrap">◆ General ◆</p>
+            <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ General ◆</p>
 
             <p class="mb-2 mb-sm-4"><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
 
             @if (!isSignedIn || !emailConfirmed)
             {
                 <span title="Sign into an account with a confirmed email address">
-                    <p><button type="button" class="btn" style="width: 100%" disabled>
+                    <p><button type="button" class="btn mb-2 mb-sm-4" style="width: 100%" disabled>
                         Replay <i class="bi bi-lock-fill"></i>
                     </button></p>
                 </span>
             }
             else
             {
-                <p><button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">
+                <p><button type="button" class="btn mb-2 mb-sm-4" onclick="location.href='/Replay/Index'" style="width: 100%">
                     Replay
                 </button></p>
             }
