@@ -1,36 +1,61 @@
 ﻿body {
-    background: linear-gradient(to bottom, var(--col-1) var(--bg-gradient-pt-1), var(--col-2) var(--bg-gradient-pt-2), var(--col-3));
+    /*background: linear-gradient(to bottom, var(--col-1) var(--bg-gradient-pt-1), var(--col-2) var(--bg-gradient-pt-2), var(--col-3));*/
+    background: linear-gradient(to bottom, var(--col-1) 70%, var(--col-3));
 }
 
-.menu-buttons .btn:focus,
-.menu-buttons .btn {
-    background: linear-gradient(var(--dark-grey), var(--medium-grey) 70%);
-    border: .5px solid black;
-    box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset;
-    color: white;
-    font-weight: 600;
-    top: 0;
-    outline: 3px black;
-    text-shadow: black 0 -2px .5px;
-    line-height: 100%;
-    padding: 12px 2px 12px;
-    align-items: center;
-    transition: none;
+.banner-title {
+    text-align: center;
+    max-width: 90vw;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-top: 2rem;
+    margin-bottom: 0;
+    /*py-4 py-sm-5 mb-0 mt-2 mt-sm-4*/
 }
 
-    .menu-buttons .btn:active {
-        top: 1px; /* Slight drop */
-        transform: scale(0.98); /* Slight shrink */
-        box-shadow: rgba(0, 0, 0, 0.8) 0 0.5px 1px inset, rgba(255, 255, 255, 0.1) 0 -0.5px 1px inset, black 0 0 0 0.5px inset;
+@media (max-width: 576px) {
+    .banner-title {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        margin-top: 1rem;
     }
+}
 
-    .menu-buttons .btn:hover {
-        transition: none;
-        background: linear-gradient(var(--col-4), var(--medium-grey));
+    .menu-buttons .btn:focus,
+    .menu-buttons .btn {
+        background: linear-gradient(var(--dark-grey), var(--medium-grey) 70%);
         border: .5px solid black;
-        box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset, 0px 0px 12px 8px var(--col-4);
+        box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset;
         color: white;
+        font-weight: 600;
+        top: 0;
+        outline: 3px black;
+        text-shadow: black 0 -2px .5px;
+        line-height: 100%;
+        padding: 12px 2px 12px;
+        align-items: center;
+        transition: none;
     }
+
+        .menu-buttons .btn:active {
+            top: 1px; /* Slight drop */
+            transform: scale(0.98); /* Slight shrink */
+            box-shadow: rgba(0, 0, 0, 0.8) 0 0.5px 1px inset, rgba(255, 255, 255, 0.1) 0 -0.5px 1px inset, black 0 0 0 0.5px inset;
+        }
+
+        .menu-buttons .btn:hover {
+            transition: none;
+            background: linear-gradient(var(--col-4), var(--medium-grey));
+            border: .5px solid black;
+            box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset, 0px 0px 12px 8px var(--col-4);
+            color: white;
+        }
+
+@media (max-width: 640px) {
+    .menu-buttons .btn {
+        font-size: 0.8rem;
+    }
+}
 
 .casual-btn-group {
     display: flex;
@@ -44,4 +69,16 @@
 
 p {
     color: white;
+    text-align:center;
+    margin: 0;
+}
+
+.w-75-sm {
+    width: 75%;
+}
+
+@media (max-width: 576px) {
+    .w-75-sm {
+        width: 100%;
+    }
 }

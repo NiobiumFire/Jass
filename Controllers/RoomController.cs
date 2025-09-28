@@ -1,12 +1,10 @@
 ﻿using BelotWebApp.BelotClasses;
 using BelotWebApp.Models;
 using BelotWebApp.Services.AppPathService;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BelotWebApp.Controllers
 {
-
     //[Authorize(Roles = "Player")]
     public class RoomController : Controller
     {

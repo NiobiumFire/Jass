@@ -20,16 +20,13 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand navbar-dark box-shadow mb-3">
+        <nav class="navbar navbar-expand navbar-dark box-shadow">
             <div class="container">
                 <div class="d-flex justify-content-start align-items-center">
                     <img src="~/images/NiobiumCrystal.png" height="30" />
                     <ul class="navbar-nav d-flex align-items-center">
                         <li class="nav-item me-3">
                             <a class="navbar-brand mx-0 px-1" asp-area="" asp-controller="Home" asp-action="Index">NiobiumFire Jass</a>
-                        </li>
-                        <li class="nav-item me-1">
-                            <a class="nav-link mx-0 px-1" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                         @if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                         {
@@ -51,7 +48,7 @@
 
     <footer class="footer">
         <div class="container">
-            &copy; 2025 - NiobiumFire
+            &copy; 2025 - NiobiumFire - <a style="color:white" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

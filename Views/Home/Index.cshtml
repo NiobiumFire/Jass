@@ -17,19 +17,22 @@
     ViewData["Title"] = "Home";
 }
 
+@await Html.PartialAsync("_Nebula")
+
 <div class="d-flex justify-content-center">
-    <div class="row banner py-4 rounded mb-5 mt-3" style="text-align:center; min-height:125px; max-width: 90vw;">
-        <div class="col-1"></div>
-        <div class="p-0 col-1 d-flex justify-content-center align-items-center">
-            <img class="crystal" style="width:100%; height:auto" src="~/images/NiobiumCrystal.png" />
+    <div class="row banner banner-title rounded">
+        <div class="col-1 col-sm-0"></div>
+        <div class="col-1 p-0 crystal-container crystal-container-left">
+            @await Html.PartialAsync("_Crystal")
         </div>
         <div class="col-8 d-flex align-items-center justify-content-center">
-            <h1 class="mb-0" style="font-family: 'Old English Text MT'">NiobiumFire Jass</h1>
+            @* <h1 class="mb-0" style="font-family: 'Old English Text MT'; font-size: 4.5rem">NiobiumFire Jass</h1> *@
+            <img class="w-75-sm" style="height:auto" src="~/images/BannerText.png" />
         </div>
-        <div class="p-0 col-1 d-flex justify-content-center align-items-center">
-            <img class="crystal" style="width:100%; height:auto" src="~/images/NiobiumCrystal.png" />
+        <div class="col-1 p-0 crystal-container crystal-container-right">
+            @await Html.PartialAsync("_Crystal")
         </div>
-        <div class="col-1"></div>
+        <div class="col-1 col-sm-0"></div>
     </div>
 </div>
 
@@ -40,82 +43,91 @@
     </filter>
 </svg> *@
 
-@if (!isSignedIn)
-{
-    <p style="text-align:center">Welcome! <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Register">create an account</a> for all features.</p>
-}
-else if (!emailConfirmed)
-{
-    <p style="text-align:center">Welcome @userManager.GetUserName(User)! <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features.</p>
-}
-else
-{
-    <p style="text-align:center">Welcome @userManager.GetUserName(User)!</P>
-}
+<div class="my-3 my-sm-4">
+    @if (!isSignedIn)
+    {
+        <p>Welcome!</p>
+        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Register">register</a> for all features.</p>
+    }
+    else if (!emailConfirmed)
+    {
+        <p>Welcome @userManager.GetUserName(User)!</p>
+        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features.</p>
+    }
+    else
+    {
+        <p>Welcome @userManager.GetUserName(User)!</P>
+    }
+</div>
+
+<div class="mb-5 mb-sm-0"></div>
 
 <div class="row justify-content-center">
 
     <div class="col-3 d-flex justify-content-center align-items-center">
-        <img style="width:100%" src="~/images/Jack.png" />
+        <img style="width:90%" src="~/images/Jack.png" />
     </div>
-    <div class=" menu-buttons col-6 col-lg-3">
-        <p style="text-align: center">
-            Jass rooms:
-            <span id="gameCount">@ViewBag.numGames</span>
-        </p>
 
-        <p class="my-0" style="text-align:center; white-space:nowrap">═══ ◆ Ranked ◆ ═══</p>
+    <div class="menu-buttons col-6 col-lg-3 px-0 px-sm-2 d-flex flex-column justify-content-center align-items-center">
+        <div class="w-100">
+            <p style="text-align: center">
+                Jass rooms:
+                <span id="gameCount">@ViewBag.numGames</span>
+            </p>
+        
+            <p class="my-0" style="text-align:center; white-space:nowrap">◆ Ranked ◆</p>
 
-        @if (!isSignedIn || !emailConfirmed)
-        {
-            <span title="Sign into an account with a confirmed email address">
-                <button type="button" class="btn" style="width: 100%" disabled>
-                    Match <i class="bi bi-lock-fill"></i>
+            @if (!isSignedIn || !emailConfirmed)
+            {
+                <span title="Sign into an account with a confirmed email address">
+                    <button type="button" class="btn" style="width: 100%" disabled>
+                        Match <i class="bi bi-lock-fill"></i>
+                    </button>
+                </span>
+            }
+            else
+            {
+                <button type="button" class="btn" style="width: 100%" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">
+                    Match
                 </button>
-            </span>
-        }
-        else
-        {
-            <button type="button" class="btn" style="width: 100%" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">
-                Match
-            </button>
-        }
+            }
 
-        <p class="my-0" style="text-align:center; white-space:nowrap">═══ ◆ Casual ◆ ═══</p>
+            <p class="my-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
 
-        <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
-            @Html.AntiForgeryToken()
-        </form>
+            <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
+                @Html.AntiForgeryToken()
+            </form>
 
-        <div class="btn-group casual-btn-group" style="width: 100%" role="group">
-            <button type="button" class="btn">Match</button>
-            <button type="button" class="btn" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
-            <button type="submit" class="btn" form="createJassGameForm">Create</button>
-        </div>
+            <div class="btn-group casual-btn-group" style="width: 100%" role="group">
+                <button type="button" class="btn">Match</button>
+                <button type="button" class="btn" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
+                <button type="submit" class="btn" form="createJassGameForm">Create</button>
+            </div>
 
-        <p class="my-0" style="text-align:center; white-space:nowrap">═══ ◆ General ◆ ═══</p>
+            <p class="my-0" style="text-align:center; white-space:nowrap">◆ General ◆</p>
 
-        <p><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+            <p class="mb-2 mb-sm-4"><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
 
-        @if (!isSignedIn || !emailConfirmed)
-        {
-            <span title="Sign into an account with a confirmed email address">
-                <p><button type="button" class="btn" style="width: 100%" disabled>
-                    Replay <i class="bi bi-lock-fill"></i>
+            @if (!isSignedIn || !emailConfirmed)
+            {
+                <span title="Sign into an account with a confirmed email address">
+                    <p><button type="button" class="btn" style="width: 100%" disabled>
+                        Replay <i class="bi bi-lock-fill"></i>
+                    </button></p>
+                </span>
+            }
+            else
+            {
+                <p><button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">
+                    Replay
                 </button></p>
-            </span>
-        }
-        else
-        {
-            <p><button type="button" class="btn" onclick="location.href='/Replay/Index'" style="width: 100%">
-                Replay
-            </button></p>
-        }
+            }
 
-        @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
-        {
-            <p><button type="button" onclick="location.href='/Training/Index'" class="btn" style="width: 100%">Training Center</button></p>
-        }
+            @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
+            {
+                <p><button type="button" onclick="location.href='/Training/Index'" class="btn" style="width: 100%">Training Center</button></p>
+            }
+        </div>
     </div>
 
     <div class="col-3 d-flex justify-content-center align-items-center">

@@ -14,6 +14,7 @@
   <ItemGroup>
     <Content Remove="Areas\Identity\Pages\Account\Manage\SetPassword.cshtml" />
     <Content Remove="Areas\Identity\Pages\Account\Manage\_ManageNav.cshtml" />
+    <Content Remove="Views\Shared\_Crystal.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,14 +35,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Views\Shared\_Crystal.cshtml" />
     <None Include="wwwroot\images\Other\Dealer.svg" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="wwwroot\images\BannerText.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\images\Jack.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\images\Nine.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\images\NiobiumCrystal.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
