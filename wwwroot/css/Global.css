@@ -57,6 +57,23 @@ footer {
     /*filter: url(#wavy2);*/
 }
 
+.banner-title {
+    /*text-align: center;*/
+    max-width: 90vw;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-top: 2rem;
+    margin-bottom: 0;
+}
+
+@media (max-width: 576px) {
+    .banner-title {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        margin-top: 1rem;
+    }
+}
+
 .rules-carousel p,
 .rules-carousel h3,
 .rules-carousel ul {

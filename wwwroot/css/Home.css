@@ -3,24 +3,6 @@
     background: linear-gradient(to bottom, var(--col-1) 70%, var(--col-3));
 }
 
-.banner-title {
-    text-align: center;
-    max-width: 90vw;
-    padding-top: 3rem;
-    padding-bottom: 3rem;
-    margin-top: 2rem;
-    margin-bottom: 0;
-    /*py-4 py-sm-5 mb-0 mt-2 mt-sm-4*/
-}
-
-@media (max-width: 576px) {
-    .banner-title {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        margin-top: 1rem;
-    }
-}
-
     .menu-buttons .btn:focus,
     .menu-buttons .btn {
         background: linear-gradient(var(--dark-grey), var(--medium-grey) 70%);

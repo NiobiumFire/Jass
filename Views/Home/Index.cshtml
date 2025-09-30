@@ -17,8 +17,6 @@
     ViewData["Title"] = "Home";
 }
 
-@await Html.PartialAsync("_Nebula")
-
 <div class="d-flex justify-content-center">
     <div class="row banner banner-title rounded">
         <div class="col-1 col-sm-0"></div>
@@ -47,12 +45,12 @@
     @if (!isSignedIn)
     {
         <p>Welcome!</p>
-        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Register">register</a> for all features.</p>
+        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Register">register</a> for all features</p>
     }
     else if (!emailConfirmed)
     {
         <p>Welcome @userManager.GetUserName(User)!</p>
-        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features.</p>
+        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features</p>
     }
     else
     {
