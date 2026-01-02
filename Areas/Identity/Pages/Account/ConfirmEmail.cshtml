@@ -2,7 +2,11 @@
 @model ConfirmEmailModel
 @{
     ViewData["Title"] = "Confirm email";
+    Layout = "~/Areas/Identity/Pages/_AccountLayout.cshtml";
 }
 
 <h1>@ViewData["Title"]</h1>
-<partial name="_StatusMessage" model="Model.StatusMessage" />
+<hr />
+<p>@Model.StatusMessage</p>
+@* <partial name="_StatusMessage" model="Model.StatusMessage" /> *@
+<hr />

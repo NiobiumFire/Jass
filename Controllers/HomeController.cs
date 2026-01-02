@@ -35,20 +35,24 @@ namespace BelotWebApp.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        // Belot lobby
+        #region Lobby
+
         public int GetNumRooms()
         {
             return _gameRegistry.GetAllGames().Count();
         }
 
-        public string PopulateLobby()
+        public IActionResult PopulateLobbyPartial()
         {
             List<BelotLobbyGame> games = [];
             foreach (BelotGame game in _gameRegistry.GetAllGames())
             {
                 games.Add(new BelotLobbyGame(game));
             }
-            return JsonSerializer.Serialize(games);
+
+            return PartialView("_LobbyTableRows", games);
         }
+
+        #endregion
     }
 }

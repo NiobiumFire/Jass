@@ -17,7 +17,6 @@ namespace BelotWebApp.Models.Administration
     }
     public class InputModel
     {
-        public string Id { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
         public List<bool> IsInRole { get; set; } = new List<bool>();

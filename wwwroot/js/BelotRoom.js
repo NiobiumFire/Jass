@@ -80,52 +80,56 @@ room.on("rotateCards", function () {
     rotateCards();
 });
 
+window.addEventListener('resize', rotateCards);
+
 function rotateCards() {
-    let offsets = document.getElementById('cardboard').getBoundingClientRect();
-    let top = offsets.top;
-    let height = document.getElementById("cardboard").clientHeight;
-    let left = offsets.left;
-    let width = Math.min(document.getElementById("cardboard").clientWidth, 600);
-    let Cx = left;
-    let Cy = top + height / 2.0;
-    let Ax = left + width / 2.0;
-    let Ay = top;
-    let Bx = left + width;
-    let By = top + height / 2.0;
-    let b = Math.sqrt(Math.pow((Ax - Cx), 2.0) + Math.pow((Ay - Cy), 2.0));
+    const container = document.getElementById("cardboard");
+    const allCards = container.querySelectorAll(".belot-card2");
+    const visibleCards = [...allCards].filter(c => !c.hidden);
+    const visible = visibleCards.length;
+    const max = 8;
 
-    let c = Math.sqrt(Math.pow((Ax - Bx), 2.0) + Math.pow((Ay - By), 2.0));//= b
-    let a = (width);
+    if (visible === 0) return;
 
-    let h = height / 2.0;
+    const cardWidth = visibleCards[0].offsetWidth;
+    const width = Math.min(container.clientWidth, 600);
+    //console.log("container: " + container.clientWidth);
+    let radius = 400;
 
-    let r = (b * c / (2 * h));
+    // compute the full spread for 8 cards to fill the container width
+    let maxArcLength = width - cardWidth;
+    //console.log(maxArcLength);
+    const spread = (maxArcLength / radius) * (180 / Math.PI);
+    //console.log("spread: " + spread);
+    container.style.setProperty("--spread", `${spread}deg`);
+    container.style.setProperty("--radius", `${radius}px`);
+    container.style.setProperty("--max", max);
 
-    let theta = Math.round(180.0 - (2.0 * Math.atan((2.0 * (r - h)) / a) * 180.0 / Math.PI));
+    // center the visible cards within the 8 slots
+    const offset = (max - visible) / 2;
 
-    // subtract half of the card width from the arc length, convert to angle and remove this from theta, for the start and end card (x2)
-    let arc = document.getElementById("tablecard0").clientWidth;
+    visibleCards.forEach((card, i) => {
+        card.style.setProperty("--slot", i + offset);
+    });
+}
 
-    let phi = (arc / r) * 180 / Math.PI;
-    theta = theta - phi;
+function unrotateCards() {
+    const container = document.getElementById("cardboard");
+    const allCards = container.querySelectorAll(".belot-card2");
 
-    let rotation = theta / 7;
+    // flatten all transforms first so cards fan from center
+    allCards.forEach(card => {
+        card.style.transition = "none"; // disable animation for the reset
+        card.style.setProperty("--slot", 3.5); // all in the middle
+    });
 
-    let children = document.getElementById("cardboard").children;
-    let visibleChildren = 8;
-    for (let i = 0; i < children.length; i++) {
-        if (children[i].hidden == true) visibleChildren--;
-    }
-    let count = 0;
-    for (let i = 0; i < children.length; i++) {
-        if (children[i].hidden == false) {
-            let child = children[i];
-            child.style.transformOrigin = "center " + Math.round(r) + "px";
-            child.style.transform = "rotate(" + (-3.5 * rotation + 0.5 * rotation * (8 - visibleChildren) + rotation * count) + "deg)";
-            count++;
-        }
-    }
-};
+    // force browser reflow so reset happens immediately
+    void container.offsetWidth;
+
+    allCards.forEach((card) => {
+        card.style.transition = ""; // restore CSS transition
+    });
+}
 
 room.on("hideCard", function (cardId) {
     hideCard(cardId);
@@ -154,20 +158,19 @@ function disableCards() {
         //document.getElementById("card" + i).classList.remove("belot-card2-valid");
         document.getElementById("card" + i).classList.remove("belot-card2-invalid");
     }
-    document.getElementById("cardboard").classList.remove("card-board-pulse");
+    document.getElementById("cardboard").classList.remove("cardboard-pulse");
 };
 
 room.on("enableCards", function (validcards) {
-    for (let i = 0; i < 8; i++) { // change to for each element in received integer array
+    for (let i = 0; i < 8; i++) {
         if (validcards[i] == 1) {
             document.getElementById("card" + i).onclick = playCardRequest;
-            //document.getElementById("card" + i).classList.add("belot-card2-valid");
         }
         else {
             document.getElementById("card" + i).classList.add("belot-card2-invalid");
         }
     }
-    document.getElementById("cardboard").classList.add("card-board-pulse");
+    document.getElementById("cardboard").classList.add("cardboard-pulse");
 });
 
 room.on("setTableCard", function (tableCardPosition, tableCard) {
@@ -194,8 +197,13 @@ room.on("showEmote", function (turn) {
 });
 
 room.on("hideEmote", function (turn) {
-    let seat = "bubble" + turn;
-    document.getElementById(seat).style.visibility = "hidden";
+    let seat = document.getElementById("bubble" + turn);
+    seat.style.visibility = "hidden";
+
+    let icon = seat.querySelector('.emote-icon');
+    clearSuitIconClass(icon);
+    clearSuitIconColourClass(icon);
+    icon.classList.remove("emote-icon-suit");
 });
 
 // -------------------- Round Summary --------------------
@@ -235,7 +243,7 @@ room.on("closeModalsAndButtons", function () {
 function resetTable() {
     let path = document.URL.substring(0, document.URL.indexOf("Room")).concat("Images/Cards/c0-00.png");
     for (let i = 0; i < 4; i++) {
-        document.getElementById("tablecard".concat(i)).src = path;
+        document.getElementById(`tablecard${i}`).src = path;
     }
 };
 
@@ -243,12 +251,16 @@ function resetBoard() {
     for (let i = 0; i < 8; i++) {
         hideCard("card" + i);
     };
+    unrotateCards();
 };
 
 function resetSuitSelection() {
-    document.getElementById("selectedsuit").innerHTML = "";
-    document.getElementById("selectedsuit").classList = "bi bi-suit-spade-fill";
-    document.getElementById("selectedsuit").style.color = "dimgrey";
+    const selectedSuit = document.getElementById("selectedsuit");
+    selectedSuit.innerHTML = "";
+    clearSuitIconClass(selectedSuit);
+    clearSuitIconColourClass(selectedSuit);
+    selectedSuit.classList.remove("suit-shadow");
+    selectedSuit.classList.add("bi", "bi-suit-spade-fill");
     document.getElementById("selectedmultiplier").innerHTML = "";
     setCallerIndicator(4);
 };
@@ -280,10 +292,10 @@ room.on("newGame", function (gameId) {
 room.on("showTrickWinner", function (winner) {
 
     document.getElementById("tablecard".concat(winner)).classList.add("winning-card-pulse");
-    document.getElementById("tablecardslot".concat(winner)).style.zIndex = 3;
+    document.getElementById("tableCardSlot".concat(winner)).style.zIndex = 3;
     setTimeout(function () {
-        document.getElementById("tablecard".concat(winner)).classList.remove("winning-card-pulse", "z-2");
-        document.getElementById("tablecardslot".concat(winner)).style.zIndex = "auto";
+        document.getElementById("tablecard".concat(winner)).classList.remove("winning-card-pulse");
+        document.getElementById("tableCardSlot".concat(winner)).style.zIndex = "auto";
     }, 1000);
 });
 
@@ -449,10 +461,14 @@ function closeExtrasModal() {
 };
 
 room.on("setExtrasEmote", function (extras, turn) {
-    let seat = "bubble" + turn;
-    document.getElementById(seat).innerHTML = "";
+    let bubble = document.getElementById("bubble" + turn);
+    let icon = bubble.querySelector('.emote-icon');
+    clearSuitIconClass(icon);
+    clearSuitIconColourClass(icon);
+    icon.classList.remove("emote-icon-suit");
+    icon.innerHTML = "";
     for (let i = 0; i < extras.length; i++) {
-        document.getElementById(seat).append(extras[i] + "\n");
+        icon.append(extras[i] + "\n");
     };
 });
 
@@ -467,8 +483,12 @@ room.on("showSuitModal", function (validCalls, fiveUnderNine = false) {
             setSuitIconOff(i + 1);
         };
     };
-    if (fiveUnderNine) document.getElementById("suitBtn9").disabled = false;
-    else document.getElementById("suitBtn9").disabled = true;
+    if (fiveUnderNine) {
+        document.getElementById("callBtn9").disabled = false;
+    }
+    else {
+        document.getElementById("callBtn9").disabled = true;
+    }
     $('#lobby').offcanvas('hide');
     //window.scrollTo(0, 99999);
     $('#suit-modal').modal('show');
@@ -486,27 +506,19 @@ function minimiseSuitModal() {
 
 room.on("emoteSuit", function (suit, turn) {
     let bubble = document.getElementById("bubble" + turn);
-    bubble.innerHTML = "";
-    bubble.appendChild(setEmoteSuitContent(suit));
+    setEmoteSuitContent(bubble, suit);
 });
 
 function setSuitIconOff(suit) {
-    document.getElementById("suitBtn" + suit).onclick = "";
-    document.getElementById("suit" + suit).style.color = "lightgrey";
+    const callBtn = document.getElementById("callBtn" + suit);
+    callBtn.onclick = "";
+    callBtn.classList.add("call-btn-inactive");
 };
 
 function setSuitIconOn(suit) {
-    if (suit == 1 || suit == 4) {
-        document.getElementById("suit" + suit).style.color = "black";
-    }
-    else if (suit == 2 || suit == 3 || suit == 7 || suit == 8) {
-        document.getElementById("suit" + suit).style.color = "red";
-    }
-    else if (suit == 5 || suit == 6) {
-        document.getElementById("suit" + suit).style.color = "darkmagenta";
-    };
-
-    document.getElementById("suitBtn" + suit).onclick = function () { nominateSuit(this) };
+    const callBtn = document.getElementById("callBtn" + suit);
+    callBtn.onclick = function () { nominateSuit(this); };
+    callBtn.classList.remove("call-btn-inactive");
 };
 
 function nominateSuit(el) {
@@ -525,28 +537,92 @@ room.on("setCallerIndicator", function (turn) {
 function setCallerIndicator(turn) {
     const icons = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
 
-    document.getElementById("wnescallindicator").classList.remove("bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move");
-    document.getElementById("wnescallindicator").classList.add(icons[turn]);
+    const wnescallindicator = document.getElementById("wnescallindicator");
 
-    if (turn < 4) {
-        document.getElementById("wnescallindicator").style.color = "black";
-    }
-    else {
-        document.getElementById("wnescallindicator").style.color = "dimgrey";
-    }
+    wnescallindicator.classList.remove("bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move", "call-icon-black", "call-icon-inactive");
+    wnescallindicator.classList.add(icons[turn]);
     setCallTooltip();
 };
 
 // -------------------- Seat Management --------------------
 
+const dialog = document.querySelector('#seatActionsDialogue');
+let outsideClickListener;
+let dialogActivator;
+
+function openDialogue(activator, pos) {
+
+    if (dialog.open && activator == dialogActivator) {
+        closeDialog();
+        return;
+    }
+    else if (dialog.open) {
+        document.removeEventListener('click', outsideClickListener);
+    }
+
+    outsideClickListener = function (event) {
+        if (dialog.contains(event.target) || activator.contains(event.target)) { // the 'or' here prevents the dialog closing on the same click that opens it
+            return;
+        }
+        closeDialog();
+
+    }
+    document.addEventListener('click', outsideClickListener);
+    dialogActivator = activator;
+
+    room.invoke("HubGetSeatActions", pos);
+}
+
+function closeDialog() {
+    document.removeEventListener('click', outsideClickListener);
+    dialogActivator = null;
+    dialog.close();
+}
+
+room.on("setSeatActions", function (actions, pos) {
+
+    if (!actions.canOccupy && !actions.canAssignBot && !actions.canVacate) {
+        closeDialog();
+        return;
+    }
+
+    const occupySeat = document.getElementById("occupySeat");
+    occupySeat.onclick = () => requestSeatBooking(pos);
+    occupySeat.hidden = !actions.canOccupy;
+    const assignBot = document.getElementById("assignBot");
+    assignBot.onclick = () => requestSeatBooking(pos + 4);
+    assignBot.hidden = !actions.canAssignBot;
+    const vacate = document.getElementById("vacate");
+    vacate.onclick = () => requestSeatBooking(8);
+    vacate.hidden = !actions.canVacate;
+
+    // set dialogue arrow direction
+    // account for rotated seats: dialog arrow points to where clicked, but pos remains the global position irrespective of rotation
+    let r = parseInt(getComputedStyle(document.getElementById("card-table")).getPropertyValue('--seat-rotation'));
+    r = (pos + Math.round(r / 90) + 4) % 4;
+    if (r < 0) r += 4;
+
+    const arrow = document.getElementById("seatActionsDialogueArrow");
+    arrow.className = "seat-actions-arrow"; // reset previous direction
+    switch (r) {
+        case 0: arrow.classList.add("west"); break;
+        case 1: arrow.classList.add("north"); break;
+        case 2: arrow.classList.add("east"); break;
+        case 3: arrow.classList.add("south"); break;
+    }
+
+    document.getElementById("seatActionsDialogue").show();
+});
+
 function requestSeatBooking(seat) {
+    closeDialog();
     room.invoke("HubBookSeat", seat);
 };
 
 room.on("disableRadios", function () {
     // disable team selection
     for (let i = 0; i < 4; i++) {
-        document.getElementById("tablecardslot".concat(i)).disabled = true;
+        document.getElementById("tableCardSlot".concat(i)).disabled = true;
         document.getElementById("fingerprint".concat(i)).hidden = true;
     }
 });
@@ -554,27 +630,9 @@ room.on("disableRadios", function () {
 room.on("enableRadios", function () {
     // enable team selection
     for (let i = 0; i < 4; i++) {
-        document.getElementById("tablecardslot".concat(i)).disabled = false;
+        document.getElementById("tableCardSlot".concat(i)).disabled = false;
         document.getElementById("fingerprint".concat(i)).hidden = false;
     }
-});
-
-room.on("enableSeatOptions", function (pos, setting) {
-    if (document.getElementById("fingerprint" + pos).classList.contains("show"))
-        $("#fingerprint" + pos).dropdown("toggle");
-    document.getElementById("teamselector" + pos).hidden = !setting;
-});
-
-room.on("enableOccupySeat", function (pos, setting) {
-    document.getElementById("occupy".concat(pos)).hidden = !setting;
-});
-
-room.on("enableAssignBotToSeat", function (pos, setting) {
-    document.getElementById("assignbot".concat(pos)).hidden = !setting;
-});
-
-room.on("enableVacateSeat", function (pos, setting) {
-    document.getElementById("vacate".concat(pos)).hidden = !setting;
 });
 
 // is this required? seat id in html may need renming to convene e.g. seat0
@@ -601,17 +659,14 @@ function getSeatNameByNumber(number) {
 };
 
 room.on("enableNewGame", function () {
-    document.getElementById("newGameBtn").classList.add("deal-pulse");
+    /*document.getElementById("newGameBtn").classList.add("deal-pulse");*/
+    document.getElementById("newGameBtn").classList.add("btn-prompt");
     document.getElementById("newGameBtn").disabled = false;
 });
 
 room.on("disableNewGame", function () {
-    document.getElementById("newGameBtn").classList.remove("deal-pulse");
+    document.getElementById("newGameBtn").classList.remove("btn-prompt");
     document.getElementById("newGameBtn").disabled = true;
-});
-
-room.on("setSeatColour", function (position, colour) {
-    setSeatColour(position, colour);
 });
 
 function setSeatColour(position, colour) {
@@ -619,16 +674,20 @@ function setSeatColour(position, colour) {
 };
 
 room.on("seatBooked", function (position, username, isSelf) {
-    document.getElementById("usernamelabel".concat(position)).innerHTML = username;
-    let colour = "#0d6efd";
-    if (isSelf) colour = "darkmagenta";
-    setSeatColour(position, colour);
+    const tableCardSlot = document.getElementById(`tableCardSlot${position}`);
+    tableCardSlot.classList.remove("player-self", "player-other");
+    const colorClass = isSelf ? "player-self" : "player-other";
+    tableCardSlot.classList.add(colorClass);
+    const usernameLabel = document.getElementById(`usernamelabel${position}`);
+    usernameLabel.innerHTML = username;
 });
 
 room.on("seatUnbooked", function (position) {
-    let seat = getSeatNameByNumber(position);
-    document.getElementById("usernamelabel".concat(position)).innerHTML = seat;
-    setSeatColour(position, "black");
+    const tableCardSlot = document.getElementById(`tableCardSlot${position}`);
+    tableCardSlot.classList.remove("player-self", "player-other");
+    let defaultSeatName = getSeatNameByNumber(position);
+    const usernameLabel = document.getElementById(`usernamelabel${position}`);
+    usernameLabel.innerHTML = defaultSeatName;
 });
 
 room.on("seatAlreadyBooked", function (occupier) {
@@ -657,51 +716,22 @@ $("#rotateSeatsAntiClockwiseBtn").on("click", function () {
 
 function rotateSeats(direction) {
 
-    let r = getRotation(document.getElementById("wnescallindicator"));
+    const cardTable = document.getElementById("card-table");
 
-    document.getElementById("wnescallindicator").style.transform = "rotate(" + (r + 90 * direction) + "deg)";
-    document.getElementById("turnIndicator").style.transform = "rotate(" + (r + 90 * direction) + "deg)";
+    let r = parseInt(getComputedStyle(cardTable).getPropertyValue('--seat-rotation'));
+
+    cardTable.style.setProperty('--seat-rotation', `${r + 90 * direction}`);
 
     let tableCardSlotPos = ["inWest", "inNorth", "inEast", "inSouth"];
 
-    let tableCardTranslate = [["0px, 0px", "100%, -50%", "200%, 0px", "100%, 50%"],
-    ["-100%, 50%", "0px, 0px", "100%, 50%", "0px, 100%"],
-    ["-200%, 0px", "-100%, -50%", "0px, 0px", "-100%, 50%"],
-    ["-100%, -50%", "0px, -100%", "100%, -50%", "0px, 0px"]];
-
-    let markerTranslate = ["translate(-57%, 0px)", "translate(0px, -56%)", "translate(58%, 0px)", "translate(0px, 55%)"];
-
-    let dropdowns = [" dropend", " dropdown-center", " dropstart", " dropup dropup-center"];
-
-    let emotes = ["w", "n", "e", "s"];
-
     for (let i = 0; i < 4; i++) {
-        let card = document.getElementById("tablecardslot" + i);
-        let marker = document.getElementById("player-marker" + i);
-        let dealer = document.getElementById("dealermarker" + i);
-        let fingerprint = document.getElementById("fingerprint" + i);
-        if (fingerprint.classList.contains("show")) $("#fingerprint" + i).dropdown("toggle");
+        let card = document.getElementById("tableCardSlot" + i);
         for (let j = 0; j < 4; j++) {
             if (card.classList.contains(tableCardSlotPos[j])) {
                 card.classList.remove(tableCardSlotPos[j]);
                 var d = j + direction;
-                if (d == 4) d = 0;
-                if (d == -1) d = 3;
+                d = (d + 4) % 4; // -1 -> 3 and 4 -> 0
                 card.classList.add(tableCardSlotPos[d]);
-                card.style.transform = "translate(" + tableCardTranslate[i][d] + ")";
-
-                marker.style.transform = markerTranslate[d] + " rotate(" + (getRotation(marker) + 90 * direction) + "deg)";
-                if (d == 1) marker.classList.remove("pnm-reverse");
-                else marker.classList.add("pnm-reverse");
-
-                dealer.classList.remove("dealer0", "dealer1", "dealer2", "dealer3");
-                dealer.classList.add("dealer" + d);
-
-                fingerprint.classList.remove("fingerprint0", "fingerprint1", "fingerprint2", "fingerprint3");
-                fingerprint.classList.add("fingerprint" + d);
-                fingerprint.parentNode.classList = "dropdown" + dropdowns[d];
-
-                document.getElementById("bubble" + i).classList = "emote bubble" + d;
 
                 document.getElementById("throwBoard" + i).classList = "throw throw" + d;
                 break;
@@ -780,11 +810,7 @@ $("#chatLogBtn").on("click", function () {
 });
 
 $("#chatbtn").on("click", function () {
-    let chatOpen = document.getElementById("chatLogAccordian").classList.contains("show");
-    let lobbyOpening = document.getElementById("lobby").classList.contains("showing");
-    if (lobbyOpening && chatOpen) {
-        document.getElementById("chatLogBadge").hidden = true;
-    }
+    document.getElementById("chatLogBadge").hidden = true;
 });
 
 //-------------

@@ -266,6 +266,40 @@ namespace BelotWebApp.BelotClasses
 
         #region Seat Management
 
+        public async Task HubGetSeatActions(int position)
+        {
+            log?.Information("[HubGetSeatActions] enter");
+
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[HubGetSeatActions] GameContext/Game/Observer was null");
+                return;
+            }
+
+            var game = gameContext.Game;
+            var clients = Clients;
+
+            string requestor = GetCallerUsername();
+
+            var players = game.Players;
+
+            bool occupiedByHuman = players[position].PlayerType == PlayerType.Human;
+            bool occupiedByBot = !string.IsNullOrEmpty(players[position].Username) && players[position].PlayerType != PlayerType.Human;
+            bool isMe = players[position].Username == requestor;
+
+            var actions = new
+            {
+                CanOccupy = !occupiedByHuman,
+                CanAssignBot = !occupiedByBot && (!occupiedByHuman || isMe), // not occuped by bot already and not occupied by another human (not me)
+                CanVacate = isMe
+            };
+
+            await clients.Caller.SendAsync("SetSeatActions", actions, position);
+
+            log?.Information("[HubGetSeatActions] exit");
+        }
+
         public async Task HubBookSeat(int position) // called by client // 0 = W, 1 = N, 2 = E, 3 = S, 4-7 = Robot, 8 = vacate
         {
             log?.Information("[HubBookSeat] enter");
@@ -317,12 +351,6 @@ namespace BelotWebApp.BelotClasses
                     string[] scoreSummary = ["Us", "Them"];
                     await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(position + 1) % 2], scoreSummary[position % 2]);
 
-                    await clients.OthersInGroup(game.RoomId).SendAsync("EnableSeatOptions", position, false);
-                    await group.SendAsync("EnableOccupySeat", position, false);
-                    await clients.OthersInGroup(game.RoomId).SendAsync("EnableAssignBotToSeat", position, false);
-                    await clients.Caller.SendAsync("EnableAssignBotToSeat", position, true);
-                    await clients.Caller.SendAsync("EnableVacateSeat", position, true);
-
                     await group.SendAsync("SetBotBadge", position, false);
                 }
                 else if (isEmpty && position > 3) // empty seat requested by bot
@@ -333,8 +361,6 @@ namespace BelotWebApp.BelotClasses
                     await UpdateConnectedUsers(game, clients);
                     await group.SendAsync("SeatBooked", position, botName, false);
                     await group.SendAsync("SetBotBadge", position, true);
-                    await group.SendAsync("EnableAssignBotToSeat", position, false);
-                    await clients.Caller.SendAsync("EnableVacateSeat", position, false);
                 }
                 // if bot occupied seat requested by bot -> do nothing
                 else if (isSelf && position > 3) // human assigns bot to his own occupied seat
@@ -347,8 +373,6 @@ namespace BelotWebApp.BelotClasses
                     await UpdateConnectedUsers(game, clients);
                     await group.SendAsync("SeatBooked", position, botName, false);
                     await group.SendAsync("SetBotBadge", position, true);
-                    await group.SendAsync("EnableOccupySeat", position, true);
-                    await group.SendAsync("EnableAssignBotToSeat", position, false);
                 }
                 // if human tries to occupy his own seat, do nothing
                 else if (!isEmpty && !isBot && !isSelf) // human-occupied seat is requested by another human or by a bot on behalf of another human
@@ -396,10 +420,6 @@ namespace BelotWebApp.BelotClasses
                 await clients.Caller.SendAsync("EnableRotation", false);
                 await clients.Caller.SendAsync("SetScoreTitles", "N /S", "E/W");
                 await group.SendAsync("SeatUnbooked", position);
-                await group.SendAsync("EnableSeatOptions", position, true);
-                await group.SendAsync("EnableOccupySeat", position, true);
-                await group.SendAsync("EnableAssignBotToSeat", position, true);
-                await group.SendAsync("EnableVacateSeat", position, false);
             }
 
             await UpdateConnectedUsers(game, clients);
@@ -493,19 +513,15 @@ namespace BelotWebApp.BelotClasses
             for (int i = 0; i < 4; i++)
             {
                 // Update table seats
-                if (game.Players[i].PlayerType == PlayerType.Human)
+                if (game.Players[i].PlayerType == PlayerType.Human && !game.Players[i].IsDisconnected)
                 {
-                    await clients.Caller.SendAsync("EnableOccupySeat", i, false);
                     if (game.Players[i].Username == Context.User.Identity.Name)
                     {
                         await clients.Caller.SendAsync("SeatBooked", i, game.Players[i].Username, true);
-                        await clients.Caller.SendAsync("EnableVacateSeat", i, true);
                     }
                     else
                     {
                         await clients.Caller.SendAsync("SeatBooked", i, game.Players[i].Username, false);
-                        await clients.Caller.SendAsync("EnableSeatOptions", i, false);
-                        await clients.Caller.SendAsync("EnableAssignBotToSeat", i, false);
                     }
                 }
                 else if (game.Players[i].Username == botGUID)
@@ -513,7 +529,6 @@ namespace BelotWebApp.BelotClasses
                     string[] seat = ["West", "North", "East", "South"];
                     await clients.Caller.SendAsync("SeatBooked", i, GetBotName(i), false);
                     await clients.Caller.SendAsync("SetBotBadge", i, true);
-                    await clients.Caller.SendAsync("EnableAssignBotToSeat", i, false);
                 }
 
                 // Update table cards
@@ -521,6 +536,12 @@ namespace BelotWebApp.BelotClasses
                 {
                     await clients.Caller.SendAsync("SetTableCard", i, game.TableCards[i]);
                 }
+            }
+
+            bool playerIsInGame = game.Players.Any(u => u.Username == GetCallerUsername());
+            if (playerIsInGame)
+            {
+                await clients.Caller.SendAsync("EnableRotation", true);
             }
 
             if (!game.IsNewGame)
@@ -556,11 +577,10 @@ namespace BelotWebApp.BelotClasses
                 }
 
                 // if the connecting user is a player
-                if (game.Players.Any(u => u.Username == GetCallerUsername()))
+                if (playerIsInGame)
                 {
                     int pos = Array.IndexOf(game.Players, game.Players.FirstOrDefault(p => p.Username == GetCallerUsername()));
 
-                    await clients.Caller.SendAsync("EnableRotation", true);
                     string[] scoreSummary = ["Us", "Them"];
                     await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(pos + 1) % 2], scoreSummary[pos % 2]);
 

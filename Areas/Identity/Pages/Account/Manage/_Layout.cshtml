@@ -1,18 +1,10 @@
 ﻿@{
-    // if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
-    // {
-    //     Layout = parentLayout.ToString();
-    // }
-    // else
-    // {
-    //     Layout = "/Areas/Identity/Pages/_Layout.cshtml";
-    // }
     Layout = "/Views/Shared/_Layout.cshtml";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-9 col-lg-7 col-xl-5 mt-5">
-        <div class="card tab-card profile-card">
+<main>
+    <div class="account-panel-container">
+        <div class="parchment2 card tab-card profile-card">
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
@@ -35,22 +27,7 @@
             </div>
         </div>
     </div>
-</div>
-
-@* <h1>Manage your account</h1>
-
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
-            <partial name="_ManageNav" />
-        </div>
-        <div class="col-md-9">
-            @RenderBody()
-        </div>
-    </div>
-</div> *@
+</main>
 
 @section Scripts {
     @RenderSection("Scripts", required: false)

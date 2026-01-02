@@ -1,0 +1,68 @@
+﻿.nav-link.show { /*when dropdown is active*/
+    background: var(--medium-grey);
+    border-radius: 5px 5px 0 0 !important;
+}
+
+ul.dropdown-menu {
+    padding: 0;
+    margin-top: 0;
+}
+
+hr {
+    margin: 0;
+}
+
+li {
+    height: 100% !important;
+}
+
+.dropdown-menu a {
+    color: white;
+    line-height: normal;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    height: 100% !important;
+}
+
+    .dropdown-menu a:hover {
+        color: white;
+        line-height: normal;
+        background: linear-gradient(var(--col-4), var(--medium-grey));
+        /*box-shadow: black 0 1px 6px, black 0 0 0 0.5px inset, 0px 0px 12px 4px var(--col-4);*/
+    }
+
+.menu-buttons .btn:hover {
+    transition: none;
+    background: linear-gradient(var(--col-4), var(--medium-grey));
+    border: .5px solid black;
+    /*box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px 0.5px inset, black 0 0 0 .5px inset, 0px 0px 12px 4px var(--col-4);*/
+    box-shadow: black 0 1px 6px, black 0 0 0 0.5px inset, 0px 0px 12px 4px var(--col-4);
+    color: white;
+}
+
+.nav-item.dropdown > .dropdown-menu {
+    min-width: 0;
+    width: 100%;
+    background: var(--medium-grey);
+    -moz-border-radius: 10px 10px 0 0;
+}
+
+.dropdown-menu.show {
+    background: var(--medium-grey);
+    border-radius: 0 0 5px 5px;
+}
+
+hr {
+    color: white;
+}
+
+.nav-link {
+    color: white !important;
+    transition: unset;
+    border: none;
+}
+
+    .nav-link:hover {
+        color: white !important;
+        background: linear-gradient(var(--col-4), var(--medium-grey));
+    }

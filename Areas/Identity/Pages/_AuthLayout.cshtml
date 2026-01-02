@@ -2,9 +2,9 @@
     Layout = "/Views/Shared/_Layout.cshtml";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-9 col-lg-7 col-xl-5 mt-5">
-        <div class="card tab-card login-logout-card">
+<main>
+    <div class="account-panel-container">
+        <div class="parchment2 card tab-card login-logout-card">
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
@@ -24,9 +24,9 @@
             </div>
         </div>
     </div>
-</div>
+</main>
 
-@section Scripts{
+@section Scripts {
     @await RenderSectionAsync("Scripts", required: false)
     <script>
         $(function () {

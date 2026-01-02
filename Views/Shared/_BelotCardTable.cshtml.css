@@ -1,0 +1,683 @@
+﻿.card-table {
+    position: relative;
+    /*height: 100%;*/
+    padding: 0px 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid black;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1;
+    --seat-rotation: 0; /*controls which direction the caller and turn indicators point*/
+}
+
+/* Main Board */
+
+::deep .seat-transition {
+    transition: transform 1s ease-in-out !important;
+}
+
+.main-board {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px 0;
+    height: 100%;
+    margin: auto 0;
+}
+
+.turn-indicator {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    z-index: 4;
+    background: var(--cream-text);
+    transform-origin: center center;
+    transform: rotate(calc(var(--seat-rotation)*1deg));
+}
+
+    .turn-indicator i {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+        color: var(--col-2);
+        line-height: normal;
+    }
+
+.player-marker {
+    display: flex;
+    position: absolute;
+    /*height: var(--card-height);*/
+    /*width: var(--card-width);*/
+    justify-content: center;
+    align-items: center;
+}
+
+.player-name-marker {
+    padding: 0 0.7rem 0 0.7rem;
+    position: absolute;
+    background-color: black;
+    /*width: auto;*/
+    transform: rotate(180deg);
+    color: var(--cream-text);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 5px;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.1;
+    border: 1px solid var(--dark-grey);
+    user-select: none;
+}
+
+.player-other .player-name-marker {
+    background-color: var(--col-2);
+}
+
+.player-self .player-name-marker {
+    background-color: var(--col-3);
+}
+
+.table-card-slot {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Actual West */
+#tableCardSlot0.inWest {
+    transform: translate(0px, 0px);
+}
+
+#tableCardSlot0.inNorth {
+    transform: translate(100%, -50%);
+}
+
+#tableCardSlot0.inEast {
+    transform: translate(200%, 0px);
+}
+
+#tableCardSlot0.inSouth {
+    transform: translate(100%, 50%);
+}
+
+/* Actual North */
+#tableCardSlot1.inWest {
+    transform: translate(-100%, 50%);
+}
+
+#tableCardSlot1.inNorth {
+    transform: translate(0px, 0px);
+}
+
+#tableCardSlot1.inEast {
+    transform: translate(100%, 50%);
+}
+
+#tableCardSlot1.inSouth {
+    transform: translate(0px, 100%);
+}
+
+/* Actual East */
+#tableCardSlot2.inWest {
+    transform: translate(-200%, 0px);
+}
+
+#tableCardSlot2.inNorth {
+    transform: translate(-100%, -50%);
+}
+
+#tableCardSlot2.inEast {
+    transform: translate(0px, 0px);
+}
+
+#tableCardSlot2.inSouth {
+    transform: translate(-100%, 50%);
+}
+
+/* Actual South */
+#tableCardSlot3.inWest {
+    transform: translate(-100%, -50%);
+}
+
+#tableCardSlot3.inNorth {
+    transform: translate(0px, -100%);
+}
+
+#tableCardSlot3.inEast {
+    transform: translate(100%, -50%);
+}
+
+#tableCardSlot3.inSouth {
+    transform: translate(0px, 0px);
+}
+
+/* Player marker - container including name plate and bot icon */
+
+.inWest .player-marker {
+    /*transform: translate(-59%, 0px) rotate(270deg);*/
+    transform: translate(calc(var(--card-width) * -0.55), 0) rotate(270deg);
+}
+
+.inNorth .player-marker {
+    /*transform: translate(0px, -56%) rotate(180deg);*/
+    transform: translate(0, calc(var(--card-width) * -0.8)) rotate(180deg);
+}
+
+.inEast .player-marker {
+    /*transform: translate(59%, 0px) rotate(90deg);*/
+    transform: translate(calc(var(--card-width) * 0.57), 0) rotate(90deg);
+}
+
+.inSouth .player-marker {
+    /*transform: translate(0px, 56%) rotate(180deg);*/
+    transform: translate(0, calc(var(--card-width) * 0.79)) rotate(180deg);
+}
+
+.bot-badge {
+    padding: 0;
+    position: absolute;
+    font-size: 18px;
+    color: var(--col-4);
+    transform: translate(0,-65%);
+}
+
+.inNorth .bot-badge {
+    transform: translate(0,65%) rotate(180deg);
+}
+
+::deep .dealer-marker {
+    height: 2em;
+    width: 2em;
+    z-index: 3;
+    position: absolute;
+}
+
+::deep .inWest .dealer-marker {
+    transform: translate(0, calc(-0.5*var(--card-height)));
+}
+
+::deep .inNorth .dealer-marker {
+    transform: translate(calc(0.5*var(--card-width)), calc(-0.25*var(--card-height)));
+}
+
+::deep .inEast .dealer-marker {
+    transform: translate(0, calc(0.5*var(--card-height)));
+}
+
+::deep .inSouth .dealer-marker {
+    transform: translate(calc(-0.5*var(--card-width)), calc(0.25*var(--card-height)));
+}
+
+.winner-marker {
+    position: absolute;
+    top: 20%;
+    animation: winner-marker-pulse 2s infinite ease;
+}
+
+@keyframes winner-marker-pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.winner-marker i {
+    font-size: 2em;
+    color: gold;
+}
+
+/* ----- Emotes ----- */
+
+.emote {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    border-radius: .4em;
+    width: 70%;
+    min-height: 45px;
+    padding: 4px 10px;
+    /*font-size: var(--emote-font-size);*/
+    font-weight: 800;
+    color: var(--cream-text);
+    z-index: 4;
+    line-height: 115%;
+    text-align: center;
+    vertical-align: middle;
+    /*text-transform: uppercase;*/
+    border: 1px solid var(--emote-border-col);
+    background: var(--emote-col);
+}
+
+.emote {
+    --emote-col: var(--col-3);
+    --emote-col: var(--dark-grey);
+    --emote-border-col: var(--cream-text);
+}
+
+/*.player-self .emote {
+    --emote-col: var(--col-3);
+    --emote-col: var(--dark-grey);
+    --emote-border-col: var(--cream-text);
+}
+
+.player-other .emote {
+    --emote-col: var(--col-2);
+    --emote-col: var(--dark-grey);
+    --emote-border-col: var(--col-4);
+}*/
+
+
+.inWest .emote {
+    left: 13px;
+}
+
+    .inWest .emote:after {
+        content: '';
+        position: absolute;
+        left: 1px;
+        top: 50%;
+        border: 7px solid transparent;
+        border-right: 10px solid var(--emote-col);
+        margin-top: -7px;
+        margin-left: -17px;
+    }
+
+    .inWest .emote:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        border: 7px solid transparent;
+        border-right: 10px solid var(--emote-border-col);
+        margin-top: -7px;
+        margin-left: -17px;
+    }
+
+.inNorth .emote {
+    top: 15px;
+}
+
+    .inNorth .emote:after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 1px;
+        border: 10px solid transparent;
+        border-bottom-color: var(--emote-col);
+        border-top: 0;
+        margin-top: -10px;
+        margin-left: -10px;
+    }
+
+    .inNorth .emote:before {
+        content: '';
+        position: absolute;
+        left: 50% !important;
+        top: 0;
+        border: 10px solid transparent;
+        border-bottom-color: var(--emote-border-col);
+        border-top: 0;
+        margin-top: -10px;
+        margin-left: -10px;
+    }
+
+.inEast .emote {
+    right: 12px;
+}
+
+    .inEast .emote:after {
+        content: '';
+        position: absolute;
+        right: 1px;
+        top: 50%;
+        border: 7px solid transparent;
+        border-left: 10px solid var(--emote-col);
+        margin-top: -7px;
+        margin-right: -17px;
+    }
+
+    .inEast .emote:before {
+        content: '';
+        position: absolute;
+        right: 0px;
+        top: 50%;
+        border: 7px solid transparent;
+        border-left: 10px solid var(--emote-border-col);
+        margin-top: -7px;
+        margin-right: -17px;
+    }
+
+.inSouth .emote {
+    bottom: 15px;
+}
+
+    .inSouth .emote:after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: 1px;
+        border: 10px solid transparent;
+        border-top-color: var(--emote-col);
+        border-bottom: 0;
+        margin-bottom: -10px;
+        margin-left: -10px;
+    }
+
+    .inSouth .emote:before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: 0%;
+        border: 10px solid transparent;
+        border-top-color: var(--emote-border-col);
+        border-bottom: 0;
+        margin-bottom: -10px;
+        margin-left: -10px;
+    }
+
+.fingerprint-menu {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: 0;
+    padding: 0;
+    background: var(--medium-grey);
+    z-index: 5;
+    transform: translate(-50%,-50%);
+    border-radius: 10px;
+    overflow: visible;
+}
+
+    .fingerprint-menu menu {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        margin: 0;
+        padding: 5px 10px;
+        border: 1px solid var(--col-4);
+        border-radius: 10px;
+    }
+
+        .fingerprint-menu menu button {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+            width: 100%;
+            line-height: 4px;
+            font-size: 12px;
+        }
+
+.fingerprint {
+    position: absolute;
+    top: 40%;
+    font-size: 3em;
+    /*color: black;*/
+    background: linear-gradient(60deg, white 40%, transparent 50%, white 60%);
+    background-size: 300% 100%;
+    /*background-position: -0% -1000%;*/
+    /*-webkit-background-clip: text;*/
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 60%;
+    z-index: 3;
+    animation: fingerprint-pulse 3s infinite ease;
+    /*transform: translate(-50%, -50%);*/
+    cursor: pointer;
+}
+
+@keyframes fingerprint-pulse {
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Seat selection */
+
+.seat-actions-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+    .seat-actions-arrow.west {
+        top: 50%;
+        left: -18px;
+        transform: translateY(-50%);
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+        border-right: 18px solid var(--col-4);
+    }
+
+    .seat-actions-arrow.north {
+        top: -18px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-bottom: 18px solid var(--col-4);
+    }
+
+    .seat-actions-arrow.south {
+        bottom: -18px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-top: 18px solid var(--col-4);
+    }
+
+    .seat-actions-arrow.east {
+        top: 50%;
+        right: -18px;
+        transform: translateY(-50%);
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+        border-left: 18px solid var(--col-4);
+    }
+
+/* Score Summary */
+
+.score-summary-container {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 0 !important;
+    top: 0;
+    left: 0;
+    height: calc(50% - var(--card-height)*0.5) !important;
+    width: calc(50% - var(--card-width)*0.5) !important;
+}
+
+.score-summary {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    width: 15%;
+    height: 40%;
+    border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
+    cursor: pointer;
+}
+
+    .score-summary table {
+        table-layout: fixed;
+        margin: 0;
+        padding: 0;
+        border-style: hidden;
+    }
+
+@media(max-width: 600px) {
+    .score-summary {
+        width: 60%;
+    }
+}
+
+.table-heading-border {
+    border-bottom: 1px solid var(--cream-text);
+}
+
+.score-summary th {
+    text-align: center;
+    font-weight: 600;
+    padding: 0;
+    color: var(--cream-text);
+    border: none;
+    width: 50%;
+}
+
+.score-summary td {
+    text-align: center;
+    font-weight: 400;
+    padding: 0;
+    width: 50%;
+}
+
+/* Call summary */
+
+.call-summary-container {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: calc(50% + var(--card-width)*0.5);
+    height: calc(50% - var(--card-height)*0.5) !important;
+    width: calc(50% - var(--card-width)*0.5) !important;
+}
+
+.call-summary {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    width: 15%;
+    height: 40%;
+    border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
+    border-radius: 6px;
+    background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
+    cursor: pointer;
+}
+
+@media(max-width: 600px) {
+    .call-summary {
+        width: 60%;
+    }
+}
+
+.caller-indicator {
+    transform: rotate(calc(var(--seat-rotation) * 1deg));
+}
+
+.call-icon {
+    font-size: 25px;
+    width: 50%;
+    text-align: center;
+    transform-origin: center center;
+    color: var(--cream-text);
+}
+
+@media(max-width: 600px) {
+    .call-icon {
+        font-size: 20px;
+    }
+}
+
+.tooltiptext {
+    visibility: hidden;
+    white-space: nowrap;
+    background-color: var(--dark-grey);
+    color: var(--cream-text);
+    font-size: 12px;
+    text-align: center;
+    border: 1px outset var(--col-4);
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    right: 0;
+    top: 110%;
+}
+
+.call-summary:hover .tooltiptext {
+    visibility: visible;
+}
+
+#selectedmultiplier {
+    /*display: inline-block;
+    line-height: 1;*/
+    color: var(--cream-text);
+    font-size: 15px !important;
+    /*vertical-align: middle;*/
+}
+
+/* Throw Button */
+
+.throw-cards-container {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    bottom: 0;
+    left: 0;
+    height: calc(50% - var(--card-height)*0.5);
+    width: calc(50% - var(--card-width)*0.5);
+}
+
+/* Call Button */
+
+.make-call-container {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    bottom: 0;
+    right: 0;
+    left: calc(50% + var(--card-width)*0.5);
+    height: calc(50% - var(--card-height)*0.5);
+    width: calc(50% - var(--card-width)*0.5);
+}
+
+.round-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    overflow: hidden;
+}

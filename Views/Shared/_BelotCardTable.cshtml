@@ -1,194 +1,193 @@
 ﻿@{
     bool isReplayRoom = true;
-    string tableboardClasses = "row tableboard justify-content-center position-relative py-4";
-    if (ViewData["Title"].ToString() == "Jass")
+    string rounded = "";
+    if (ViewData["Title"]?.ToString() == "Jass")
     {
         isReplayRoom = false;
-        tableboardClasses += " rounded";
+        rounded = "";
     }
 }
 
-<div class="container-fluid position-relative z-1">
-    <div class="@tableboardClasses" id="tableboard">
-        <!-- Score Totals -->
-        <div class="score-summary d-flex justify-content-center align-items-center">
-            <table class="table table-sm m-0" style="width: auto;  border-style:hidden" id="scoreTotals">
+<div class="card-table @rounded" id="card-table">
+    <!-- Score Totals -->
+    <div class="score-summary-container">
+        <div class="score-summary">
+            <table class="table" id="scoreTotals">
                 <thead>
                     <tr class="table-heading-border">
-                        <th class="py-0 px-2" style="text-align:center;" scope="col" id="scoreSummaryNSTitle">N/S</th>
-                        <th class="py-0 px-2" style="text-align:center" scope="col" id="scoreSummaryEWTitle">E/W</th>
+                        <th scope="col" id="scoreSummaryNSTitle">N/S</th>
+                        <th scope="col" id="scoreSummaryEWTitle">E/W</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="py-0" style="text-align: center;font-weight:400" id="ns-score">0</td>
-                        <td class="py-0" style="text-align:center" id="ew-score">0</td>
+                        <td id="ns-score">0</td>
+                        <td id="ew-score">0</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <!-- Selected Suit Indicator (at the bottom so it is not blocked) -->
+    <!-- Call Indicator (at the bottom so it's not blocked) -->
+    <!-- Main -->
+    <div class="main-board" id="seatPanel">
 
-        <!-- Main -->
-        <div class="d-flex justify-content-center align-items-center my-3 position-relative" id="seatPanel">
-            <!-- Flex Column 1 -->
-            <div class="d-flex flex-column justify-content-center position-relative" id="cardCol1">
-                <!-- West -->
-                <div class="inWest d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot0">
-                    <!-- Player Marker -->
-                    <div class="player-marker pnm-reverse seatTransition" style="transform: translate(-57%, 0) rotate(270deg)" id="player-marker0">
-                        @* pm-west *@
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel0">West</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge0" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble0" style="visibility:hidden" id="bubble0"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="0winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer0 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker0" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard0">
+        <dialog class="fingerprint-menu" id="seatActionsDialogue">
+            <div class="seat-actions-arrow" id="seatActionsDialogueArrow"></div>
+            <menu>
+                <button class="btn2" id="occupySeat">Occupy Seat</button>
+                <button class="btn2" id="assignBot">Assign Bot</button>
+                <button class="btn2" id="vacate">Vacate</button>
+            </menu>
+        </dialog>
+
+        <!-- Flex Column 1 -->
+        <div class="d-flex flex-column justify-content-center" id="cardCol1">
+            <!-- West -->
+            <div class="table-card-slot inWest seat-transition" id="tableCardSlot0">
+                <!-- Player Marker -->
+                <div class="player-marker seat-transition" id="player-marker0">
+                    <!-- Player Name -->
+                    <span class="player-name-marker" id="usernamelabel0">West</span>
+                    <!-- Bot Badge -->
+                    <i class="bot-badge bi bi-robot" id="BotBadge0" hidden></i>
                 </div>
-            </div>
-            <!-- Fingerprints -->
-            @if (!isReplayRoom)
-            {
-                <!-- West -->
-                <div class="dropdown dropend">
-                    <i class="fingerprint0 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint0"></i>
-                    <ul class="test dropdown-menu border-info" id="teamselector0">
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(0)" id="occupy0">Occupy Seat</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(4)" id="assignbot0">Assign to Bot</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate0" hidden>Vacate Seat</a></li>
-                    </ul>
+                <!-- Emote -->
+                <div class="emote" style="visibility:hidden" id="bubble0">
+                    <i class="emote-icon"></i>
                 </div>
-                <!-- North -->
-                <div class="dropdown dropdown-center">
-                    <i class="fingerprint1 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint1"></i>
-                    <ul class="test dropdown-menu border-info" id="teamselector1">
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(1)" id="occupy1">Occupy Seat</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(5)" id="assignbot1">Assign to Bot</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate1" hidden>Vacate Seat</a></li>
-                    </ul>
-                </div>
-                <!-- East -->
-                <div class="dropdown dropstart">
-                    <i class="fingerprint2 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint2"></i>
-                    <ul class="test dropdown-menu border-info" id="teamselector2">
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(2)" id="occupy2">Occupy Seat</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(6)" id="assignbot2">Assign to Bot</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate2" hidden>Vacate Seat</a></li>
-                    </ul>
-                </div>
-                <!-- South-->
-                <div class="dropdown dropup dropup-center">
-                    <i class="fingerprint3 fingerprint seatTransition bi bi-fingerprint" data-bs-toggle="dropdown" id="fingerprint3"></i>
-                    <ul class="test dropdown-menu border-info" id="teamselector3">
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(3)" id="occupy3">Occupy Seat</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(7)" id="assignbot3">Assign to Bot</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="requestSeatBooking(8)" id="vacate3" hidden>Vacate Seat</a></li>
-                    </ul>
-                </div>
-            }
-            <!-- Flex Column 2 -->
-            <div class="d-flex flex-column justify-content-center" id="cardCol2">
-                <!-- North -->
-                <div class="inNorth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot1">
-                    <!-- Player Marker -->
-                    <div class="player-marker seatTransition" style="transform: translate(0, -56%) rotate(0deg)" id="player-marker1">
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel1">North</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge1" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble1" style="visibility: hidden" id="bubble1"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="1winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer1 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker1" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard1">
-                </div>
-                <!-- South -->
-                <div class="inSouth d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot3">
-                    <!-- Player Marker -->
-                    <div class="player-marker pnm-reverse seatTransition" style="transform: translate(0, 55%) rotate(180deg)" id="player-marker3">
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel3">South</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge3" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble3" style="visibility: hidden" id="bubble3"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="3winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer3 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker3" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard3">
-                </div>
-            </div>
-            <!-- Turn Indicator -->
-            <span class="badge rounded-circle p-1 position-absolute z-4 top-50 start-50 translate-middle bg-white d-flex justify-content-center align-items-center">
-                <i class="bi bi-suit-spade-fill seatTransition d-flex justify-content-center align-items-center" style="font-size: 2em; color: darkmagenta; line-height:normal" id="turnIndicator"></i>
-            </span>
-            <!-- Flex Column 3 -->
-            <div class="d-flex flex-column justify-content-center position-relative" id="cardCol3">
-                <!-- East -->
-                <div class="inEast d-flex justify-content-center align-items-center position-relative seatTransition" style="transform:translate(0px,0px)" id="tablecardslot2">
-                    <!-- Player Marker -->
-                    <div class="player-marker pnm-reverse seatTransition" style="transform: translate(58%, 0) rotate(90deg)" id="player-marker2">
-                        <!-- Player Name -->
-                        <span class="badge rounded-pill player-name-marker" id="usernamelabel2">East</span>
-                        <!-- Bot Badge -->
-                        <i class="bot-badge bi bi-robot" id="BotBadge2" hidden></i>
-                    </div>
-                    <!-- Emote -->
-                    <div class="emote bubble2" style="visibility: hidden" id="bubble2"></div>
-                    <!-- Winner Marker -->
-                    <span class="badge rounded-circle p-1 winner-marker" id="2winnermarker" hidden>
-                        <i class="bi bi-trophy-fill" style="font-size: 2em; color: gold;"></i>
-                    </span>
-                    <!-- Dealer Badge -->
-                    <img class="dealer-marker dealer2 seatTransition" src="~/images/Other/Dealer.svg" id="dealermarker2" hidden>
-                    <!-- Card -->
-                    <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard2">
-                </div>
-            </div>
-        </div>
-        <!-- Throw Cards Button -->
-        <div class="d-flex throw-cards-ctnr p-0 m-0 justify-content-center align-items-center" style="width: auto;">
-            <button class="throw-cards-btn round-btn-pulse px-1 position-relative" id="throw-cards-btn" hidden>
-                Throw
-            </button>
-        </div>
-        <!-- Maximise Suit Selector -->
-        <div class="d-flex make-call-ctnr p-0 m-0 justify-content-center align-items-center" style="width: auto;">
-            <button class="make-call-btn round-btn-pulse px-1 position-relative" id="make-call-btn" hidden>
-                Call
-            </button>
-        </div>
-        <!-- Selected Suit Indicator -->
-        <div class="selected-suit d-flex p-0 m-0 justify-content-center align-items-center" style="width:auto;">
-            <div class="tooltipx">
-                <i class="bi bi-arrows-move seatTransition d-flex align-items-center" style="font-size: 25px; color: dimgrey; line-height: normal" id="wnescallindicator"></i>
-                <i class="bi bi-suit-spade-fill d-flex align-items-center" style="font-size: 25px; color: dimgrey; line-height:normal" id="selectedsuit"></i>
-                <i class="allNoTrumps" style="font-size:20px;font-weight:500" id="selectedmultiplier"></i>
-                <span class="tooltiptext" id="tooltiptext">
-                    No call has been made
+                <!-- Winner Marker -->
+                <span class="badge rounded-circle winner-marker" id="0winnermarker" hidden>
+                    <i class="bi bi-trophy-fill"></i>
                 </span>
+                <!-- Dealer Badge -->
+                <img class="dealer-marker seat-transition" src="~/images/Other/Dealer.svg" id="dealermarker0" hidden>
+                <!-- Card -->
+                <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard0">
+                <!-- Fingerprint -->
+                @if (!isReplayRoom)
+                {
+                    <i class="fingerprint fingerprint0 seat-transition bi bi-fingerprint" onclick="openDialogue(this, 0)" id="fingerprint0"></i>
+                }
             </div>
+        </div>
+        <!-- Flex Column 2 -->
+        <div class="d-flex flex-column justify-content-center" id="cardCol2">
+            <!-- North -->
+            <div class="table-card-slot inNorth seat-transition" id="tableCardSlot1">
+                <!-- Player Marker -->
+                <div class="player-marker seat-transition" id="player-marker1">
+                    <!-- Player Name -->
+                    <span class="player-name-marker" id="usernamelabel1">North</span>
+                    <!-- Bot Badge -->
+                    <i class="bot-badge bi bi-robot" id="BotBadge1" hidden></i>
+                </div>
+                <!-- Emote -->
+                <div class="emote" style="visibility: hidden" id="bubble1">
+                    <i class="emote-icon"></i>
+                </div>
+                <!-- Winner Marker -->
+                <span class="badge rounded-circle p-1 winner-marker" id="1winnermarker" hidden>
+                    <i class="bi bi-trophy-fill"></i>
+                </span>
+                <!-- Dealer Badge -->
+                <img class="dealer-marker seat-transition" src="~/images/Other/Dealer.svg" id="dealermarker1" hidden>
+                <!-- Card -->
+                <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard1">
+                <!-- Fingerprint -->
+                @if (!isReplayRoom)
+                {
+                    <i class="fingerprint1 fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 1)" id="fingerprint1"></i>
+                }
+            </div>
+            <!-- South -->
+            <div class="table-card-slot inSouth seat-transition" id="tableCardSlot3">
+                <!-- Player Marker -->
+                <div class="player-marker seat-transition" id="player-marker3">
+                    <!-- Player Name -->
+                    <span class="player-name-marker" id="usernamelabel3">South</span>
+                    <!-- Bot Badge -->
+                    <i class="bot-badge bi bi-robot" id="BotBadge3" hidden></i>
+                </div>
+                <!-- Emote -->
+                <div class="emote" style="visibility: hidden" id="bubble3">
+                    <i class="emote-icon"></i>
+                </div>
+                <!-- Winner Marker -->
+                <span class="badge rounded-circle p-1 winner-marker" id="3winnermarker" hidden>
+                    <i class="bi bi-trophy-fill"></i>
+                </span>
+                <!-- Dealer Badge -->
+                <img class="dealer-marker seat-transition" src="~/images/Other/Dealer.svg" id="dealermarker3" hidden>
+                <!-- Card -->
+                <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard3">
+                <!-- Fingerprint -->
+                @if (!isReplayRoom)
+                {
+                    <i class="fingerprint3 fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 3)" id="fingerprint3"></i>
+                }
+            </div>
+        </div>
+        <!-- Turn Indicator -->
+        <span class="badge rounded-circle seat-transition turn-indicator">
+            <i class="bi bi-suit-spade-fill seat-transition" id="turnIndicator"></i>
+        </span>
+        <!-- Flex Column 3 -->
+        <div class="d-flex flex-column justify-content-center" id="cardCol3">
+            <!-- East -->
+            <div class="table-card-slot inEast seat-transition" id="tableCardSlot2">
+                <!-- Player Marker -->
+                <div class="player-marker seat-transition" id="player-marker2">
+                    <!-- Player Name -->
+                    <span class="player-name-marker" id="usernamelabel2">East</span>
+                    <!-- Bot Badge -->
+                    <i class="bot-badge bi bi-robot" id="BotBadge2" hidden></i>
+                </div>
+                <!-- Emote -->
+                <div class="emote" style="visibility: hidden" id="bubble2">
+                    <i class="emote-icon"></i>
+                </div>
+                <!-- Winner Marker -->
+                <span class="badge rounded-circle p-1 winner-marker" id="2winnermarker" hidden>
+                    <i class="bi bi-trophy-fill"></i>
+                </span>
+                <!-- Dealer Badge -->
+                <img class="dealer-marker seat-transition" src="~/images/Other/Dealer.svg" id="dealermarker2" hidden>
+                <!-- Card -->
+                <img class="belot-card" src="~/images/Cards/c0-00.png" id="tablecard2">
+                <!-- Fingerprint -->
+                @if (!isReplayRoom)
+                {
+                    <i class="fingerprint2 fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 2)" id="fingerprint2"></i>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Throw Cards Button -->
+    <div class="throw-cards-container">
+        <button class="round-btn btn-prompt btn2" id="throw-cards-btn" hidden>
+            Throw
+        </button>
+    </div>
+
+    <!-- Maximise Suit Selector -->
+    <div class="make-call-container">
+        <button class="round-btn btn-prompt btn2" id="make-call-btn" hidden>
+            Call
+        </button>
+    </div>
+
+    <!-- Call Indicator -->
+    <div class="call-summary-container">
+        <div class="call-summary">
+            <i class="bi bi-arrows-move seat-transition call-icon caller-indicator" id="wnescallindicator"></i>
+            <i class="bi bi-suit-spade-fill call-icon" id="selectedsuit"></i>
+            <i class="allNoTrumps cream-text" id="selectedmultiplier"></i>
+            <span class="tooltiptext" id="tooltiptext">
+                No call has been made
+            </span>
         </div>
     </div>
 </div>

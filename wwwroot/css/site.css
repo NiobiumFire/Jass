@@ -17,11 +17,6 @@ html {
     min-height: 100%;
 }
 
-body {
-    margin-bottom: 60px;
-    font-family: Roboto,sans-serif;
-}
-
 /* Tab navigation*/
 /*.login-logout-card .card-header {*/
 .tab-card .card-header {

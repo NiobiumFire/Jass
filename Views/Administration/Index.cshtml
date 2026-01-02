@@ -11,79 +11,88 @@
     ViewBag.Title = "Admin";
 }
 
-<form id="adminDelete" asp-controller="Administration" asp-action="Delete" method="post"></form>
-<form id="adminUpdate" asp-controller="Administration" asp-action="Index" method="post">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between">
-            <h2>User Administration</h2>
-            <input class="btn btn-primary" style="width:auto" type="submit" value="Update" form="adminUpdate" />
-        </div>
-        <div class="card-body">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <table class="table table-sm table-striped table-responsive" id="updateUsersTable">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th scope="col">Username</th>
-                        <th scope="col">Email</th>
-                        @foreach (var role in roleManager.Roles)
-                        {
-                            <th scope="col">@role.Name</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < Model.Users.Count; i++)
-                    {
-                        <tr>
-                            <td style="vertical-align: middle">
-                                <div id="deleteUserBtn_@Model.Users[i].Id">
-                                    <a href="#" onclick="confirmDelete('@Model.Users[i].Id',true)">
-                                        <i class="bi bi-trash3-fill text-danger"></i>
-                                    </a>
-                                </div>
-                                <div id="confirmDeleteUserBtn_@Model.Users[i].Id" style="display:none">
-                                    <a class="px-1" style="text-decoration:none;cursor:pointer;color:black" href="#" onclick="confirmDelete('@Model.Users[i].Id',false)">
-                                        <i class="bi bi-x-lg"></i>
-                                    </a>
-                                    <button asp-controller="Administration" asp-action="Delete" asp-route-id="@Model.Users[i].Id" class="px-1" style="all:unset; cursor:pointer" form="adminDelete">
-                                        <i class="bi bi-trash3-fill text-danger"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td style="vertical-align: middle">
-                                <input asp-for="@Model.Users[i].Id" type="hidden" />
-                                <input asp-for="@Model.Users[i].Username" style="all:unset" form="adminUpdate" readonly="readonly" />
-                            </td>
-                            <td style="vertical-align: middle">
-                                <input asp-for="@Model.Users[i].Email" style="all:unset" form="adminUpdate" readonly="readonly" />
-                            </td>
-                            @for (int j = 0; j < Model.Users[i].IsInRole.Count; j++)
+<main>
+    <form id="adminDelete" asp-controller="Administration" asp-action="Delete" method="post" hidden></form>
+    <div class="account-panel-container">
+        <div class="parchment2 card">
+            <form id="adminUpdate" asp-controller="Administration" asp-action="Index" method="post">
+                <div class="card-header d-flex justify-content-between">
+                    <h2>User administration</h2>
+                    <input class="btn2 px-2" style="width:auto" type="submit" value="Update" form="adminUpdate" />
+                </div>
+                <div class="card-body">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <table class="table table-sm table-striped" id="updateUsersTable">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th scope="col">Username</th>
+                                <th scope="col">Email</th>
+                                @foreach (var role in roleManager.Roles)
+                                {
+                                    <th class="role-cell" scope="col">@role.Name</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Users.Count; i++)
                             {
-                                <td class="m-auto" style="text-align: end !important">
-                                    <input asp-for="@Model.Users[i].IsInRole[j]" class="form-check" form="adminUpdate" type="checkbox" />
-                                </td>
+                                <tr>
+                                    <td>
+                                        <div id="deleteUserBtn_@Model.Users[i].Username">
+                                            <a href="#" onclick="confirmDelete('@Model.Users[i].Username',true)">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </a>
+                                        </div>
+                                        <div id="confirmDeleteUserBtn_@Model.Users[i].Username" style="display:none">
+                                            <a class="ps-0 pe-1" style="text-decoration:none; cursor:pointer; color:black" href="#" onclick="confirmDelete('@Model.Users[i].Username',false)">
+                                                <i class="bi bi-x-lg"></i>
+                                            </a>
+                                            <button asp-controller="Administration" asp-action="Delete" asp-route-id="@Model.Users[i].Username" class="p-0" style="all:unset; cursor:pointer" form="adminDelete">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="truncate-cell">
+                                            <input asp-for="@Model.Users[i].Username" style="all:unset; width:100%" form="adminUpdate" readonly="readonly" hidden />
+                                            @Model.Users[i].Username
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="truncate-cell">
+                                            <input asp-for="@Model.Users[i].Email" style="all:unset; width:100%" form="adminUpdate" readonly="readonly" hidden />
+                                            @Model.Users[i].Email
+                                        </div>
+                                    </td>
+                                    @for (int j = 0; j < Model.Users[i].IsInRole.Count; j++)
+                                    {
+                                        <td class="role-cell">
+                                            <input asp-for="@Model.Users[i].IsInRole[j]" class="form-check-input" form="adminUpdate" type="checkbox" />
+                                        </td>
+                                    }
+                                </tr>
                             }
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
         </div>
     </div>
-</form>
+</main>
 
-@section Scripts{
+@section Scripts {
     <script>
         function confirmDelete(id, isDeleteClicked) {
-            var deleteBtn = "deleteUserBtn_" + id;
-            var confirmDeleteBtn = "confirmDeleteUserBtn_" + id;
+            const deleteBtn = $("#deleteUserBtn_" + id);
+            const confirmDeleteBtn = $("#confirmDeleteUserBtn_" + id);
             if (isDeleteClicked) {
-                $('#' + deleteBtn).hide();
-                $('#' + confirmDeleteBtn).show();
+                deleteBtn.hide();
+                confirmDeleteBtn.css("display", "flex");
             }
             else {
-                $('#' + deleteBtn).show();
-                $('#' + confirmDeleteBtn).hide();
+                deleteBtn.show();
+                confirmDeleteBtn.hide();
             }
         }
     </script>

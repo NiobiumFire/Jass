@@ -1,0 +1,11 @@
+﻿.btn2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 4px;
+}
+
+    .btn2 i {
+        transform: translate(-5%, 5%);
+    }

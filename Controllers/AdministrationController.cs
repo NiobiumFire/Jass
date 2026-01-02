@@ -33,7 +33,6 @@ namespace BelotWebApp.Controllers
             {
                 var administrateUserModel = new InputModel()
                 {
-                    Id = user.Id,
                     Username = user.UserName,
                     Email = user.Email,
                 };
@@ -50,7 +49,7 @@ namespace BelotWebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(AdministrateUserModel model)
         {
-            List<string> errors = new List<string>();
+            List<string> errors = new();
             foreach (InputModel updatedUser in model.Users)
             {
                 var user = await _userManager.FindByNameAsync(updatedUser.Username);

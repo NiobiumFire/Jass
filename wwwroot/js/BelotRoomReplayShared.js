@@ -1,50 +1,67 @@
 ﻿"use strict";
 
-function setEmoteSuitContent(iEmote) {
+function setEmoteSuitContent(elEmote, iCall) {
     const text = ["Pass", "", "", "", "", "A", "J", "×2!", "×4!!", "⁹⁄₅"];
-    const classes = ["", "bi bi-suit-club-fill", "bi bi-suit-diamond-fill", "bi bi-suit-heart-fill", "bi bi-suit-spade-fill", "allNoTrumps", "allNoTrumps", "allNoTrumps", "allNoTrumps", ""];
-    const colours = ["black", "black", "red", "red", "black", "darkmagenta", "darkmagenta", "red", "red", "black"];
-    const icon = document.createElement('i');
+    const classes = ["", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps", "allNoTrumps", "allNoTrumps", ""];
+    const colours = ["", "call-icon-black", "call-icon-red", "call-icon-red", "call-icon-black", "call-icon-purple", "call-icon-purple", "call-icon-red", "call-icon-red", "call-icon-black"];
+    const icon = elEmote.querySelector('.emote-icon');
 
-    icon.classList = classes[iEmote];
-    icon.style.color = colours[iEmote];
-    icon.style.fontStyle = "normal";
-    icon.innerHTML = text[iEmote];
-
-    if (iEmote > 0) {
-        icon.style.fontSize = "2em";
+    clearSuitIconClass(icon);
+    clearSuitIconColourClass(icon);
+    icon.classList.remove("emote-icon-suit");
+    if (iCall > 0) {
+        if (iCall < 5) {
+            icon.classList.add("bi");
+        }
+        icon.classList.add(classes[iCall]);
+        icon.classList.add(colours[iCall]);
+        icon.classList.add("emote-icon-suit");
     }
-
-    return icon;
+    
+    icon.innerHTML = text[iCall];
 }
+
+function clearSuitIconClass(el) {
+    el.classList.remove("bi", "bi-suit-spade-fill", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps");
+}
+
+function clearSuitIconColourClass(el) {
+    el.classList.remove("call-icon-red", "call-icon-black", "call-icon-purple", "call-icon-inactive");
+}
+
 function setRoundSuit(suit) {
     const text = ["", "", "", "", "", "A", "J", "×2", "×4"];
-    const classes = ["bi bi-suit-spade-fill", "bi bi-suit-club-fill", "bi bi-suit-diamond-fill", "bi bi-suit-heart-fill", "bi bi-suit-spade-fill", "allNoTrumps", "allNoTrumps"];
-    const colours = ["dimgrey", "black", "red", "red", "black", "darkmagenta", "darkmagenta"];
+    const suits = ["bi-suit-spade-fill", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps"];
+    const colours = ["", "call-icon-black", "call-icon-red", "call-icon-red", "call-icon-black", "call-icon-purple", "call-icon-purple"];
     let selectedSuit = document.getElementById("selectedsuit");
     let selectedMultiplier = document.getElementById("selectedmultiplier");
+
+    if (suit == 0) { // set selected suit to nothing/unset
+        selectedSuit.classList.remove("suit-shadow");
+    }
     // "Pass" is checked on hub
     if (suit < 7) { // C,D,H,S,A,J
         selectedMultiplier.innerHTML = "";
-        selectedSuit.style.color = colours[suit];
-        selectedSuit.classList = classes[suit];
+        clearSuitIconClass(selectedSuit);
+        clearSuitIconColourClass(selectedSuit);
+        if (suit > 0) { // 0 is reset to unset
+            selectedSuit.classList.add(colours[suit]);
+            selectedSuit.classList.add("suit-shadow");
+        }
+        if (suit < 5) {
+            selectedSuit.classList.add("bi");
+        }
         selectedSuit.innerHTML = text[suit];
-
+        selectedSuit.classList.add(suits[suit]);
     }
     else if (suit < 9) {
-        if (selectedSuit.style.color == "black") {
-            selectedMultiplier.style.color = "red";
-        }
-        else {
-            selectedMultiplier.style.color = "black";
-        }
         selectedMultiplier.innerHTML = text[suit];
     }
 }
 
 function setCallTooltip() {
     const callers = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
-    const calls = ["bi bi-suit-club-fill", "bi bi-suit-diamond-fill", "bi bi-suit-heart-fill", "bi bi-suit-spade-fill"];
+    const calls = ["bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill"];
     const tooltip = ["Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps"];
 
     let wnesClass = String(document.getElementById("wnescallindicator").classList).toLowerCase();
@@ -64,13 +81,15 @@ function setCallTooltip() {
         return;
     }
 
-    let suitClass = String(document.getElementById("selectedsuit").classList);
-    let suitNum = calls.indexOf(suitClass);
+    const selectedSuit = document.getElementById("selectedsuit");
+
+    const classArray = Array.from(selectedSuit.classList);
+    const suitNum = calls.findIndex(c => classArray.includes(c));
     let suit;
     if (suitNum > -1) {
         suit = tooltip[suitNum];
     }
-    else if (document.getElementById("selectedsuit").innerHTML == "A") {
+    else if (selectedSuit.innerHTML == "A") {
         suit = "No Trumps";
     }
     else {

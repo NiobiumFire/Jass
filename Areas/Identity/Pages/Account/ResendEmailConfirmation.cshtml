@@ -1,25 +1,31 @@
 ﻿@page
 @model ResendEmailConfirmationModel
 @{
-    ViewData["Title"] = "Resend email confirmation";
+    ViewData["Title"] = "Email confirmation";
+    Layout = "~/Areas/Identity/Pages/_AccountLayout.cshtml";
 }
 
 <h1>@ViewData["Title"]</h1>
 <h2>Enter your username.</h2>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.UserName" class="form-control" aria-required="true" />
-                <label asp-for="Input.UserName" class="form-label"></label>
-                <span asp-validation-for="Input.UserName" class="text-danger"></span>
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Resend</button>
-        </form>
+<form method="post">
+    @if (!ViewData.ModelState.IsValid)
+    {
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <small class="text-danger mb-5 pb-5">@error.ErrorMessage</small>
+        }
+    }
+    <div class="form-floating mb-3">
+        <input asp-for="Input.UserName" class="form-control" aria-required="true" />
+        <label asp-for="Input.UserName" class="form-label"></label>
+        <span asp-validation-for="Input.UserName" class="text-danger"></span>
     </div>
-</div>
+    <div class="d-flex flex-column justify-content-center align-items-center">
+        <button type="submit" class="btn2">Resend</button>
+    </div>
+</form>
+<hr />
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

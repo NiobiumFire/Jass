@@ -88,7 +88,8 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
 
             if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt. Ensure your credentials are correct.");
+                //ModelState.AddModelError(string.Empty, "Invalid login attempt. Ensure your credentials are correct.");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return Page();
             }
 
@@ -98,7 +99,7 @@ namespace BelotWebApp.Areas.Identity.Pages.Account
 
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt. Ensure your credentials are correct.");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return Page();
             }
 

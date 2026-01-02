@@ -1,0 +1,49 @@
+﻿h2 {
+    margin: 0;
+}
+
+table.table {
+    table-layout: fixed;
+    --column-1: 10%;
+    --column-2: 25%;
+    --column-3: 35%;
+    --column-4: 15%;
+    --column-5: 15%;
+}
+
+    table.table th:nth-child(1),
+    table.table td:nth-child(1) {
+        width: var(--column-1);
+    }
+
+    table.table th:nth-child(2),
+    table.table td:nth-child(2) {
+        width: var(--column-2);
+    }
+
+    table.table th:nth-child(3),
+    table.table td:nth-child(3) {
+        width: var(--column-3);
+    }
+
+    table.table th:nth-child(4),
+    table.table td:nth-child(4) {
+        width: var(--column-4);
+    }
+
+    table.table th:nth-child(5),
+    table.table td:nth-child(5) {
+        width: var(--column-5);
+    }
+
+.bi-trash3-fill {
+    color: var(--col-1);
+}
+
+.bi-x-lg {
+    color: var(--cream-text);
+}
+
+.role-cell {
+    text-align: center;
+}

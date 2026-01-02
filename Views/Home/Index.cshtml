@@ -4,11 +4,8 @@
 @model BelotRoomCreator
 
 @section scripts {
-    <script src="~/js/belotlobby.js"></script>
-}
-
-@section styles {
-    <link rel="stylesheet" href="~/css/Home.css" asp-append-version="true" />
+    <script src="~/js/Belotlobby.js"></script>
+    <script src="~/js/FitCrystal.js"></script>
 }
 
 @{
@@ -17,149 +14,158 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="d-flex justify-content-center">
-    <div class="row banner banner-title rounded">
-        <div class="col-1 col-sm-0"></div>
-        <div class="col-1 p-0 crystal-container crystal-container-left">
-            @await Html.PartialAsync("_Crystal")
-        </div>
-        <div class="col-8 d-flex align-items-center justify-content-center">
-            @* <h1 class="mb-0" style="font-family: 'Old English Text MT'; font-size: 4.5rem">NiobiumFire Jass</h1> *@
-            <img class="w-75-sm" style="height:auto" src="~/images/BannerText.png" />
-        </div>
-        <div class="col-1 p-0 crystal-container crystal-container-right">
-            @await Html.PartialAsync("_Crystal")
-        </div>
-        <div class="col-1 col-sm-0"></div>
-    </div>
-</div>
+<main>
 
-@* <svg class="d-none">
-    <filter id="wavy2">
-        <feTurbulence x="0" y="0" baseFrequency="0.02" numOctaves="5" seed="1"></feTurbulence>
-        <feDisplacementMap in="SourceGraphic" scale="20" />
-    </filter>
-</svg> *@
+    <div></div>
 
-<div class="my-3 my-sm-4">
-    @if (!isSignedIn)
-    {
-        <p>Welcome!</p>
-        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Register">register</a> for all features</p>
-    }
-    else if (!emailConfirmed)
-    {
-        <p>Welcome @userManager.GetUserName(User)!</p>
-        <p><a style="color:var(--col-4)" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features</p>
-    }
-    else
-    {
-        <p>Welcome @userManager.GetUserName(User)!</P>
-    }
-</div>
-
-<div class="mb-5 mb-sm-0"></div>
-
-<div class="row justify-content-center">
-
-    <div class="col-3 d-flex justify-content-center align-items-center">
-        <img style="width:90%" src="~/images/Jack.png" />
-    </div>
-
-    <div class="menu-buttons col-6 col-lg-3 px-0 px-sm-2 d-flex flex-column justify-content-center align-items-center">
-        <div class="w-100">
-            <p style="text-align: center">
-                Jass rooms:
-                <span id="gameCount">@ViewBag.numGames</span>
-            </p>
-        
-            <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Ranked ◆</p>
-
-            @if (!isSignedIn || !emailConfirmed)
-            {
-                <span title="Sign into an account with a confirmed email address">
-                    <button type="button" class="btn" style="width: 100%" disabled>
-                        Match <i class="bi bi-lock-fill"></i>
-                    </button>
-                </span>
-            }
-            else
-            {
-                <button type="button" class="btn" style="width: 100%" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">
-                    Match
-                </button>
-            }
-
-            <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
-
-            <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
-                @Html.AntiForgeryToken()
-            </form>
-
-            <div class="btn-group casual-btn-group" style="width: 100%" role="group">
-                <button type="button" class="btn">Match</button>
-                <button type="button" class="btn" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
-                <button type="submit" class="btn" form="createJassGameForm">Create</button>
+    <div class="d-flex justify-content-center align-items-center">
+        <div class="d-grid parchment title-banner rounded" style="grid-template-columns: 4% 10% 72% 10% 4%;">
+            <div></div>
+            <div class="crystal-container crystal-container-left">
+                @await Html.PartialAsync("_Crystal")
             </div>
-
-            <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ General ◆</p>
-
-            <p class="mb-2 mb-sm-4"><button type="button" class="btn" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
-
-            @if (!isSignedIn || !emailConfirmed)
-            {
-                <span title="Sign into an account with a confirmed email address">
-                    <p><button type="button" class="btn mb-2 mb-sm-4" style="width: 100%" disabled>
-                        Replay <i class="bi bi-lock-fill"></i>
-                    </button></p>
-                </span>
-            }
-            else
-            {
-                <p><button type="button" class="btn mb-2 mb-sm-4" onclick="location.href='/Replay/Index'" style="width: 100%">
-                    Replay
-                </button></p>
-            }
-
-            @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
-            {
-                <p><button type="button" onclick="location.href='/Training/Index'" class="btn" style="width: 100%">Training Center</button></p>
-            }
+            <div class="title-banner-text">
+                <img src="~/images/BannerText.png" />
+            </div>
+            <div class="crystal-container crystal-container-right">
+                @await Html.PartialAsync("_Crystal")
+            </div>
+            <div></div>
         </div>
     </div>
 
-    <div class="col-3 d-flex justify-content-center align-items-center">
-        <img style="width:100%" src="~/images/Nine.png" />
+    @* <svg class="d-none">
+        <filter id="wavy2">
+            <feTurbulence x="0" y="0" baseFrequency="0.02" numOctaves="5" seed="1"></feTurbulence>
+            <feDisplacementMap in="SourceGraphic" scale="20" />
+        </filter>
+    </svg> *@
+
+    <div></div>
+
+    <div class="d-flex flex-column justify-content-center align-items-center">
+        @if (!isSignedIn)
+        {
+            <p>Welcome!</p>
+            <p><a class="link" asp-area="Identity" asp-page="/Account/Login">Sign in</a> or <a class="link" asp-area="Identity" asp-page="/Account/Register">register</a> for all features</p>
+        }
+        else if (!emailConfirmed)
+        {
+            <p>Welcome @userManager.GetUserName(User)!</p>
+            <p><a class="link" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features</p>
+        }
+        else
+        {
+            <p>Welcome @userManager.GetUserName(User)!</P>
+        }
     </div>
-</div>
+
+    <div></div>
+
+    <div class="lower-section">
+
+        <div></div>
+
+        <div class="img-container">
+            <img class="character" src="~/images/Jack.png" />
+        </div>
+
+        <div class="menu-buttons-container">
+            <div class="menu-buttons">
+                <p style="text-align: center">
+                    Jass rooms:
+                    <span id="gameCount">@ViewBag.numGames</span>
+                </p>
+        
+                <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Ranked ◆</p>
+
+                @if (!isSignedIn || !emailConfirmed)
+                {
+                    <span title="Sign into an account with a confirmed email address">
+                        <button type="button" class="btn2" style="width: 100%" disabled>
+                            Match <i class="bi bi-lock-fill"></i>
+                        </button>
+                    </span>
+                }
+                else
+                {
+                    <button type="button" class="btn2" style="width: 100%" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">
+                        Match
+                    </button>
+                }
+
+                <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
+
+                <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
+                    @Html.AntiForgeryToken()
+                </form>
+
+                <div class="btn-group casual-btn-group" style="width: 100%" role="group">
+                    @* <button type="button" class="btn2">Match</button> *@
+                    <button type="button" class="btn2" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
+                    <button type="submit" class="btn2" form="createJassGameForm">Create</button>
+                </div>
+
+                <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ General ◆</p>
+
+                <p class="mb-2 mb-sm-4"><button type="button" class="btn2" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+
+                @if (!isSignedIn || !emailConfirmed)
+                {
+                    <span title="Sign into an account with a confirmed email address">
+                        <p><button type="button" class="btn2 mb-2 mb-sm-4" style="width: 100%" disabled>
+                            Replay <i class="bi bi-lock-fill"></i>
+                        </button></p>
+                    </span>
+                }
+                else
+                {
+                    <p><button type="button" class="btn2 mb-2 mb-sm-4" onclick="location.href='/Replay/Index'" style="width: 100%">
+                        Replay
+                    </button></p>
+                }
+
+                @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    <p><button type="button" onclick="location.href='/Training/Index'" class="btn2" style="width: 100%">Training Center</button></p>
+                }
+
+            </div>
+        </div>
+
+        <div class="img-container">
+            <img class="character" src="~/images/Nine.png" />
+        </div>
+        <div></div>
+    </div>
+
+</main>
 
 <!-- Join Game Modal -->
 <div class="modal" tabindex="-1" id="jass-lobby-modal">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-lobby">
+        <div class="modal-content parchment2">
             <div class="modal-header">
-                <h5 class="modal-title">Jass Lobby</h5>
+                <h5 class="modal-title">Casual Games</h5>
                 <div class="d-flex justify-content-center align-items-center">
-                    <i class="bi bi-arrow-repeat me-2" style="transform: rotate(25deg); font-size: 1.5em; font-weight:500; color:black; cursor:pointer" onclick="populateLobby()"></i>
-                    <button type="button" class="btn-close" style="opacity:initial" data-bs-dismiss="modal"></button>
+                    <i class="bi bi-arrow-repeat form-btn" onclick="refreshLobby()" id="refreshBtn"></i>
+                    <i class="bi bi-x-lg form-btn" data-bs-dismiss="modal"></i>
                 </div>
             </div>
             <div class="modal-body px-0 px-sm-1">
-                <div class="d-flex justify-content-center">
-                    <table class="table table-responsive m-0" style="font-size: 10px">
-                        <thead>
-                            <tr>
-                                <th>Started</th>
-                                <th>West</th>
-                                <th>North</th>
-                                <th>East</th>
-                                <th>South</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody class="lobby-table" id="lobby-table"></tbody>
-                    </table>
-                </div>
+                <table class="table m-0" style="font-size: 10px">
+                    <thead>
+                        <tr>
+                            <th>Started</th>
+                            <th>West</th>
+                            <th>North</th>
+                            <th>East</th>
+                            <th>South</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="lobby-table" id="lobby-table"></tbody>
+                </table>
             </div>
             <div class="modal-footer">
             </div>

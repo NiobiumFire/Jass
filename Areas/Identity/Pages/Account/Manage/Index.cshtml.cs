@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using BelotWebApp.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel.DataAnnotations;
 
 namespace BelotWebApp.Areas.Identity.Pages.Account.Manage
 {
@@ -47,22 +44,14 @@ namespace BelotWebApp.Areas.Identity.Pages.Account.Manage
             [Display(Name = "Username")]
             [StringLength(15, ErrorMessage = "The {0} must be at most {1} characters long.")]
             public string UserName { get; set; }
-
-            //[Phone]
-            //[Display(Name = "Phone number")]
-            //public string PhoneNumber { get; set; }
         }
 
         private async Task LoadAsync(ApplicationUser user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
-            //var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-
-            //UserName = userName;
 
             Input = new InputModel
             {
-                //PhoneNumber = phoneNumber
                 UserName = userName
             };
         }
@@ -92,17 +81,6 @@ namespace BelotWebApp.Areas.Identity.Pages.Account.Manage
                 await LoadAsync(user);
                 return Page();
             }
-
-            //var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            //if (Input.PhoneNumber != phoneNumber)
-            //{
-            //    var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-            //    if (!setPhoneResult.Succeeded)
-            //    {
-            //        StatusMessage = "Unexpected error when trying to set phone number.";
-            //        return RedirectToPage();
-            //    }
-            //}
 
             var userName = await _userManager.GetUserNameAsync(user);
             if (Input.UserName != userName)

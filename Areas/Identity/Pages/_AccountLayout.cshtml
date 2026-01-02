@@ -1,0 +1,19 @@
+﻿@using Microsoft.AspNetCore.Identity;
+
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<main>
+    <div class="account-panel-container">
+        <div class="parchment2 card">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center m-4 p-0">
+                <div>
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@RenderSection("Scripts", required: false)

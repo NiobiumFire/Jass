@@ -1,0 +1,18 @@
+﻿@using BelotWebApp.BelotClasses
+@model List<BelotLobbyGame>
+
+@foreach (var room in Model)
+{
+    <tr>
+        <td>@room.Started</td>
+        <td class="truncate-cell">@room.West</td>
+        <td class="truncate-cell">@room.North</td>
+        <td class="truncate-cell">@room.East</td>
+        <td class="truncate-cell">@room.South</td>
+        <td>
+            <button class="btn2" onclick="window.location.href='/Room/Index/@room.RoomId'">
+                <i class="bi bi-box-arrow-in-right"></i>
+            </button>
+        </td>
+    </tr>
+}

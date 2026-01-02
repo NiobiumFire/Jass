@@ -1,0 +1,21 @@
+﻿main {
+    grid-template-rows: 5% 10% 5% 75% 5%;
+}
+
+h1, p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+
+.img-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}

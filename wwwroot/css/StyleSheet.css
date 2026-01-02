@@ -1,8 +1,6 @@
 ﻿:root {
     --small-card-height: 95px;
     --small-card-width: 66.5px;
-    --emote-color: #f8fa6f;
-    --emote-border-color: #db5815;
 }
 
 @media (hover: none) {
@@ -18,7 +16,7 @@
         --training-card-margin: 0.4;
         --card-height: 120px;
         --card-width: 84px;
-        --emote-font-size: 0.9em;
+        /*--emote-font-size: 0.9em;*/
     }
 }
 
@@ -27,75 +25,28 @@
         --training-card-margin: 0.3;
         --card-height: 150px;
         --card-width: 105px;
-        --emote-font-size: 1em;
+        /*--emote-font-size: 1em;*/
     }
 }
 
-.crystal {
-    height: calc(0.8*var(--card-height));
-}
-
-/*768, 992, 1200*/
-/* ----- Icons ----- */
-
-/* ----- Tables ----- */
-
-body {
-    /*padding-top: 70px;*/
-}
-
-td {
+/*td {
     font-size: 12px;
 }
 
 th {
     font-size: 12px;
-}
-
-.table-heading-border {
-    border-bottom: 2px solid black;
-}
+}*/
 
 .allNoTrumps {
     font-family: 'Old English Text MT';
     font-style: normal;
     font-weight: 600 !important;
-    /*font-size: 35px !important;*/
+    font-size: 22px;
+    /*height: 100%;*/
 }
 
-.suit-call-table {
-    table-layout: fixed;
-    border-collapse: separate !important;
-    user-select: none;
-}
-
-    .suit-call-table td {
-        border: 1px solid lightgray;
-        border-radius: 2px;
-        padding: 0;
-        text-align: center;
-        cursor: pointer;
-    }
-
-        .suit-call-table td p {
-            margin: 0;
-            font-size: 0.7rem;
-        }
-
-        .suit-call-table td i {
-            margin: 0;
-            padding: 0;
-            font-size: 2.5em !important;
-            /*font-style: normal;*/
-        }
-
-/*.tbody:last-of-type tr:last-child*/
 .total-row {
     border-top: 2px solid black;
-}
-
-td:first-child {
-    /*font-weight: bold*/
 }
 
 .replay-table-body * {
@@ -161,199 +112,11 @@ td:first-child {
     outline: none;
 }
 
-.z--1 {
-    z-index: -1;
-}
-
 .z-1 {
     z-index: 1;
 }
 
-.z-2 {
-    z-index: 2;
-}
-
-.z-3 {
-    z-index: 3;
-}
-
-.z-4 {
-    z-index: 4;
-}
-
 /* ----- Card table ----- */
-
-.tableboard {
-    background-color: rgba(13, 110, 253, 0.25);
-}
-
-.seatTransition {
-    transition: transform 1s ease-in-out !important;
-}
-
-.score-summary {
-    padding: 0 0 !important;
-    position: absolute;
-    top: -1%;
-    left: 0;
-    height: calc(50% - var(--card-height)*0.5) !important;
-    width: calc(50% - var(--card-width)*0.5) !important;
-}
-
-.selected-suit {
-    padding: 0 0;
-    margin: 0 0;
-    position: absolute;
-    top: -1%;
-    left: calc(50% + var(--card-width)*0.5);
-    height: calc(50% - var(--card-height)*0.5) !important;
-    width: calc(50% - var(--card-width)*0.5) !important;
-}
-
-.tooltipx {
-    display: flex;
-    position: relative;
-    padding: 5px;
-}
-
-/*.tooltipx *{
-    pointer-events: none;
-    z-index: 30;
-}*/
-
-    .tooltipx .tooltiptext {
-        visibility: hidden;
-        white-space: nowrap;
-        background-color: white;
-        font-size: 12px;
-        text-align: center;
-        border: 1px outset darkmagenta;
-        border-radius: 6px;
-        padding: 5px;
-        position: absolute;
-        right: 0;
-        top: 110%;
-    }
-
-    .tooltipx:hover .tooltiptext {
-        visibility: visible;
-    }
-
-    .tooltipx:hover {
-        background-color: white;
-        border: 1px solid darkmagenta;
-        border-radius: 5px;
-    }
-
-.player-marker {
-    display: flex;
-    position: absolute;
-    height: var(--card-height);
-    width: var(--card-width);
-    justify-content: center;
-    align-items: center;
-    /*    top: 0%;*/
-    /*left: 50%;*/
-    /* transform: translate(-250%, -50%) !important;*/
-    /*transform: translate(-100%,-100%);*/
-    /*z-index: 1;*/
-    /*background-color: red;*/
-}
-
-.player-name-marker {
-    padding: 0 0.7rem 0 0.7rem !important;
-    position: absolute;
-    background-color: black;
-    width: auto;
-    font-size: 0.875em;
-    font-weight: 500 !important;
-}
-
-.bot-badge {
-    padding: 0 !important;
-    position: absolute;
-    font-size: 18px !important;
-    color: black !important;
-    transform: translate(0,-55%);
-}
-
-.pnm-reverse span {
-    transform: rotate(180deg);
-}
-
-.winner-marker {
-    position: absolute;
-    top: 35%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: black;
-}
-
-.fingerprint {
-    position: absolute;
-    font-size: 3em !important;
-    background-color: #f3ec78;
-    background: linear-gradient(60deg, darkblue, darkblue, darkblue, darkblue, transparent, darkblue, darkblue, darkblue, darkblue);
-    background-size: 600% 600%;
-    /*background-position: 100% 0%;*/
-    -webkit-background-clip: text;
-    /*-moz-background-clip: text;*/
-    -webkit-text-fill-color: transparent;
-    /*-moz-text-fill-color: transparent;*/
-    /*color: darkblue;*/
-    opacity: 20%;
-    z-index: 3;
-    animation: fingerprint-pulse 4s infinite ease;
-}
-
-@keyframes fingerprint-pulse {
-    0% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-.fingerprint0 {
-    transform: translate(calc(-50% - 0.5*var(--card-width)), calc(-50% + 0.2*var(--card-height)));
-}
-
-.fingerprint1 {
-    transform: translate(calc(-50% + 0.5*var(--card-width)), calc(-50% - 0.3*var(--card-height)));
-}
-
-.fingerprint2 {
-    transform: translate(calc(-50% + 1.5*var(--card-width)), calc(-50% + 0.2*var(--card-height)));
-}
-
-.fingerprint3 {
-    transform: translate(calc(-50% + 0.5*var(--card-width)), calc(-50% + 0.7*var(--card-height)));
-}
-
-.dealer-marker {
-    height: 2em;
-    width: 2em;
-    z-index: 3;
-    position: absolute;
-}
-
-.dealer0 {
-    transform: translate(0, calc(-0.5*var(--card-height)));
-}
-
-.dealer1 {
-    transform: translate(calc(0.5*var(--card-width)), calc(-0.25*var(--card-height)));
-}
-
-.dealer2 {
-    transform: translate(0, calc(0.5*var(--card-height)));
-}
-
-.dealer3 {
-    transform: translate(calc(-0.5*var(--card-width)), calc(0.25*var(--card-height)));
-}
 
 .throw {
     overflow: hidden;
@@ -411,51 +174,6 @@ td:first-child {
     border-radius: 12%;
 }
 
-.throw-cards-ctnr {
-    padding: 0 0;
-    margin: 0 0;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: calc(50% - var(--card-height)*0.5) !important;
-    width: calc(50% - var(--card-width)*0.5) !important;
-}
-
-.throw-cards-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    background: #a1c131;
-    color: white;
-    font-size: 0.9em;
-    font-weight: 500;
-    overflow: hidden;
-}
-
-.make-call-ctnr {
-    padding: 0 0;
-    margin: 0 0;
-    position: absolute;
-    bottom: 0;
-    left: calc(50% + var(--card-width)*0.5);
-    height: calc(50% - var(--card-height)*0.5) !important;
-    width: calc(50% - var(--card-width)*0.5) !important;
-}
-
-.make-call-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    background: #dc3545;
-    color: white;
-    font-size: 0.9em;
-    font-weight: 500;
-    /*visibility: hidden;*/
-    overflow: hidden;
-}
-
 .modal-low {
     position: absolute;
     transform: translate(-50%, -100%) !important;
@@ -463,35 +181,6 @@ td:first-child {
     margin: 0 !important;
     padding: 0 !important;
     width: 300px !important;
-}
-
-.round-btn-pulse {
-}
-
-    .round-btn-pulse::after {
-        top: 0;
-        left: 50%;
-        transform: translate(-150%,-25%) skewX(-30deg);
-        content: "";
-        width: 30px;
-        height: 100px;
-        position: absolute;
-        background: white;
-        /*margin-top: -23px;*/
-        opacity: 0.7;
-        filter: blur(8px);
-        transform-origin: top;
-        animation: round-btn-pulse 1.8s infinite linear;
-    }
-
-@keyframes round-btn-pulse {
-    from {
-        transform: translate(-150%,-25%) rotate(30deg);
-    }
-
-    to {
-        transform: translate(350%,-25%) rotate(30deg);
-    }
 }
 
 .winning-card-pulse {
@@ -512,208 +201,6 @@ td:first-child {
     }
 }
 
-.deck {
-    position: absolute;
-    height: calc(1.3*var(--card-height));
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-}
-
-.shimmer {
-    position: absolute;
-    height: calc(1.3*var(--card-height));
-    width: calc(1.3*var(--card-height));
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    border-radius: 50%;
-    overflow: hidden;
-}
-
-    .shimmer::before {
-        content: "";
-        width: calc(var(--card-width));
-        height: 120%;
-        top: 50%;
-        left: 50%;
-        position: absolute;
-        background: linear-gradient(red,black);
-        opacity: 0.7;
-        filter: blur(15px);
-        transform: translate(-50%,-50%);
-        animation: shimmer 3s infinite linear;
-    }
-
-@keyframes shimmer {
-    100% {
-        transform: translate(-50%,-50%) rotate(-360deg);
-    }
-}
-
-/* ----- Card board ----- */
-
-.cardboard {
-    text-align: right;
-    /*overflow-y: clip;*/
-    overflow: hidden;
-    min-height: calc(1.3*var(--card-height));
-    width: auto;
-    background-color: rgba(25, 135, 84, 0.55);
-    margin-right: 0;
-}
-
-.card-board-pulse {
-    animation: card-board-pulse 2s infinite;
-}
-
-@keyframes card-board-pulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(175, 175, 0, 0.7);
-    }
-
-    50% {
-        transform: scale(1.005);
-        box-shadow: 0 0 0 7px rgba(175, 175, 0, 0.5);
-    }
-
-    100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(175, 175, 0, 0.7);
-    }
-}
-
-/* ----- Emotes ----- */
-
-.emote {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    background: var(--emote-color);
-    border-radius: .4em;
-    width: 70%;
-    min-height: 45px;
-    padding: 4px 10px;
-    font-size: var(--emote-font-size);
-    font-weight: 800;
-    z-index: 4;
-    line-height: 115%;
-    text-align: center;
-    vertical-align: middle;
-    /*text-transform: uppercase;*/
-    border: 1px solid var(--emote-border-color);
-}
-
-.bubble0 {
-    left: 13px;
-}
-
-    .bubble0:after {
-        content: '';
-        position: absolute;
-        left: 1px;
-        top: 50%;
-        border: 7px solid transparent;
-        border-right: 10px solid var(--emote-color);
-        margin-top: -7px;
-        margin-left: -17px;
-    }
-
-    .bubble0:before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        border: 7px solid transparent;
-        border-right: 10px solid var(--emote-border-color);
-        margin-top: -7px;
-        margin-left: -17px;
-    }
-
-.bubble1 {
-    top: 15px;
-}
-
-    .bubble1:after {
-        content: '';
-        position: absolute;
-        left: 50%;
-        top: 1px;
-        border: 10px solid transparent;
-        border-bottom-color: var(--emote-color);
-        border-top: 0;
-        margin-top: -10px;
-        margin-left: -10px;
-    }
-
-    .bubble1:before {
-        content: '';
-        position: absolute;
-        left: 50% !important;
-        top: 0;
-        border: 10px solid transparent;
-        border-bottom-color: var(--emote-border-color);
-        border-top: 0;
-        margin-top: -10px;
-        margin-left: -10px;
-    }
-
-.bubble2 {
-    right: 12px;
-}
-
-    .bubble2:after {
-        content: '';
-        position: absolute;
-        right: 1px;
-        top: 50%;
-        border: 7px solid transparent;
-        border-left: 10px solid var(--emote-color);
-        margin-top: -7px;
-        margin-right: -17px;
-    }
-
-    .bubble2:before {
-        content: '';
-        position: absolute;
-        right: 0px;
-        top: 50%;
-        border: 7px solid transparent;
-        border-left: 10px solid var(--emote-border-color);
-        margin-top: -7px;
-        margin-right: -17px;
-    }
-
-.bubble3 {
-    bottom: 15px;
-}
-
-    .bubble3:after {
-        content: '';
-        position: absolute;
-        left: 50%;
-        bottom: 1px;
-        border: 10px solid transparent;
-        border-top-color: var(--emote-color);
-        border-bottom: 0;
-        margin-bottom: -10px;
-        margin-left: -10px;
-    }
-
-    .bubble3:before {
-        content: '';
-        position: absolute;
-        left: 50%;
-        bottom: 0%;
-        border: 10px solid transparent;
-        border-top-color: var(--emote-border-color);
-        border-bottom: 0;
-        margin-bottom: -10px;
-        margin-left: -10px;
-    }
-
 /* ----- Cards ----- */
 
 .miniboard {
@@ -725,25 +212,6 @@ td:first-child {
     /*z-index: -1;*/
     height: var(--card-height);
     width: var(--card-width);
-}
-
-.belot-card2 {
-    position: absolute;
-    top: 0%;
-    height: var(--card-height);
-    width: var(--card-width);
-    /*transform-origin: center 350%;*/
-    transition: 0.4s ease-in-out;
-}
-
-/*.belot-card2-valid {
-    border: 1px solid darkmagenta;
-    border-radius: 10px;
-    outline: darkmagenta solid 1px;
-}*/
-
-.belot-card2-invalid {
-    filter: brightness(80%);
 }
 
 .deal-pulse {

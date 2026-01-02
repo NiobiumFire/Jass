@@ -1,0 +1,201 @@
+﻿main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.board-container {
+    display: grid;
+    grid-template-rows: 10% 65% 25%;
+    height: 95%;
+    width: 85%;
+}
+
+@media(max-width:500px) {
+    .board-container {
+        width: 95%;
+    }
+}
+
+/* Control Panel */
+
+.control-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    overflow: hidden;
+    /*overflow-y: auto;*/
+    border-radius: 10px 10px 0 0;
+    padding: 0 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.chat-notification {
+    position: absolute;
+    padding: 0 3px;
+    top: -10%;
+    right: -5%;
+    color: var(--cream-text);
+    border-radius: 15%;
+    font-size: 12px;
+}
+
+/* Table - separate file for partial view */
+
+/* User Cards */
+
+.cardboard {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 0 10px 10px;
+    text-align: right;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100% !important;
+    width: 100%;
+    overflow: hidden;
+    /*background-color: rgba(25, 135, 84, 0.55);*/
+    box-shadow: 2px 3px 20px black, 0 0 30px rgba(255,255,255,0.5) inset; /* edges */
+    /*margin-right: 0;*/
+    /*--spread: 90deg;*/ /* total fan angle - set in js */
+    /*--radius: 200px;*/ /* distance to rotation center - set in js */
+    --max: 8; /* maximum slot count */
+
+    background-color: #42145b;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" viewBox="0 0 700 700" width="700" height="700" opacity="1"><defs><filter id="nnnoise-filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="4" seed="15" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"></feTurbulence><feSpecularLighting surfaceScale="1" specularConstant="2.2" specularExponent="20" lighting-color="%23ffffff" x="0%" y="0%" width="100%" height="100%" in="turbulence" result="specularLighting"><feDistantLight azimuth="3" elevation="143"></feDistantLight></feSpecularLighting></filter></defs><rect width="700" height="700" fill="%23c9c9c9ff"></rect><rect width="700" height="700" fill="%23ffffff" filter="url(%23nnnoise-filter)"></rect></svg>');
+    background-size: 300px 300px;
+    background-blend-mode: overlay;
+}
+
+::deep .cardboard-pulse .belot-card2:not(.belot-card2-invalid) {
+    background: black;
+    color: white;
+    animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: none;
+    }
+
+    50% {
+        box-shadow: 0 0 10px 5px var(--col-4);
+    }
+
+    100% {
+        box-shadow: none;
+    }
+}
+
+/* Deck */
+
+::deep .deck {
+    position: absolute;
+    height: 100%;
+    aspect-ratio: 1 / 1 !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.deck-shimmer {
+    position: absolute;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+    .deck-shimmer::before {
+        content: "";
+        width: calc(var(--card-width));
+        height: 120%;
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        background: linear-gradient(red,black);
+        opacity: 0.7;
+        filter: blur(15px);
+        transform: translate(-50%, -50%);
+        animation: shimmer 3s infinite linear;
+    }
+
+@keyframes shimmer {
+    100% {
+        transform: translate(-50%,-50%) rotate(-360deg);
+    }
+}
+
+/* Suit Selector Modal */
+
+@media(max-width: 600px) {
+    .modal-dialog {
+        width: 90% !important;
+        max-width: 90% !important;
+        margin: auto;
+    }
+}
+
+.suit-call-modal .form-btn {
+    color: unset;
+    transform-origin: 50% 52%;
+}
+
+.modal .btn2 {
+    min-width: 25%;
+    line-height: normal;
+}
+
+.suit-call-table {
+    table-layout: fixed;
+    margin: 0;
+    background: rgba(0,0,0,0.1);
+    border-collapse: separate !important;
+    user-select: none;
+}
+
+    .suit-call-table td {
+        border: 1px solid var(--cream-text);
+        border-radius: 2px;
+        padding: 0;
+        text-align: center;
+        cursor: pointer;
+    }
+
+        .suit-call-table td p {
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .suit-call-table td i {
+            font-size: 2.5em;
+            text-shadow: 0px 0px 4px var(--cream-text);
+        }
+
+        .suit-call-table td:not(.call-btn-inactive):hover i {
+            text-shadow: 0px 0px 8px var(--cream-text),0px 0px 30px var(--cream-text);
+        }
+
+    .suit-call-table .call-btn-inactive {
+        cursor: auto;
+    }
+
+        .suit-call-table .call-btn-inactive i, .suit-call-table .call-btn-inactive p { /*override call-icon styling in Global.css*/
+            color: lightgray !important;
+            text-shadow: none;
+            opacity: 70%;
+        }
+
+.modal-footer {
+    display: flex;
+    /*justify-content: space-between;*/ /*for five-under-nine*/
+    justify-content: center;
+    padding: 5px 0;
+}

@@ -280,16 +280,15 @@ function setTurn(turn) {
 
 function setEmote(emote, i) {
     let bubble = document.getElementById("bubble" + i)
-    bubble.innerHTML = "";
     if (emote == null || emote == "") {
         bubble.style.visibility = "hidden";
     }
     else if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].some(c => emote.includes(c))) { // call
-        bubble.appendChild(setEmoteSuitContent(parseInt(emote)));
+        setEmoteSuitContent(bubble, parseInt(emote));
         bubble.style.visibility = "visible";
     }
     else { // declaration
-        bubble.innerHTML = emote;
+        bubble.querySelector('.emote-icon').innerHTML = emote;
         bubble.style.visibility = "visible";
     }
 }
