@@ -2,7 +2,7 @@
 
 let currentState = 0;
 let maxState = 0;
-let speed = 800;
+let speed = 0;
 let autoPlay = false;
 let replay = null;
 
@@ -12,11 +12,18 @@ const playBtn = document.getElementById("pause-replay");
 const fwdBtn = document.getElementById("replay-fwd");
 const nextBtn = document.getElementById("replay-next");
 
+const speedSlider = document.getElementById("speed-slider");
+
 let state = {};
 
-document.getElementById("speed-slider").oninput = function () {
-    speed = (11 - this.value) * 100 + 200;
-    document.getElementById("speed-value").innerHTML = "Speed: " + this.value;
+setAutoPlayFrameDelay();
+
+function setAutoPlayFrameDelay() {
+    speed = ((parseInt(speedSlider.max) + 1) - speedSlider.value) * 100 + 200;
+}
+
+speedSlider.oninput = function () {
+    setAutoPlayFrameDelay();
 };
 
 function getReplay(replayId = "") {

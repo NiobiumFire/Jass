@@ -22,7 +22,7 @@
                 </div>
             </div>
             <!-- Replay Control -->
-            <div class="col-8 d-flex justify-content-center">
+            <div class="col-8 d-flex justify-content-center gap-1">
                 <button class="btn2" type="button" onclick="prev()" id="replay-prev" disabled>
                     <i class="bi bi-skip-backward-circle-fill" style="font-size:1.5em"></i>
                 </button>
@@ -41,8 +41,7 @@
             </div>
             <!-- Slider -->
             <div class="col-2 px-0 d-flex flex-column justify-content-center align-items-center float-end position-relative">
-                <input style="width:100%" type="range" name="slider" min="1" max="10" value="5" id="speed-slider" />
-                <label class="position-absolute" style="font-size: 0.7rem; bottom: -5px" for="slider" id="speed-value">Speed: 5</label>
+                <input class="speed-slider" style="width:100%" type="range" name="slider" min="1" max="9" value="5" id="speed-slider" />
             </div>
         </div>
 

@@ -24,6 +24,34 @@
     z-index: 2;
 }
 
+.speed-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+
+    .speed-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 32px;
+        height: 24px;
+        margin: 1px 0 1px 0;
+        border-radius: 20%;
+        background: var(--cream-text);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='black' viewBox='0 0 16 16'%3E%3Cpath d='M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z'/%3E%3Cpath d='M4.882 9.864a.5.5 0 0 1-.769-.637l4-5a.5.5 0 0 1 .782.015l2 2.5a.5.5 0 0 1-.393.808h-1l-.002.007-.004.011-.007.02-.013.035-.03.072A2.167 2.167 0 0 1 9.3 7.9c-.124.175-.31.391-.58.584C8.219 8.842 7.86 9 7.5 9h-.782l-1.836.864z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
+    }
+
+    .speed-slider::-webkit-slider-runnable-track {
+        background: linear-gradient(var(--dark-grey), var(--medium-grey) 70%);
+        border-radius: 4px;
+        border: none;
+        box-shadow: none;
+        padding: 0 1px 0 1px;
+    }
+
 .cardboard {
     position: relative;
     display: flex;
@@ -76,14 +104,14 @@
     align-items: center;
 }
 
-.replay-cards-west{
+.replay-cards-west {
     transform: rotateZ(90deg);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.replay-cards-east{
+.replay-cards-east {
     transform: rotateZ(-90deg);
     display: flex;
     justify-content: center;
