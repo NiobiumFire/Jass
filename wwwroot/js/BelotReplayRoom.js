@@ -53,48 +53,16 @@ function getReplay(replayId = "") {
     })
 }
 
+$(document).on('click', '.replay-btn', function () {
+    getReplay($(this).data('replay-id'));
+    $('#my-games').offcanvas('hide');
+});
+
 function getMyReplays() {
-    $.ajax({
-        url: "/Replay/GetMyReplays",
-        type: "GET",
-        success: function (data) {
-            data = JSON.parse(data);
-            if (data.length == 0) {
-                document.getElementById("replay-table").hidden = true;
-                document.getElementById("no-games").hidden = false;
-            }
-            else {
-                document.getElementById("no-games").hidden = true;
-                let table = document.getElementById("replay-table-body");
-                table.innerHTML = "";
-                for (let i = 0; i < data.length; i++) {
-                    let row2 = table.insertRow(table.rows.length);
-                    let cell2 = row2.insertCell(table.rows[table.rows.length - 1].cells.length);
-                    cell2.colSpan = 5;
-                    cell2.innerHTML = data[i][4];
-                    let cell3 = row2.insertCell(table.rows[table.rows.length - 1].cells.length);
-                    cell3.rowSpan = 2;
-                    let row = table.insertRow(table.rows.length);
-                    for (let j = 0; j < 4; j++) {
-                        row.insertCell(table.rows[table.rows.length - 1].cells.length);
-                        row.cells[j].innerHTML = data[i][j];
-                    };
-                    let btn = document.createElement("button");
-                    btn.classList = "bi bi-eyeglasses btn btn-primary py-0 px-1";
-                    btn.style.fontSize = "1.1rem";
-                    const s = data[i][5];
-                    btn.onclick = function () {
-                        //getReplay(s);
-                        getReplay(s);
-                        $('#my-games').offcanvas('hide');
-                    };
-                    cell3.appendChild(btn);
-                }
-                document.getElementById("replay-table").hidden = false;
-            }
-        }
-    })
-};
+    $.get('/Replay/PopulateReplaysPartial', function (html) {
+        $('#replay-table-body').html(html);
+    });
+}
 
 function play() {
     autoPlay = !autoPlay;

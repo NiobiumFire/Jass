@@ -163,3 +163,7 @@ td, th {
     width: 10px !important;
     overflow: hidden;
 }
+
+.offcanvas{
+    width: 500px;
+}

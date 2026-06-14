@@ -3,6 +3,7 @@ using BelotWebApp.BelotClasses.Replays;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using BelotWebApp.BelotClasses;
 
 namespace BelotWebApp.Controllers
 {
@@ -47,15 +48,16 @@ namespace BelotWebApp.Controllers
             return replay;
         }
 
-        public string GetMyReplays()
+        public IActionResult PopulateReplaysPartial()
         {
-            List<string[]> myReplays = [];
-            string[] allFiles = new DirectoryInfo(_appPaths.LogFolder).GetFiles()
+            List<ReplayTableRow> replays = [];
+
+            string[] allLogs = new DirectoryInfo(_appPaths.LogFolder).GetFiles()
                 .OrderByDescending(f => f.LastWriteTime)
                 .Select(f => f.FullName)
                 .Where(f => !f.Contains("BelotServerLog"))
                 .ToArray();
-            foreach (string log in allFiles)
+            foreach (string log in allLogs)
             {
                 try
                 {
@@ -66,7 +68,7 @@ namespace BelotWebApp.Controllers
                         string[] names = diff.After.Players;
                         string creation = System.IO.File.GetCreationTime(log).ToString("yyyy-MM-dd HH:mm");
                         string id = Path.GetFileNameWithoutExtension(log);
-                        myReplays.Add([names[0], names[1], names[2], names[3], creation, id]);
+                        replays.Add(new ReplayTableRow(id, creation, names[0], names[1], names[2], names[3]));
                     }
                 }
                 catch (Exception e)
@@ -74,7 +76,8 @@ namespace BelotWebApp.Controllers
 
                 }
             }
-            return JsonSerializer.Serialize(myReplays);
+
+            return PartialView("_ReplaysTableRows", replays);
         }
     }
 }

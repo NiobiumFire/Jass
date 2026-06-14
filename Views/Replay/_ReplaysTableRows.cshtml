@@ -1,0 +1,21 @@
+﻿@using BelotWebApp.BelotClasses
+@model List<ReplayTableRow>
+
+@foreach (var replay in Model)
+{
+    <tr>
+        <td colspan="5">@replay.Creation</td>
+        <td rowspan="2">
+            <button class="bi bi-eyeglasses btn btn-primary py-0 px-1 replay-btn"
+                    style="font-size: 1.1rem;"
+                    data-replay-id="@replay.Id">
+            </button>
+        </td>
+    </tr>
+    <tr>
+        <td>@replay.West</td>
+        <td>@replay.North</td>
+        <td>@replay.East</td>
+        <td>@replay.South</td>
+    </tr>
+}
