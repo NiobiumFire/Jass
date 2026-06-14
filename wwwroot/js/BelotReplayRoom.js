@@ -61,7 +61,6 @@ function getMyReplays() {
             data = JSON.parse(data);
             if (data.length == 0) {
                 document.getElementById("replay-table").hidden = true;
-                document.getElementById("no-games").innerHTML = "No historic games found. Go play!"
                 document.getElementById("no-games").hidden = false;
             }
             else {

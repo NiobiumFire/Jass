@@ -8,7 +8,7 @@
     display: grid;
     grid-template-rows: 10% 90%;
     height: 95%;
-    width: 85%;
+    width: 65%;
 }
 
 .control-panel {
@@ -36,9 +36,10 @@
         width: 32px;
         height: 24px;
         margin: 1px 0 1px 0;
-        border-radius: 20%;
+        border-radius: 10%;
         background: var(--cream-text);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='black' viewBox='0 0 16 16'%3E%3Cpath d='M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z'/%3E%3Cpath d='M4.882 9.864a.5.5 0 0 1-.769-.637l4-5a.5.5 0 0 1 .782.015l2 2.5a.5.5 0 0 1-.393.808h-1l-.002.007-.004.011-.007.02-.013.035-.03.072A2.167 2.167 0 0 1 9.3 7.9c-.124.175-.31.391-.58.584C8.219 8.842 7.86 9 7.5 9h-.782l-1.836.864z'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='black' viewBox='0 0 16 16'%3E%3Cpath d='M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z'/%3E%3Cpath d='M4.882 9.864a.5.5 0 0 1-.769-.637l4-5a.5.5 0 0 1 .782.015l2 2.5a.5.5 0 0 1-.393.808h-1l-.002.007-.004.011-.007.02-.013.035-.03.072A2.167 2.167 0 0 1 9.3 7.9c-.124.175-.31.391-.58.584C8.219 8.842 7.86 9 7.5 9h-.782l-1.836.864z'/%3E%3C/svg%3E");
+        background-size: 20px 20px;
         background-repeat: no-repeat;
         background-position: center;
         cursor: pointer;
@@ -51,6 +52,37 @@
         box-shadow: none;
         padding: 0 1px 0 1px;
     }
+
+.control-panel-section {
+    display: flex;
+    height: 70%;
+    gap: 5px;
+}
+
+@media only screen and (max-width: 767px) {
+    .board-container {
+        width: 95%;
+    }
+    .speed-slider::-webkit-slider-thumb {
+        width: 20px;
+        height: 18px;
+        border-radius: 20%;
+        background-size: 15px 15px;
+    }
+    .control-panel-section {
+        height: 70%;
+        gap: 4px;
+    }
+    .btn2 {
+        font-size: 12px;
+        padding: 5px;
+    }
+}
+
+.btn2 {
+    display: flex;
+    line-height: 1px;
+}
 
 .cardboard {
     position: relative;
@@ -66,21 +98,27 @@
     --start: 100px;
 }
 
-    .cardboard::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: -1; /* Pushes it behind children */
-        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-        mask-composite: exclude;
-        padding: var(--start);
-        background-color: #42145b;
-        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" viewBox="0 0 700 700" width="700" height="700" opacity="1"><defs><filter id="nnnoise-filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="4" seed="15" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"></feTurbulence><feSpecularLighting surfaceScale="1" specularConstant="2.2" specularExponent="20" lighting-color="%23ffffff" x="0%" y="0%" width="100%" height="100%" in="turbulence" result="specularLighting"><feDistantLight azimuth="3" elevation="143"></feDistantLight></feSpecularLighting></filter></defs><rect width="700" height="700" fill="%23c9c9c9ff"></rect><rect width="700" height="700" fill="%23ffffff" filter="url(%23nnnoise-filter)"></rect></svg>');
-        background-size: 300px 300px;
-        background-blend-mode: overlay;
-        box-shadow: 2px 3px 20px black, 0 0 30px rgba(255,255,255,0.5) inset;
-        border-radius: var(--inner-radius); /* This rounds the hole */
+@media only screen and (max-width: 767px) {
+    .cardboard {
+        --start: 50px;
     }
+}
+
+.cardboard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1; /* Pushes it behind children */
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    padding: var(--start);
+    background-color: #42145b;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" viewBox="0 0 700 700" width="700" height="700" opacity="1"><defs><filter id="nnnoise-filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="4" seed="15" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"></feTurbulence><feSpecularLighting surfaceScale="1" specularConstant="2.2" specularExponent="20" lighting-color="%23ffffff" x="0%" y="0%" width="100%" height="100%" in="turbulence" result="specularLighting"><feDistantLight azimuth="3" elevation="143"></feDistantLight></feSpecularLighting></filter></defs><rect width="700" height="700" fill="%23c9c9c9ff"></rect><rect width="700" height="700" fill="%23ffffff" filter="url(%23nnnoise-filter)"></rect></svg>');
+    background-size: 300px 300px;
+    background-blend-mode: overlay;
+    box-shadow: 2px 3px 20px black, 0 0 30px rgba(255,255,255,0.5) inset;
+    border-radius: var(--inner-radius); /* This rounds the hole */
+}
 
 .replay-cardtable-center {
     display: flex;
@@ -96,24 +134,32 @@
     grid-template-columns: var(--start) calc(100% - 2 * var(--start)) var(--start);
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
-.replay-cards-horizontal {
+.replay-cards {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding-top: 60px;
+    /*top: -50px;*/
+    position: relative;
+}
+
+.replay-cards-horizontal {
+    /*overflow: hidden;*/
+    transform: rotateZ(180deg);
 }
 
 .replay-cards-west {
     transform: rotateZ(90deg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .replay-cards-east {
     transform: rotateZ(-90deg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+}
+
+td, th {
+    width: 10px !important;
+    overflow: hidden;
 }

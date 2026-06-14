@@ -13,7 +13,7 @@
 
 @media only screen and (max-width: 767px) {
     :root {
-        --training-card-margin: 0.4;
+        --training-card-margin: 0.55;
         --card-height: 120px;
         --card-width: 84px;
         /*--emote-font-size: 0.9em;*/
@@ -314,7 +314,9 @@ th {
 }
 
 .training-card {
-    margin: 0 calc(-1*var(--training-card-margin)*var(--card-width)) 0 0;
+    --margin: calc(-1 * var(--training-card-margin) * var(--card-width));
+    margin: 0 var(--margin) 0 0;
+    transform: translateX(calc(var(--margin)/2)); /*offset backwards against the margin*/
     height: var(--small-card-height);
     width: var(--small-card-width);
     border: 1px solid gray;

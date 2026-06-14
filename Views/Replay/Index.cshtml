@@ -11,18 +11,18 @@
         <!-- Control Panel -->
         <div class="control-panel parchment">
             <!-- Load Game -->
-            <div class="col-2 px-0 dropdown">
+            <div class="control-panel-section col-2 dropdown">
                 <button class="btn2 dropdown-toggle" data-bs-toggle="dropdown">Load</button>
-                <div class="dropdown-menu border-info" style="width:350px">
-                    <button class="btn btn-primary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#my-games" id="my-games-btn" onclick="getMyReplays()">My Games</button>
-                    <div class="d-flex justify-content-center input-group px-1">
+                <div class="dropdown-menu" style="width:350px">
+                    <button class="btn2 m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#my-games" id="my-games-btn" onclick="getMyReplays()">My Games</button>
+                    <div class="d-flex justify-content-center px-1">
                         <input class="form-control my-1" style="font-size:0.7em" type="text" id="gameGUID" placeholder="Game Id" />
-                        <button class="btn btn-primary my-1" type="button" id="load-game" onclick="getReplay()">Load</button>
+                        <button class="btn2 my-1" type="button" id="load-game" onclick="getReplay()">Load</button>
                     </div>
                 </div>
             </div>
             <!-- Replay Control -->
-            <div class="col-8 d-flex justify-content-center gap-1">
+            <div class="control-panel-section col-8 d-flex justify-content-center">
                 <button class="btn2" type="button" onclick="prev()" id="replay-prev" disabled>
                     <i class="bi bi-skip-backward-circle-fill" style="font-size:1.5em"></i>
                 </button>
@@ -40,7 +40,7 @@
                 </button>
             </div>
             <!-- Slider -->
-            <div class="col-2 px-0 d-flex flex-column justify-content-center align-items-center float-end position-relative">
+            <div class="control-panel-section col-2">
                 <input class="speed-slider" style="width:100%" type="range" name="slider" min="1" max="9" value="5" id="speed-slider" />
             </div>
         </div>
@@ -48,27 +48,27 @@
         <div class="cardboard">
             <div class="card-table-grid">
                 <div></div>
-                <div class="replay-cards-horizontal">
-                    <img class="training-card" src="~/images/Cards/c4-10.png" id="ncard0">
-                    <img class="training-card" src="~/images/Cards/c3-10.png" id="ncard1">
-                    <img class="training-card" src="~/images/Cards/c2-10.png" id="ncard2">
-                    <img class="training-card" src="~/images/Cards/c1-10.png" id="ncard3">
-                    <img class="training-card" src="~/images/Cards/c4-13.png" id="ncard4">
-                    <img class="training-card" src="~/images/Cards/c3-13.png" id="ncard5">
-                    <img class="training-card" src="~/images/Cards/c2-13.png" id="ncard6">
-                    <img class="training-card" src="~/images/Cards/c1-13.png" id="ncard7">
+                <div class="replay-cards replay-cards-horizontal">
+                    <img class="training-card" src="~/images/Cards/c1-01.png" id="ncard0">
+                    <img class="training-card" src="~/images/Cards/c2-02.png" id="ncard1">
+                    <img class="training-card" src="~/images/Cards/c3-03.png" id="ncard2">
+                    <img class="training-card" src="~/images/Cards/c4-04.png" id="ncard3">
+                    <img class="training-card" src="~/images/Cards/c1-05.png" id="ncard4">
+                    <img class="training-card" src="~/images/Cards/c2-06.png" id="ncard5">
+                    <img class="training-card" src="~/images/Cards/c3-07.png" id="ncard6">
+                    <img class="training-card" src="~/images/Cards/c4-08.png" id="ncard7">
                 </div>
                 <div></div>
 
-                <div class="replay-cards-west">
-                    <img class="training-card" src="~/images/Cards/c4-10.png" id="wcard0">
-                    <img class="training-card" src="~/images/Cards/c3-10.png" id="wcard1">
-                    <img class="training-card" src="~/images/Cards/c2-10.png" id="wcard2">
-                    <img class="training-card" src="~/images/Cards/c1-10.png" id="wcard3">
-                    <img class="training-card" src="~/images/Cards/c4-13.png" id="wcard4">
-                    <img class="training-card" src="~/images/Cards/c3-13.png" id="wcard5">
-                    <img class="training-card" src="~/images/Cards/c2-13.png" id="wcard6">
-                    <img class="training-card" src="~/images/Cards/c1-13.png" id="wcard7">
+                <div class="replay-cards replay-cards-west">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard0">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard1">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard2">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard3">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard4">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard5">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard6">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="wcard7">
                 </div>
                 <div class="replay-cardtable-center">
 
@@ -76,27 +76,27 @@
                     <partial name="_BelotCardTable" />
 
                 </div>
-                <div class="replay-cards-east">
-                    <img class="training-card" src="~/images/Cards/c4-10.png" id="ecard0">
-                    <img class="training-card" src="~/images/Cards/c3-10.png" id="ecard1">
-                    <img class="training-card" src="~/images/Cards/c2-10.png" id="ecard2">
-                    <img class="training-card" src="~/images/Cards/c1-10.png" id="ecard3">
-                    <img class="training-card" src="~/images/Cards/c4-13.png" id="ecard4">
-                    <img class="training-card" src="~/images/Cards/c3-13.png" id="ecard5">
-                    <img class="training-card" src="~/images/Cards/c2-13.png" id="ecard6">
-                    <img class="training-card" src="~/images/Cards/c1-13.png" id="ecard7">
+                <div class="replay-cards replay-cards-east">
+                    <img class="training-card" src="~/images/Cards/c1-01.png" id="ecard0">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="ecard1">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="ecard2">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="ecard3">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="ecard4">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="ecard5">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="ecard6">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="ecard7">
                 </div>
 
                 <div></div>
-                <div class="replay-cards-horizontal">
-                    <img class="training-card" src="~/images/Cards/c4-10.png" id="scard0">
-                    <img class="training-card" src="~/images/Cards/c3-10.png" id="scard1">
-                    <img class="training-card" src="~/images/Cards/c2-10.png" id="scard2">
-                    <img class="training-card" src="~/images/Cards/c1-10.png" id="scard3">
-                    <img class="training-card" src="~/images/Cards/c4-13.png" id="scard4">
-                    <img class="training-card" src="~/images/Cards/c3-13.png" id="scard5">
-                    <img class="training-card" src="~/images/Cards/c2-13.png" id="scard6">
-                    <img class="training-card" src="~/images/Cards/c1-13.png" id="scard7">
+                <div class="replay-cards replay-cards-horizontals">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard0">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard1">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard2">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard3">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard4">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard5">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard6">
+                    <img class="training-card" src="~/images/Cards/c0-01.png" id="scard7">
                 </div>
                 <div></div>
             </div>
@@ -176,7 +176,7 @@
     </div>
     <div class="offcanvas-body">
         <!-- Header -->
-        <table class="table table-responsive rounded bg-info m-0" id="replay-table" hidden>
+        <table class="replay-table table table-responsive rounded bg-info m-0" id="replay-table" hidden>
             <thead>
                 <tr>
                     <th>West</th>
@@ -187,7 +187,7 @@
             </thead>
             <tbody class="replay-table-body" id="replay-table-body"></tbody>
         </table>
-        <p style="color:darkmagenta; text-align:center" id="no-games" hidden></p>
+        <p style="color:darkmagenta; text-align:center" id="no-games" hidden>No historic games found</p>
     </div>
 </div>
 
