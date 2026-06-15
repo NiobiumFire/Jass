@@ -49,36 +49,6 @@ th {
     border-top: 2px solid black;
 }
 
-.replay-table-body * {
-    font-size: 0.82em;
-    font-weight: 500 !important;
-    vertical-align: middle;
-    margin-left: 1px;
-    margin-right: 1px;
-    border-collapse: collapse;
-}
-
-.replay-table-body tr:nth-child(2n+1) td {
-    border-bottom-style: hidden;
-    padding-bottom: 0;
-    padding-top: 1px;
-    padding-bottom: 1px;
-}
-
-.replay-table-body tr:first-child td:last-child {
-    border-top: 1px solid black;
-}
-
-.replay-table-body tr:nth-child(2n+1) td:last-child {
-    border-bottom: 1px solid white;
-}
-
-.replay-table-body tr:nth-child(2n) td {
-    padding-top: 1px;
-    padding-bottom: 1px;
-    border-bottom: 1px solid white;
-}
-
 .lobby-table * {
     font-size: 1.07em;
     vertical-align: middle;
@@ -277,24 +247,6 @@ th {
     transform: translate(-50%,0);
     bottom: 0 !important;
     left: 50%;
-}
-
-.replay-tableboard {
-    display: flex;
-    flex-grow: 1;
-    background-color: rgba(13, 110, 253, 0.25);
-}
-
-.replay-cardboard-horizontal {
-    position: relative;
-    height: calc(0.4*var(--card-height)) !important;
-    background-color: rgba(25, 135, 84, 0.55);
-}
-
-.replay-cardboard-vertical {
-    position: relative;
-    width: calc(0.4*var(--card-height)) !important;
-    background-color: rgba(25, 135, 84, 0.55);
 }
 
 .training-cardboard-side {

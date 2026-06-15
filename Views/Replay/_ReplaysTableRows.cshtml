@@ -4,18 +4,24 @@
 @foreach (var replay in Model)
 {
     <tr>
-        <td colspan="5">@replay.Creation</td>
-        <td rowspan="2">
-            <button class="bi bi-eyeglasses btn btn-primary py-0 px-1 replay-btn"
+        <td colspan="3">@replay.Creation</td>
+        <td class="" style="text-align: center">
+            <button class="w-100 bi bi-eye btn2 py-0 px-1 replay-btn"
                     style="font-size: 1.1rem;"
                     data-replay-id="@replay.Id">
             </button>
         </td>
     </tr>
     <tr>
-        <td>@replay.West</td>
-        <td>@replay.North</td>
-        <td>@replay.East</td>
-        <td>@replay.South</td>
+        <td class="position-icon bi bi-arrow-left-circle"></td>
+        <td class="position-icon bi bi-arrow-up-circle"></td>
+        <td class="position-icon bi bi-arrow-right-circle"></td>
+        <td class="position-icon bi bi-arrow-down-circle"></td>
+    </tr>
+    <tr>
+        <td class="truncate-cell">@replay.West</td>
+        <td class="truncate-cell">@replay.North</td>
+        <td class="truncate-cell">@replay.East</td>
+        <td class="truncate-cell">@replay.South</td>
     </tr>
 }

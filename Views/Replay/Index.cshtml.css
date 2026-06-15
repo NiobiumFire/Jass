@@ -63,16 +63,19 @@
     .board-container {
         width: 95%;
     }
+
     .speed-slider::-webkit-slider-thumb {
         width: 20px;
         height: 18px;
         border-radius: 20%;
         background-size: 15px 15px;
     }
+
     .control-panel-section {
         height: 70%;
         gap: 4px;
     }
+
     .btn2 {
         font-size: 12px;
         padding: 5px;
@@ -142,12 +145,9 @@
     justify-content: center;
     align-items: center;
     padding-top: 60px;
-    /*top: -50px;*/
-    position: relative;
 }
 
-.replay-cards-horizontal {
-    /*overflow: hidden;*/
+.replay-cards-north {
     transform: rotateZ(180deg);
 }
 
@@ -159,11 +159,23 @@
     transform: rotateZ(-90deg);
 }
 
-td, th {
-    width: 10px !important;
-    overflow: hidden;
+/* offcanvas & table */
+
+.offcanvas {
+    width: 500px;
 }
 
-.offcanvas{
-    width: 500px;
+.form-btn {
+    color: unset;
+    transform-origin: 50% 52%;
+}
+
+@media only screen and (max-width: 767px) {
+    .offcanvas {
+        width: 100%;
+    }
+}
+
+.table {
+    table-layout: fixed;
 }

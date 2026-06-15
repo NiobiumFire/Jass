@@ -12,7 +12,7 @@
         <div class="control-panel parchment">
             <!-- Load Game -->
             <div class="control-panel-section col-2 dropdown">
-                <button class="btn2 dropdown-toggle" data-bs-toggle="offcanvas" data-bs-target="#my-games" onclick="getMyReplays()">Load</button>
+                <button class="btn2" data-bs-toggle="offcanvas" data-bs-target="#my-games" onclick="getMyReplays()">Load</button>
             </div>
             <!-- Replay Control -->
             <div class="control-panel-section col-8 d-flex justify-content-center">
@@ -41,7 +41,7 @@
         <div class="cardboard">
             <div class="card-table-grid">
                 <div></div>
-                <div class="replay-cards replay-cards-horizontal">
+                <div class="replay-cards replay-cards-north">
                     <img class="training-card" src="~/images/Cards/c1-01.png" id="ncard0">
                     <img class="training-card" src="~/images/Cards/c2-02.png" id="ncard1">
                     <img class="training-card" src="~/images/Cards/c3-03.png" id="ncard2">
@@ -99,24 +99,16 @@
 </main>
 
 <!-- My Games Offcanvas -->
-<div class="offcanvas offcanvas-end parchment" tabindex="-1" id="my-games">
+<div class="offcanvas offcanvas-end parchment2" tabindex="-1" id="my-games">
     <!-- Header -->
     <div class="offcanvas-header">
         <h1>My Games</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        <i class="bi bi-x-lg form-btn" data-bs-dismiss="offcanvas"></i>
     </div>
     <div class="offcanvas-body">
         <!-- Header -->
-        <table class="replay-table table table-responsive rounded bg-info m-0" id="replay-table">
-            <thead>
-                <tr>
-                    <th>West</th>
-                    <th>North</th>
-                    <th>East</th>
-                    <th>South</th>
-                </tr>
-            </thead>
-            <tbody class="replay-table-body" id="replay-table-body"></tbody>
+        <table class="table rounded m-0" id="replay-table">
+            <tbody id="replay-table-body"></tbody>
         </table>
     </div>
 </div>

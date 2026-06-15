@@ -45,7 +45,7 @@
                                             </a>
                                         </div>
                                         <div id="confirmDeleteUserBtn_@Model.Users[i].Username" style="display:none">
-                                            <a class="ps-0 pe-1" style="text-decoration:none; cursor:pointer; color:black" href="#" onclick="confirmDelete('@Model.Users[i].Username',false)">
+                                            <a class="ps-0 pe-1" style="text-decoration:none; cursor:pointer; color:black" href="#" onclick="confirmDelete('@Model.Users[i].Username', false)">
                                                 <i class="bi bi-x-lg"></i>
                                             </a>
                                             <button asp-controller="Administration" asp-action="Delete" asp-route-id="@Model.Users[i].Username" class="p-0" style="all:unset; cursor:pointer" form="adminDelete">
