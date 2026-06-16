@@ -669,25 +669,13 @@ room.on("disableNewGame", function () {
     document.getElementById("newGameBtn").disabled = true;
 });
 
-function setSeatColour(position, colour) {
-    document.getElementById("usernamelabel".concat(position)).style.backgroundColor = colour;
-};
-
 room.on("seatBooked", function (position, username, isSelf) {
-    const tableCardSlot = document.getElementById(`tableCardSlot${position}`);
-    tableCardSlot.classList.remove("player-self", "player-other");
-    const colorClass = isSelf ? "player-self" : "player-other";
-    tableCardSlot.classList.add(colorClass);
-    const usernameLabel = document.getElementById(`usernamelabel${position}`);
-    usernameLabel.innerHTML = username;
+    setTableCardSlotUserNameAndLabelColour(position, username, true, isSelf);
 });
 
 room.on("seatUnbooked", function (position) {
-    const tableCardSlot = document.getElementById(`tableCardSlot${position}`);
-    tableCardSlot.classList.remove("player-self", "player-other");
     let defaultSeatName = getSeatNameByNumber(position);
-    const usernameLabel = document.getElementById(`usernamelabel${position}`);
-    usernameLabel.innerHTML = defaultSeatName;
+    setTableCardSlotUserNameAndLabelColour(position, defaultSeatName, false);
 });
 
 room.on("seatAlreadyBooked", function (occupier) {

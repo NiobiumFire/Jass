@@ -17,7 +17,7 @@ function setEmoteSuitContent(elEmote, iCall) {
         icon.classList.add(colours[iCall]);
         icon.classList.add("emote-icon-suit");
     }
-    
+
     icon.innerHTML = text[iCall];
 }
 
@@ -27,6 +27,19 @@ function clearSuitIconClass(el) {
 
 function clearSuitIconColourClass(el) {
     el.classList.remove("call-icon-red", "call-icon-black", "call-icon-purple", "call-icon-inactive");
+}
+
+function setTableCardSlotUserNameAndLabelColour(position, username, occupied, isSelf = false) {
+    const tableCardSlot = document.getElementById(`tableCardSlot${position}`);
+    tableCardSlot.classList.remove("player-self", "player-other");
+
+    if (occupied) {
+        const colorClass = isSelf ? "player-self" : "player-other";
+        tableCardSlot.classList.add(colorClass);
+    }
+
+    const usernameLabel = document.getElementById(`usernamelabel${position}`);
+    usernameLabel.innerHTML = username;
 }
 
 function setRoundSuit(suit) {

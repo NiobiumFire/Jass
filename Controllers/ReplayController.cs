@@ -24,7 +24,7 @@ namespace BelotWebApp.Controllers
             return View();
         }
 
-        public BelotReplay? GetReplay(string replayId)
+        public IActionResult? GetReplay(string replayId)
         {
             BelotReplay replay = new();
 
@@ -34,18 +34,18 @@ namespace BelotWebApp.Controllers
             try
             {
                 lines = System.IO.File.ReadAllLines(path);
+                foreach (string line in lines)
+                {
+                    BelotReplayDiff diff = JsonSerializer.Deserialize<BelotReplayDiff>(line);
+                    replay.StateChanges.Add(diff);
+                }
             }
             catch (Exception e)
             {
                 return null;
             }
-            foreach (string line in lines)
-            {
-                BelotReplayDiff diff = JsonSerializer.Deserialize<BelotReplayDiff>(line);
-                replay.StateChanges.Add(diff);
-            }
 
-            return replay;
+            return Json(new { Replay = replay, ViewerName = User.Identity.Name });
         }
 
         public IActionResult PopulateReplaysPartial()

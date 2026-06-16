@@ -27,24 +27,21 @@ speedSlider.oninput = function () {
 };
 
 function getReplay(replayId = "") {
-    if (replayId == "") {
-        replayId = document.getElementById("gameGUID").value;
-    }
     $.ajax({
         url: "/Replay/GetReplay",
-        type: "POST",
+        type: "GET",
         data: { "replayId": replayId },
         success: function (data) {
             if (data != null && data != undefined && data != "") {
-                replay = data;
+                replay = data.replay;
                 for (let i = 0; i < 4; i++) {
-                    document.getElementById("usernamelabel" + i).innerHTML = data.stateChanges[0].after.players[i];
-                    document.getElementById("usernamelabel" + i).style.backgroundColor = "#0d6efd";
+                    const userName = replay.stateChanges[0].after.players[i];
+                    setTableCardSlotUserNameAndLabelColour(i, userName, true, data.viewerName == userName);
                 }
-                maxState = data.stateChanges.length - 1;
+                maxState = replay.stateChanges.length - 1;
                 currentState = 0;
                 resetState();
-                setState(data.stateChanges[currentState], true);
+                setState(replay.stateChanges[currentState], true);
             }
             else {
                 $("#replay-not-found-modal").modal("show");
