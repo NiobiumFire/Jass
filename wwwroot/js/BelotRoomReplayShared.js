@@ -72,6 +72,16 @@ function setRoundSuit(suit) {
     }
 }
 
+function setCallerIndicator(turn) {
+    const icons = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
+
+    const wnescallindicator = document.getElementById("wnescallindicator");
+
+    wnescallindicator.classList.remove("bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move", "call-icon-black", "call-icon-inactive");
+    wnescallindicator.classList.add(icons[turn]);
+    setCallTooltip();
+};
+
 function setCallTooltip() {
     const callers = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
     const calls = ["bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill"];

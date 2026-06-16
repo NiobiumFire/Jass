@@ -236,12 +236,7 @@ function setDealer(dealer) {
 }
 
 function setCaller(caller) {
-    const wnesCallIndicator = ["bi bi-arrow-left", "bi bi-arrow-up", "bi bi-arrow-right", "bi bi-arrow-down", "bi bi-arrows-move"];
-    document.getElementById("wnescallindicator").classList = wnesCallIndicator[caller];
-    if (caller == 4) {
-        document.getElementById("wnescallindicator").style.color = "dimgrey";
-    }
-    else document.getElementById("wnescallindicator").style.color = "black";
+    setCallerIndicator(caller);
 }
 
 function setTurn(turn) {

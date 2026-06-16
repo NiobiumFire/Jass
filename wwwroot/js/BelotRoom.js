@@ -534,16 +534,6 @@ room.on("setCallerIndicator", function (turn) {
     setCallerIndicator(turn);
 });
 
-function setCallerIndicator(turn) {
-    const icons = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
-
-    const wnescallindicator = document.getElementById("wnescallindicator");
-
-    wnescallindicator.classList.remove("bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move", "call-icon-black", "call-icon-inactive");
-    wnescallindicator.classList.add(icons[turn]);
-    setCallTooltip();
-};
-
 // -------------------- Seat Management --------------------
 
 const dialog = document.querySelector('#seatActionsDialogue');
