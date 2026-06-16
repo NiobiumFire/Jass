@@ -58,7 +58,7 @@
 }
 
 .player-name-marker {
-    padding: 0 0.7rem 0 0.7rem;
+    padding: 0 0.6rem 0 0.6rem;
     position: absolute;
     background-color: black;
     /*width: auto;*/
@@ -72,6 +72,12 @@
     line-height: 1.1;
     border: 1px solid var(--dark-grey);
     user-select: none;
+}
+
+@media(max-width: 600px) {
+    .player-name-marker {
+        font-size: 11px;
+    }
 }
 
 .player-other .player-name-marker {
@@ -511,18 +517,26 @@
     width: calc(50% - var(--card-width)*0.5) !important;
 }
 
-.score-summary {
+.score-summary, .call-summary {
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 5px;
-    width: 15%;
+    max-width: 100px;
+    min-width: 65px;
+    width: 50%;
     height: 40%;
     border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
     cursor: pointer;
+}
+
+@media(max-width: 600px) {
+    .score-summary, .call-summary {
+        width: 80%;
+    }
 }
 
     .score-summary table {
@@ -531,12 +545,6 @@
         padding: 0;
         border-style: hidden;
     }
-
-@media(max-width: 600px) {
-    .score-summary {
-        width: 60%;
-    }
-}
 
 .table-heading-border {
     border-bottom: 1px solid var(--cream-text);
@@ -571,26 +579,6 @@
     left: calc(50% + var(--card-width)*0.5);
     height: calc(50% - var(--card-height)*0.5) !important;
     width: calc(50% - var(--card-width)*0.5) !important;
-}
-
-.call-summary {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 5px;
-    width: 15%;
-    height: 40%;
-    border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
-    border-radius: 6px;
-    background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
-    cursor: pointer;
-}
-
-@media(max-width: 600px) {
-    .call-summary {
-        width: 60%;
-    }
 }
 
 .caller-indicator {
