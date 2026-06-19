@@ -1005,9 +1005,18 @@ namespace BelotWebApp.BelotClasses
 
                 diff.SetTableCard(Turn, TableCards[Turn]);
                 diff.SetHandCard(Turn, pos, TableCards[Turn]);
+                
+                // update replay state hand card to null now that it has been played. This ensures a correct Before diff after a full round is played
+                var index = ReplayState.HandCards.FindIndex(c => c.Player == Turn && c.Index == pos);
+                if (index >= 0)
+                {
+                    ReplayState.HandCards[index] = ReplayState.HandCards[index] with { Card = null };
+                }
 
-                diff.Before.Turn = ReplayState.Turn;
-                diff.After.Turn = Turn;
+                //diff.Before.Turn = ReplayState.Turn;
+                //diff.After.Turn = Turn;
+
+                diff.SetTurn(ReplayState, Turn);
 
                 AddState(diff);
             }

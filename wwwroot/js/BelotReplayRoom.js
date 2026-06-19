@@ -280,12 +280,15 @@ function showGameWinners(gameEnded) {
     for (let i = 0; i < 4; i++) {
         document.getElementById(i + "winnermarker").hidden = true;
     }
-    if (gameEnded && state.scores[0] > state.scores[1]) {
-        document.getElementById("1winnermarker").hidden = false;
-        document.getElementById("3winnermarker").hidden = false;
-    }
-    else if (gameEnded && state.scores[0] < state.scores[1]) {
-        document.getElementById("0winnermarker").hidden = false;
-        document.getElementById("2winnermarker").hidden = false;
+    if (gameEnded) {
+        console.log(gameEnded);
+        if (state.scores[0] > state.scores[1]) {
+            document.getElementById("1winnermarker").hidden = false;
+            document.getElementById("3winnermarker").hidden = false;
+        }
+        else if (state.scores[0] < state.scores[1]) {
+            document.getElementById("0winnermarker").hidden = false;
+            document.getElementById("2winnermarker").hidden = false;
+        }
     }
 }

@@ -224,6 +224,8 @@
 .winner-marker {
     position: absolute;
     top: 20%;
+    background: black;
+    z-index: 5;
     animation: winner-marker-pulse 2s infinite ease;
 }
 
