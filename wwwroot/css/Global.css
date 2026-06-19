@@ -23,8 +23,9 @@
 body {
     display: flex;
     flex-direction: column;
-    height: 100vh;
     width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     margin: 0;
     background: linear-gradient(to bottom, var(--col-1) 70%, var(--col-3));
 }
