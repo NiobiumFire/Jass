@@ -6,9 +6,7 @@ function setEmoteSuitContent(elEmote, iCall) {
     const colours = ["", "call-icon-black", "call-icon-red", "call-icon-red", "call-icon-black", "call-icon-purple", "call-icon-purple", "call-icon-red", "call-icon-red", "call-icon-black"];
     const icon = elEmote.querySelector('.emote-icon');
 
-    clearSuitIconClass(icon);
-    clearSuitIconColourClass(icon);
-    icon.classList.remove("emote-icon-suit");
+    resetSuitIcon(icon);
     if (iCall > 0) {
         if (iCall < 5) {
             icon.classList.add("bi");
@@ -19,6 +17,12 @@ function setEmoteSuitContent(elEmote, iCall) {
     }
 
     icon.innerHTML = text[iCall];
+}
+
+function resetSuitIcon(icon) {
+    clearSuitIconClass(icon);
+    clearSuitIconColourClass(icon);
+    icon.classList.remove("emote-icon-suit");
 }
 
 function clearSuitIconClass(el) {

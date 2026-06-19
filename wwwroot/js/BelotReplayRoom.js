@@ -254,7 +254,9 @@ function setEmote(emote, i) {
         bubble.style.visibility = "visible";
     }
     else { // declaration
-        bubble.querySelector('.emote-icon').innerHTML = emote;
+        const icon = bubble.querySelector('.emote-icon');
+        resetSuitIcon(icon);
+        icon.innerHTML = emote;
         bubble.style.visibility = "visible";
     }
 }
