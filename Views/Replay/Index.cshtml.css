@@ -76,21 +76,30 @@
     --start: 100px;
 }
 
-.cardboard::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1; /* Pushes it behind children */
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    padding: var(--start);
-    background-color: #42145b;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" viewBox="0 0 700 700" width="700" height="700" opacity="1"><defs><filter id="nnnoise-filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="4" seed="15" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"></feTurbulence><feSpecularLighting surfaceScale="1" specularConstant="2.2" specularExponent="20" lighting-color="%23ffffff" x="0%" y="0%" width="100%" height="100%" in="turbulence" result="specularLighting"><feDistantLight azimuth="3" elevation="143"></feDistantLight></feSpecularLighting></filter></defs><rect width="700" height="700" fill="%23c9c9c9ff"></rect><rect width="700" height="700" fill="%23ffffff" filter="url(%23nnnoise-filter)"></rect></svg>');
-    background-size: 300px 300px;
-    background-blend-mode: overlay;
-    box-shadow: 2px 3px 20px black, 0 0 30px rgba(255,255,255,0.5) inset;
-    border-radius: var(--inner-radius); /* This rounds the hole */
-}
+    .cardboard::before { /* for the table edge surface, blend the colour on the before with the texture on the after */
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -2; /* Pushes it behind children */
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        padding: var(--start);
+        background-color: #42145b;
+        box-shadow: 2px 3px 20px black, 0 0 30px rgba(255,255,255,0.3) inset;
+    }
+
+    .cardboard::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        padding: var(--start);
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" viewBox="0 0 700 700" width="700" height="700" opacity="1"><defs><filter id="nnnoise-filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="4" seed="15" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"></feTurbulence><feSpecularLighting surfaceScale="1" specularConstant="2.2" specularExponent="20" lighting-color="%23ffffff" x="0%" y="0%" width="100%" height="100%" in="turbulence" result="specularLighting"><feDistantLight azimuth="3" elevation="143"></feDistantLight></feSpecularLighting></filter></defs><rect width="700" height="700" fill="%23c9c9c9ff"></rect><rect width="700" height="700" fill="%23ffffff" filter="url(%23nnnoise-filter)"></rect></svg>');
+        background-size: 300px 300px;
+        mix-blend-mode: overlay;
+    }
 
 .replay-cardtable-center {
     display: flex;
