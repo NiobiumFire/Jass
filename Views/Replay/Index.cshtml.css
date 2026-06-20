@@ -23,12 +23,12 @@
 }
 
 .speed-slider {
+    height: 100%;
     -webkit-appearance: none;
     appearance: none;
     background: transparent;
     --track-height: 8px;
     --thumb-height: 30px;
-    height: 100%;
 }
 
     .speed-slider::-webkit-slider-thumb {
@@ -181,9 +181,9 @@
     }
 
     .speed-slider::-webkit-slider-thumb {
-        background-size: 15px 15px;
         --track-height: 8px;
         --thumb-height: 24px;
+        background-size: 15px 15px;
     }
 
     .control-panel {
@@ -197,11 +197,11 @@
 
     .btn2 {
         font-size: 12px;
-        padding: 5px;
+        padding: 8px;
     }
 
     .cardboard {
-        --start: 32px;
+        --start: 45px;
         border-radius: 0;
     }
 
