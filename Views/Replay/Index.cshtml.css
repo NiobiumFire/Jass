@@ -26,24 +26,31 @@
     -webkit-appearance: none;
     appearance: none;
     background: transparent;
+    --track-height: 8px;
+    --thumb-height: 30px;
+    height: 100%;
 }
 
     .speed-slider::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 32px;
-        height: 24px;
-        margin: 1px 0 1px 0;
-        border-radius: 10%;
+        width: var(--thumb-height);
+        height: var(--thumb-height);
+        margin-top: calc((var(--track-height) - var(--thumb-height)) / 2);
+        border: 1px solid var(--col-4);
+        border: 2px solid var(--dark-grey);
+        border-radius: 50%;
         background: var(--cream-text);
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='black' viewBox='0 0 16 16'%3E%3Cpath d='M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z'/%3E%3Cpath d='M4.882 9.864a.5.5 0 0 1-.769-.637l4-5a.5.5 0 0 1 .782.015l2 2.5a.5.5 0 0 1-.393.808h-1l-.002.007-.004.011-.007.02-.013.035-.03.072A2.167 2.167 0 0 1 9.3 7.9c-.124.175-.31.391-.58.584C8.219 8.842 7.86 9 7.5 9h-.782l-1.836.864z'/%3E%3C/svg%3E");
-        background-size: 20px 20px;
+        background-size: 18px 18px;
         background-repeat: no-repeat;
         background-position: center;
         cursor: pointer;
     }
 
     .speed-slider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: var(--track-height);
         background: linear-gradient(var(--dark-grey), var(--medium-grey) 70%);
         border-radius: 4px;
         border: none;
@@ -174,10 +181,9 @@
     }
 
     .speed-slider::-webkit-slider-thumb {
-        width: 20px;
-        height: 18px;
-        border-radius: 20%;
         background-size: 15px 15px;
+        --track-height: 8px;
+        --thumb-height: 24px;
     }
 
     .control-panel {
