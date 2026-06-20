@@ -145,6 +145,11 @@
 
 /* Suit Selector Modal */
 
+.form-btn {
+    color: unset;
+    transform-origin: 50% 52%;
+}
+
 @media(max-width: 600px) {
     .modal-dialog {
         width: 90% !important;
