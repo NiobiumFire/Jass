@@ -1,9 +1,10 @@
-﻿using BelotWebApp.Services.AppPathService;
+﻿using BelotWebApp.BelotClasses;
 using BelotWebApp.BelotClasses.Replays;
+using BelotWebApp.Services.AppPathService;
+using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using BelotWebApp.BelotClasses;
 
 namespace BelotWebApp.Controllers
 {
@@ -12,11 +13,12 @@ namespace BelotWebApp.Controllers
     {
 
         private readonly IAppPaths _appPaths;
+        private readonly IZipService _zipService;
 
-        public ReplayController(IAppPaths appPaths)
+        public ReplayController(IAppPaths appPaths, IZipService zipService)
         {
             _appPaths = appPaths;
-
+            _zipService = zipService;
         }
 
         public IActionResult Index()
@@ -24,25 +26,39 @@ namespace BelotWebApp.Controllers
             return View();
         }
 
-        public IActionResult? GetReplay(string replayId)
+        public async Task<IActionResult> GetReplay(string replayId)
         {
             BelotReplay replay = new();
 
-            string path = Path.Combine($"{_appPaths.LogFolder}", replayId + ".txt");
+            string path = Path.Combine($"{_appPaths.LogFolder}", $"{replayId}.zip");
 
-            string[] lines;
+            string? log;
             try
             {
-                lines = System.IO.File.ReadAllLines(path);
+                log = await _zipService.ReadTextAsync(path);
+
+                if (log == null)
+                {
+                    return NoContent();
+                }
+
+                string[] lines = log.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
                 foreach (string line in lines)
                 {
-                    BelotReplayDiff diff = JsonSerializer.Deserialize<BelotReplayDiff>(line);
+                    BelotReplayDiff? diff = JsonSerializer.Deserialize<BelotReplayDiff>(line);
+
+                    if (diff == null)
+                    {
+                        return NoContent();
+                    }
+
                     replay.StateChanges.Add(diff);
                 }
             }
             catch (Exception e)
             {
-                return null;
+                return NoContent();
             }
 
             return Json(new { Replay = replay, ViewerName = User.Identity.Name });
@@ -52,18 +68,22 @@ namespace BelotWebApp.Controllers
         {
             List<ReplayTableRow> replays = [];
 
-            string[] allLogs = new DirectoryInfo(_appPaths.LogFolder).GetFiles()
+            string[] allLogs = new DirectoryInfo(_appPaths.LogFolder).GetFiles("*.zip")
                 .OrderByDescending(f => f.LastWriteTime)
                 .Select(f => f.FullName)
-                .Where(f => !f.Contains("BelotServerLog"))
                 .ToArray();
             foreach (string log in allLogs)
             {
                 try
                 {
-                    string line = System.IO.File.ReadLines(log).First();
+                    var line = _zipService.ReadLines(log).FirstOrDefault();
+                    if (line == null)
+                    {
+                        continue;
+                    }
+
                     var diff = JsonSerializer.Deserialize<BelotReplayDiff>(line);
-                    if (diff != null & diff.After.Players.Contains(User.Identity.Name))
+                    if (diff != null && diff.After.Players.Contains(User.Identity.Name))
                     {
                         string[] names = diff.After.Players;
                         string creation = System.IO.File.GetCreationTime(log).ToString("yyyy-MM-dd HH:mm");
@@ -76,7 +96,7 @@ namespace BelotWebApp.Controllers
 
                 }
             }
-
+            
             return PartialView("_ReplaysTableRows", replays);
         }
     }

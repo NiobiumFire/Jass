@@ -44,7 +44,7 @@ function getReplay(replayId = "") {
                 setState(replay.stateChanges[currentState], true);
             }
             else {
-                $("#replay-not-found-modal").modal("show");
+                $("#replay-load-error-modal").modal("show");
             }
         }
     })
@@ -281,7 +281,6 @@ function showGameWinners(gameEnded) {
         document.getElementById(i + "winnermarker").hidden = true;
     }
     if (gameEnded) {
-        console.log(gameEnded);
         if (state.scores[0] > state.scores[1]) {
             document.getElementById("1winnermarker").hidden = false;
             document.getElementById("3winnermarker").hidden = false;

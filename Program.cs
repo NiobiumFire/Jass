@@ -6,6 +6,7 @@ using BelotWebApp.Data;
 using BelotWebApp.Middleware;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
+using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,6 +42,8 @@ internal class Program
         });
 
         builder.Services.AddScoped<IEmailSender, EmailService>();
+        
+        builder.Services.AddSingleton<IZipService, ZipService>();
 
         builder.Services.AddSingleton<BelotGameRegistry>();
 

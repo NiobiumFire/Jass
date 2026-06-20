@@ -4,13 +4,14 @@ using BelotWebApp.BelotClasses.Players;
 using BelotWebApp.BelotClasses.Replays;
 using BelotWebApp.Configuration;
 using BelotWebApp.Services.AppPathService;
+using BelotWebApp.Services.ZipService;
 using System.Text.Json;
 
 namespace BelotWebApp.BelotClasses
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players, string roomId, IAppPaths appPaths, bool recordReplay)
+        public BelotGame(Player[] players, string roomId, IAppPaths appPaths, IZipService zipService, bool recordReplay)
         {
             IsRunning = true;
             Players = players;
@@ -18,10 +19,12 @@ namespace BelotWebApp.BelotClasses
             Spectators = [];
             RecordReplay = recordReplay;
             _appPaths = appPaths;
+            _zipService = zipService;
         }
 
         public static readonly int scoreTarget = 1501;
         private readonly IAppPaths _appPaths;
+        private readonly IZipService _zipService;
 
         public string RoomId { get; set; }
         public string GameId { get; set; } = "";
@@ -1005,7 +1008,7 @@ namespace BelotWebApp.BelotClasses
 
                 diff.SetTableCard(Turn, TableCards[Turn]);
                 diff.SetHandCard(Turn, pos, TableCards[Turn]);
-                
+
                 // update replay state hand card to null now that it has been played. This ensures a correct Before diff after a full round is played
                 var index = ReplayState.HandCards.FindIndex(c => c.Player == Turn && c.Index == pos);
                 if (index >= 0)
@@ -1067,18 +1070,33 @@ namespace BelotWebApp.BelotClasses
             }
         }
 
-        public void CloseLog()
+        public void CloseLog() // called when a game ends as well as when the last human leaves the room -> will try to move/zip the replay log twice hence if(exists)
         {
+            var source = Path.Combine(_appPaths.LogFolder, $"{GameId}.txt");
             if (!IsNewGame)
             {
-                var source = Path.Combine(_appPaths.LogFolder, $"{GameId}.txt");
-                string destination = Path.Combine(_appPaths.IncompleteGames, $"{GameId}.txt");
+                var destination = Path.Combine(_appPaths.IncompleteGames, $"{GameId}.txt");
 
                 if (File.Exists(source) && !File.Exists(destination))
                 {
                     try
                     {
                         File.Move(source, destination);
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+                }
+            }
+            else
+            {
+                string zip = Path.Combine(_appPaths.LogFolder, $"{GameId}.zip");
+                if (File.Exists(source) && !File.Exists(zip))
+                {
+                    try
+                    {
+                        _zipService.Zip(source, zip, true);
                     }
                     catch (Exception e)
                     {

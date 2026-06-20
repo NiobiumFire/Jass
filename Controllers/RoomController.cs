@@ -1,6 +1,7 @@
 ﻿using BelotWebApp.BelotClasses;
 using BelotWebApp.Models;
 using BelotWebApp.Services.AppPathService;
+using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BelotWebApp.Controllers
@@ -9,11 +10,13 @@ namespace BelotWebApp.Controllers
     public class RoomController : Controller
     {
         private readonly IAppPaths _appPaths;
+        private readonly IZipService _zipService;
         private readonly BelotGameRegistry _gameRegistry;
 
-        public RoomController(IAppPaths appPaths, BelotGameRegistry gameRegistry)
+        public RoomController(IAppPaths appPaths, IZipService zipService, BelotGameRegistry gameRegistry)
         {
             _appPaths = appPaths;
+            _zipService = zipService;
             _gameRegistry = gameRegistry;
         }
 
@@ -25,7 +28,7 @@ namespace BelotWebApp.Controllers
             if (creator != null)
             {
                 string id = Guid.NewGuid().ToString();
-                var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, true);
+                var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, _zipService, true);
                 _gameRegistry.AddContext(id, new(game, null));
                 return RedirectToAction("Index", new { id });
             }
