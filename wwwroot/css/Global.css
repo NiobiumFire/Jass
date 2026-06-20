@@ -21,7 +21,7 @@
 }
 
 * {
-    touch-action: manipulation;
+    touch-action: manipulation; /* prevent zoom on double tap on mobile */
 }
 
 body {

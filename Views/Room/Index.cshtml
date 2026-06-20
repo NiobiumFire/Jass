@@ -3,12 +3,9 @@
 }
 
 @section scripts {
-    @* <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
-    <script src="~/signalr/js"></script>
-    <script src="~/js/"></script> *@
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
-    <script src="~/js/BelotRoom.js"></script>
-    <script src="~/js/belotroomreplayshared.js"></script>
+    <script src="~/js/BelotRoom.js" asp-append-version="true"></script>
+    <script src="~/js/belotroomreplayshared.js" asp-append-version="true"></script>
 
     <script>
         $(document).ready(function () {
