@@ -9,18 +9,16 @@
     <hr />
     <partial name="_StatusMessage" for="StatusMessage" />
     <div asp-validation-summary="All" class="text-danger"></div>
-    <div class="form-floating input-group mb-3">
-        <input asp-for="Input.Email" class="form-control" />
+    <div class="form-floating mb-3 position-relative">
+        <input asp-for="Input.Email" class="form-control" placeholder="" />
+        <label asp-for="Input.Email" class="form-label"></label>
         @if (Model.IsEmailConfirmed)
         {
-            <div class="input-group-append">
-                <span class="h-100 input-group-text text-success font-weight-bold">✓</span>
-            </div>
+            <span class="email-confirmed-tick position-absolute">✓</span>
         }
-        <label asp-for="Input.Email" class="form-label"></label>
-        <span asp-validation-for="Input.Email" class="text-danger" style="width:100%"></span>
     </div>
-    <div class="d-flex flex-column justify-content-center align-items-center" style="gap:1em">
+    <span asp-validation-for="Input.Email" class="text-danger" style="width:100%"></span>
+    <div class="d-flex justify-content-center align-items-center" style="gap:1em">
         @if (!Model.IsEmailConfirmed)
         {
             <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn2">Send verification email</button>
