@@ -341,20 +341,7 @@
                 <div class="accordion-collapse collapse" id="scoreHistoryAccordian">
                     <div class="accordion-body p-0 px-2">
                         <table class="table table-sm table-striped table-responsive" id="scoreTable">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Round</th>
-                                    <th scope="col" id="scoreHistoryNSTitle">N/S</th>
-                                    <th scope="col" id="scoreHistoryEWTitle">E/W</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="total-row">
-                                    <th scope="row">Total</th>
-                                    <td>0</td>
-                                    <td>0</td>
-                                </tr>
-                            </tbody>
+                            @await Html.PartialAsync("_ScoreHistoryTable", new List<int[]>())
                         </table>
                     </div>
                 </div>

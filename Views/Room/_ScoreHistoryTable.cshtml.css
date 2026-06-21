@@ -1,0 +1,9 @@
+﻿th, td {
+    text-align: center;
+    width: 33.3333%;
+}
+
+.total-row {
+    border-top-width: 3px;
+    border-top-style: double;
+}

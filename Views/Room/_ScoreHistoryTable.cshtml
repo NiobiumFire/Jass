@@ -1,0 +1,24 @@
+﻿@model List<int[]>
+
+<thead>
+    <tr>
+        <th scope="col">Round</th>
+        <th scope="col" id="scoreHistoryNSTitle">N/S</th>
+        <th scope="col" id="scoreHistoryEWTitle">E/W</th>
+    </tr>
+</thead>
+<tbody>
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        <tr>
+            <td>@(i + 1)</td>
+            <td>@Model[i][1]</td>
+            <td>@Model[i][0]</td>
+        </tr>
+    }
+    <tr class="total-row">
+        <th scope="row">Total</th>
+        <td>@Model.Where(s => s.Length == 2).Sum(x => x[1])</td>
+        <td>@Model.Where(s => s.Length == 2).Sum(x => x[0])</td>
+    </tr>
+</tbody>

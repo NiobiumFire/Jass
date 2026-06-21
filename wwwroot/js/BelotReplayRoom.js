@@ -57,7 +57,7 @@ $(document).on('click', '.replay-btn', function () {
 
 function getMyReplays() {
     $.get('/Replay/PopulateReplaysPartial', function (html) {
-        $('#replay-table-body').html(html);
+        $('#replayTableBody').html(html);
     });
 }
 

@@ -254,15 +254,6 @@
         transform: rotate(-180deg);
     }
 
-.accoridan-collapse {
-}
-
-.accordian-body {
-}
-
-#userLists {
-}
-
 .chat-input-container {
     display: flex;
     justify-content: space-around;

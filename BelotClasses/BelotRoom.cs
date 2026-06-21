@@ -513,6 +513,8 @@ namespace BelotWebApp.BelotClasses
 
         public async Task LoadContext(BelotGame game, IHubCallerClients clients)
         {
+            await clients.Caller.SendAsync("SetGameId", game.GameId);
+
             for (int i = 0; i < 4; i++)
             {
                 // Update table seats
@@ -557,12 +559,8 @@ namespace BelotWebApp.BelotClasses
                 await clients.Caller.SendAsync("SetDealerMarker", dealer);
                 await clients.Caller.SendAsync("SetTurnIndicator", game.Turn);
                 await clients.Caller.SendAsync("DisableRadios");
-                await clients.Caller.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal);
 
-                for (int i = 0; i < game.ScoreHistory.Count; i++)
-                {
-                    await clients.Caller.SendAsync("AppendScoreHistory", game.ScoreHistory[i][0], game.ScoreHistory[i][1]);
-                }
+                await clients.Caller.SendAsync("UpdateScoreHistoryTable");
 
                 await clients.Caller.SendAsync("SuitNominated", game.RoundCall);
                 if (game.Multiplier == 2)

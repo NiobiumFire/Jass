@@ -286,10 +286,6 @@ main {
 
 /* Tables */
 
-table.table, thead, tbody {
-    /*max-width: 95% !important;*/
-}
-
 th, td {
     color: var(--cream-text);
     font-size: 16px !important;

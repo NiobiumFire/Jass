@@ -32,23 +32,6 @@
     /*height: 100%;*/
 }
 
-.total-row {
-    border-top: 2px solid black;
-}
-
-/*.lobby-table * {
-    font-size: 1.07em;
-    vertical-align: middle;
-}*/
-
-/*.lobby-table tr td:last-of-type {
-    color: black;
-    justify-content: center;
-    padding-right: 1rem;
-    margin: 0;
-    font-size: 1.3em;
-}*/
-
 /* ----- Misc ----- */
 
 .modal-open {

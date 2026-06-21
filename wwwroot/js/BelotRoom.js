@@ -270,7 +270,6 @@ $("#newGameBtn").on("click", function () {
 });
 
 room.on("newGame", function (gameId) {
-
     let table = document.getElementById("scoreTable");
     while (table.rows.length > 2) {
         table.deleteRow(1)
@@ -286,7 +285,11 @@ room.on("newGame", function (gameId) {
     document.getElementById("2winnermarker").hidden = true;
     document.getElementById("3winnermarker").hidden = true;
 
-    //room.client.setGameId(gameId);
+    document.getElementById("gameId").innerHTML = gameId;
+});
+
+room.on("setGameId", function (gameId) {
+    document.getElementById("gameId").innerHTML = gameId;
 });
 
 room.on("showTrickWinner", function (winner) {
@@ -304,11 +307,6 @@ room.on("showGameWinner", function (winner) {
     marker.hidden = !marker.hidden;
 });
 
-room.on("updateScoreTotals", function (ewPoints, nsPoints) {
-    document.getElementById("ns-score").innerHTML = nsPoints;
-    document.getElementById("ew-score").innerHTML = ewPoints;
-});
-
 room.on("setScoreTitles", function (nsTitle, ewTitle) {
     document.getElementById("scoreSummaryNSTitle").innerHTML = nsTitle;
     document.getElementById("scoreSummaryEWTitle").innerHTML = ewTitle;
@@ -318,33 +316,15 @@ room.on("setScoreTitles", function (nsTitle, ewTitle) {
     document.getElementById("scoreHistoryEWTitle").innerHTML = ewTitle;
 });
 
-room.on("appendScoreHistory", function (ewPoints, nsPoints) {
-    let table = document.getElementById("scoreTable");
-
-    let row = table.insertRow(table.rows.length - 1);
-
-    let cell1 = row.insertCell(0);
-    let cell2 = row.insertCell(1);
-    let cell3 = row.insertCell(2);
-
-    if (table.rows.length == 3) {
-        cell1.innerHTML = 1;
-    }
-    else {
-        cell1.innerHTML = parseInt(table.rows[table.rows.length - 3].cells[0].innerHTML) + 1;
-    };
-
-    cell2.innerHTML = nsPoints;
-    cell3.innerHTML = ewPoints;
-
-    let totalNS = 0;
-    let totalEW = 0;
-    for (let i = 1; i < table.rows.length - 1; i++) {
-        totalNS += parseInt(table.rows[i].cells[1].innerHTML);
-        totalEW += parseInt(table.rows[i].cells[2].innerHTML);
-    };
-    table.rows[table.rows.length - 1].cells[1].innerHTML = totalNS;
-    table.rows[table.rows.length - 1].cells[2].innerHTML = totalEW;
+room.on("updateScoreHistoryTable", function () {
+    let id = document.getElementById("roomId").textContent;
+    $.get('/Room/PopulateScoreHistoryPartial', { id: id })
+        .done(function (html) {
+            $('#scoreTable').html(html);
+        })
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            console.error("Failed to refresh score table:", textStatus, errorThrown);
+        });
 });
 
 room.on("resetTable", function () {

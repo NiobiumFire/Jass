@@ -38,13 +38,39 @@ namespace BelotWebApp.Controllers
         // GET: Room - Join casual game
         public ActionResult Index(string id)
         {
-            var game = _gameRegistry.GetContext(id);
-            if (game != null)
+            var gameContext = _gameRegistry.GetContext(id);
+            if (gameContext != null)
             {
                 ViewData["roomId"] = id;
                 return View();
             }
             return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult PopulateScoreHistoryPartial(string id)
+        {
+            var username = User?.Identity?.Name;
+
+            if (username == null)
+            {
+                return Unauthorized();
+            }
+
+            var gameContext = _gameRegistry.GetContext(id);
+
+            if (gameContext == null)
+            {
+                return NotFound();
+            }
+
+            var game = gameContext.Game;
+
+            if (!game.Players.Any(p => p.Username != username) && !game.Spectators.Any(p => p.Username != username))
+            {
+                return Unauthorized();
+            }
+
+            return PartialView("_ScoreHistoryTable", game.ScoreHistory);
         }
     }
 }
