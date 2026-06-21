@@ -198,6 +198,7 @@ namespace BelotWebApp.BelotClasses.Observers
         {
             await _group.SendAsync("NewRound").ConfigureAwait(false);
             await SysAnnounce(message).ConfigureAwait(false);
+            await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal).ConfigureAwait(false);
             await _group.SendAsync("UpdateScoreHistoryTable").ConfigureAwait(false);
             await _group.SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints).ConfigureAwait(false);
             await Task.Delay(_game.RoundSummaryDelay).ConfigureAwait(false);

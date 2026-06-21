@@ -316,6 +316,11 @@ room.on("setScoreTitles", function (nsTitle, ewTitle) {
     document.getElementById("scoreHistoryEWTitle").innerHTML = ewTitle;
 });
 
+room.on("updateScoreTotals", function (ewPoints, nsPoints) {
+    document.getElementById("ns-score").innerHTML = nsPoints;
+    document.getElementById("ew-score").innerHTML = ewPoints;
+});
+
 room.on("updateScoreHistoryTable", function () {
     let id = document.getElementById("roomId").textContent;
     $.get('/Room/PopulateScoreHistoryPartial', { id: id })

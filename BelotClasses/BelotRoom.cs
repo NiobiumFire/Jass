@@ -560,6 +560,7 @@ namespace BelotWebApp.BelotClasses
                 await clients.Caller.SendAsync("SetTurnIndicator", game.Turn);
                 await clients.Caller.SendAsync("DisableRadios");
 
+                await clients.Caller.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal);
                 await clients.Caller.SendAsync("UpdateScoreHistoryTable");
 
                 await clients.Caller.SendAsync("SuitNominated", game.RoundCall);
