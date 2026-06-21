@@ -36,7 +36,7 @@
             <button class="btn2 px-2" id="rotateSeatsClockwiseBtn" disabled>
                 <i class="bi bi-arrow-clockwise"></i>
             </button>
-            <button class="btn2 px-3 position-relative" id="chatbtn" value="" data-bs-toggle="offcanvas" data-bs-target="#lobby">
+            <button class="btn2 px-3 position-relative" id="moreBtn" value="" data-bs-toggle="offcanvas" data-bs-target="#lobby">
                 ···
                 <span class="chat-notification" id="chatLogBadge" hidden>
                     <i class="bi bi-envelope-paper-fill"></i>
@@ -264,7 +264,7 @@
 </div>
 
 <!-- Offcanvas -->
-<div class="offcanvas offcanvas-end parchment" tabindex="-1" id="lobby">
+<div class="offcanvas offcanvas-end parchment2" tabindex="-1" id="lobby">
     <div class="offcanvas-header">
         <!-- Game Invite -->
         <input class="btn2 m-1" style="min-width:50%" type="button" value="Copy Game Invite" onclick="copyGameInvite()" id="copyGameIdBtn" />
@@ -277,49 +277,68 @@
 
             <!-- User List -->
 
-            <div class="accordion-item bg-info bg-opacity-75">
-                <h2 class="accordion-header" style="outline: none">
-                    <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#connectedUsersAccordian">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#connectedUsersAccordian">
                         Connected Users
+                        <i class="bi bi-chevron-down"></i>
                     </button>
                 </h2>
-                <div class="accordion-collapse collapse show" id="connectedUsersAccordian" data-bs-parent="#accordionExample">
+                <div class="accordion-collapse collapse" id="connectedUsersAccordian">
                     <div class="accordion-body p-0">
                         <div class="p-2" id=userLists>
-                            <p class="small" id="userList">here</p>
+                            <p class="small" id="userList"></p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Chat Controls and Log -->
+            <!-- Chat Log -->
 
-            <div class="accordion-item bg-info bg-opacity-75">
+            <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#chatLogAccordian" id="chatLogBtn">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#chatLogAccordian" id="chatLogBtn">
                         Chat Log
+                        <i class="bi bi-chevron-down"></i>
                     </button>
                 </h2>
-                <div class="accordion-collapse collapse show" id="chatLogAccordian" data-bs-parent="#accordionExample">
+                <div class="accordion-collapse collapse" id="chatLogAccordian">
                     <div class="accordion-body p-0">
                         <div class="d-flex justify-content-around align-items-center" style="min-width:0">
                             <input class="form-control m-1" type="text" style="max-width: 1500px" id="messageToSend" placeholder="Type something..." />
                             <input class="btn2 m-1" type="button" value="Send" id="sendmessage" />
                         </div>
-                        <textarea readonly class="bg-transparent border-0 pb-2 ps-3" style="font-size: 12px; resize: none; min-height: 100px; height: 100%; min-width:100%; outline: none" id="chatLog"></textarea>
+                        <textarea readonly class="text-area-log" id="chatLog"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Log -->
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gameLogAccordian" id="gameLogBtn">
+                        Game Log
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                </h2>
+                <div class="accordion-collapse collapse" id="gameLogAccordian">
+                    <div class="accordion-body p-0">
+                        <textarea readonly class="text-area-log" id="gameLog"></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- Score History -->
 
-            <div class="accordion-item bg-info bg-opacity-75">
+            <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button bg-info border-bottom" style="box-shadow: none" type="button" data-bs-toggle="collapse" data-bs-target="#scoreHistoryAccordian">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#scoreHistoryAccordian">
                         Game Score History
+                        <i class="bi bi-chevron-down"></i>
                     </button>
                 </h2>
-                <div class="accordion-collapse collapse show" id="scoreHistoryAccordian">
+                <div class="accordion-collapse collapse" id="scoreHistoryAccordian">
                     <div class="accordion-body p-0 px-2">
                         <table class="table table-sm table-striped table-responsive" id="scoreTable">
                             <thead>

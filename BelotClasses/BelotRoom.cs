@@ -430,24 +430,27 @@ namespace BelotWebApp.BelotClasses
 
         #region Messaging
 
-        private string MsgHead()
-        {
-            return GetServerDateTime() + ", " + GetCallerUsername();
-        }
-
         public async void HubAnnounce(string message) // called by client
         {
             log?.Information("[HubAnnounce] enter");
+
+            if (string.IsNullOrEmpty(message))
+            {
+                log?.Information("[HubAnnounce] exit");
+                return;
+            }
+
 
             var gameContext = GetGameContext();
             if (gameContext?.Game == null || gameContext.Observer == null)
             {
                 log?.Warning("[HubBookSeat] GameContext/Game/Observer was null");
+                log?.Information("[HubAnnounce] exit");
                 return;
             }
 
             var group = Clients.Group(gameContext.Game.RoomId);
-            await group.SendAsync("Announce", MsgHead() + " >> " + message);
+            await group.SendAsync("AppendChatLog", $"[{GetServerDateTime()} • {GetCallerUsername()}] {message}");
             await group.SendAsync("showChatNotification");
 
             log?.Information("[HubAnnounce] exit");

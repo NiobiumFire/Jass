@@ -649,7 +649,6 @@ function getSeatNameByNumber(number) {
 };
 
 room.on("enableNewGame", function () {
-    /*document.getElementById("newGameBtn").classList.add("deal-pulse");*/
     document.getElementById("newGameBtn").classList.add("btn-prompt");
     document.getElementById("newGameBtn").disabled = false;
 });
@@ -751,8 +750,14 @@ function copyGameInvite() {
     }, 600);
 };
 
-room.on("announce", function (message) {
-    writeToPage(message);
+room.on("appendChatLog", function (message) {
+    let textarea = document.getElementById("chatLog");
+    writeToPage(message, textarea);
+});
+
+room.on("appendGameLog", function (message) {
+    let textarea = document.getElementById("gameLog");
+    writeToPage(message, textarea);
 });
 
 room.on("showChatNotification", function () {
@@ -763,18 +768,17 @@ room.on("showChatNotification", function () {
     }
 });
 
-function writeToPage(message) {
-    if (document.getElementById("chatLog").value != "") {
-        $("#chatLog").append("\n");
+function writeToPage(message, textarea) {
+    if (textarea.value != "") {
+        textarea.append("\n");
     };
-    $("#chatLog").append(message);
-    let textarea = document.getElementById('chatLog');
+    textarea.append(message);
     textarea.scrollTop = textarea.scrollHeight;
 };
 
-$("#messageToSend").keyup(function (event) {
-    if (event.keyCode === 13) {
-        $("#sendmessage").click();
+$("#messageToSend").on('keyup', function (event) {
+    if (event.key === 'Enter') {
+        $("#sendmessage").trigger('click');
     }
 });
 
@@ -787,7 +791,7 @@ $("#chatLogBtn").on("click", function () {
     document.getElementById("chatLogBadge").hidden = true;
 });
 
-$("#chatbtn").on("click", function () {
+$("#moreBtn").on("click", function () {
     document.getElementById("chatLogBadge").hidden = true;
 });
 

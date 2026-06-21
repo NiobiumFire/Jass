@@ -209,7 +209,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task SysAnnounce(string message)
         {
-            await _group.SendAsync("Announce", GetServerDateTime() + " >> " + message).ConfigureAwait(false);
+            await _group.SendAsync("AppendGameLog", $"[{GetServerDateTime()}] {message}").ConfigureAwait(false);
         }
 
         private static string GetServerDateTime()
