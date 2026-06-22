@@ -9,6 +9,23 @@
     --col-4: rgb(159, 226, 252); /*pale blue*/
     --cream-text: #fffbe6;
     /*--cream-text: #bdb9a9;*/
+
+    --card-height: 150px;
+    --card-width: 105px;
+}
+
+@media only screen and (max-width: 767px) {
+    :root {
+        --card-height: 120px;
+        --card-width: 84px;
+    }
+}
+
+.allNoTrumps {
+    font-family: 'Old English Text MT';
+    font-style: normal;
+    font-weight: 600 !important;
+    font-size: 22px;
 }
 
 .character {
@@ -353,6 +370,12 @@ th, td {
 }
 
 /* Cards */
+
+.belot-card {
+    position: relative;
+    height: var(--card-height);
+    width: var(--card-width);
+}
 
 .belot-card2 {
     position: absolute;
