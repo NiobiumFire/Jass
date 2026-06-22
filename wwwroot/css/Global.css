@@ -249,7 +249,7 @@ main {
         }
 
 .form-btn {
-    color: black;
+    color: var(--cream-text);
     display: inline-block;
     font-size: 1.5em;
     font-weight: 500;
@@ -350,17 +350,6 @@ th, td {
     background-image: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 80%), radial-gradient(circle at 70% 40%, rgba(0, 0, 0, 0.05) 0%, transparent 80%), radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.04) 0%, transparent 80%), radial-gradient(circle at 60% 60%, rgba(0, 0, 0, 0.03) 0%, transparent 80%);
     box-shadow: inset 0 0 120px #4d370a, 2px 3px 40px #000;
     color: var(--cream-text);
-}
-
-.rules-carousel p,
-.rules-carousel h3,
-.rules-carousel ul {
-    color: black;
-}
-
-.rules-carousel span,
-.rules-carousel .carousel-indicators {
-    filter: invert(100%);
 }
 
 /* Cards */

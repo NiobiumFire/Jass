@@ -136,11 +136,6 @@ p {
     }
 }
 
-.form-btn {
-    color: unset;
-    transform-origin: 50% 52%;
-}
-
 .spinning {
     animation: spin 0.4s linear;
 }

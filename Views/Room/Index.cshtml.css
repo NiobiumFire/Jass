@@ -145,22 +145,12 @@
 
 /* Suit Selector Modal */
 
-.form-btn {
-    color: unset;
-    transform-origin: 50% 52%;
-}
-
 @media(max-width: 600px) {
     .modal-dialog {
         width: 90% !important;
         max-width: 90% !important;
         margin: auto;
     }
-}
-
-.suit-call-modal .form-btn {
-    color: unset;
-    transform-origin: 50% 52%;
 }
 
 .modal .btn2 {

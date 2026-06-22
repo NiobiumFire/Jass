@@ -163,11 +163,6 @@
     width: 500px;
 }
 
-.form-btn {
-    color: unset;
-    transform-origin: 50% 52%;
-}
-
 .table {
     table-layout: fixed;
 }
