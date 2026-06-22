@@ -43,6 +43,33 @@ main {
 
 /* Tab card nav-links */
 
+.tab-card .card-header {
+    padding: 0px 0px 12px 0px;
+}
+
+.tab-card ul.nav-tabs {
+    margin: 0px 0px -12px 0px;
+}
+
+.login-logout-card li.nav-item {
+    width: 50%;
+}
+
+.profile-card li.nav-item {
+    width: 33.333%;
+}
+
+.tab-card a.nav-link {
+    font-size: 1rem;
+    color: #495957;
+    text-align: center;
+    padding: 1rem;
+}
+
+.tab-card .card-body {
+    padding: 10px 20px;
+}
+
 .card {
     max-height: 100% !important;
     overflow-y: auto;
@@ -57,8 +84,8 @@ main {
     }
 
     .card .nav-link.active {
-        background-color: transparent !important;
-        border: none !important;
+        background-color: transparent;
+        border: none;
     }
 
 .card-header {
