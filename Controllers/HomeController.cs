@@ -20,7 +20,6 @@ namespace BelotWebApp.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.numGames = GetNumRooms();
             return View(new BelotRoomCreator());
         }
 
@@ -36,11 +35,6 @@ namespace BelotWebApp.Controllers
         }
 
         #region Lobby
-
-        public int GetNumRooms()
-        {
-            return _gameRegistry.GetAllGames().Count();
-        }
 
         public IActionResult PopulateLobbyPartial()
         {
