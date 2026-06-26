@@ -22,7 +22,6 @@ namespace BelotWebApp.Controllers
 
         // Create casual game then join it
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public ActionResult Index(BelotRoomCreator creator)
         {
             if (creator != null)

@@ -7,6 +7,7 @@ using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
 using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 internal class Program
@@ -39,7 +40,10 @@ internal class Program
             options.AccessDeniedPath = "/Account/AccessDenied";
         });
 
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews(options =>
+        {
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+        });
         builder.Services.AddRazorPages();
         builder.Services.AddSignalR().AddJsonProtocol(options =>
         {
