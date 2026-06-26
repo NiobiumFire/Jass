@@ -20,7 +20,7 @@ namespace BelotWebApp.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            return View(new TrainingConfigViewModel());
+            return View("Training", new TrainingConfigViewModel());
         }
 
         [HttpPost]

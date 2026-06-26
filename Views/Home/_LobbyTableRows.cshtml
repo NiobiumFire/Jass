@@ -10,7 +10,7 @@
         <td class="truncate-cell">@room.East</td>
         <td class="truncate-cell">@room.South</td>
         <td>
-            <button class="btn2" onclick="window.location.href='/Room/Index/@room.RoomId'">
+            <button class="btn2" onclick="window.location.href='@Url.Action("Index", "Room", new { id = room.RoomId })'">
                 <i class="bi bi-box-arrow-in-right"></i>
             </button>
         </td>

@@ -23,7 +23,7 @@ namespace BelotWebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return View(await GetModel());
+            return View("Admin", await GetModel());
         }
 
         private async Task<AdministrateUserModel> GetModel()
@@ -78,7 +78,7 @@ namespace BelotWebApp.Controllers
                 }
             }
             await _signInManager.RefreshSignInAsync(await _userManager.GetUserAsync(User));
-            return View(await GetModel());
+            return View("Admin", await GetModel());
         }
 
         [HttpPost]
@@ -102,7 +102,7 @@ namespace BelotWebApp.Controllers
             {
                 ModelState.AddModelError("", @"User with id='" + id + @"' could not be found.");
             }
-            return View("Index", await GetModel());
+            return View("Admin", await GetModel());
         }
     }
 }

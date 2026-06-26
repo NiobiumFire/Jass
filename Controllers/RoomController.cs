@@ -24,26 +24,24 @@ namespace BelotWebApp.Controllers
         [HttpPost]
         public ActionResult Index(BelotRoomCreator creator)
         {
-            if (creator != null)
-            {
-                string id = Guid.NewGuid().ToString();
-                var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, _zipService, true);
-                _gameRegistry.AddContext(id, new(game, null));
-                return RedirectToAction("Index", new { id });
-            }
-            return RedirectToAction("Index", "Home");
+            string id = Guid.NewGuid().ToString();
+            var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, _zipService, true);
+            _gameRegistry.AddContext(id, new(game, null));
+            return RedirectToAction("Index", new { id });
         }
 
         // GET: Room - Join casual game
+        [HttpGet("/Room/{id}")]
         public ActionResult Index(string id)
         {
             var gameContext = _gameRegistry.GetContext(id);
-            if (gameContext != null)
+            if (gameContext == null)
             {
-                ViewData["roomId"] = id;
-                return View();
+                return RedirectToAction("Index", "Home");
             }
-            return RedirectToAction("Index", "Home");
+
+            ViewData["roomId"] = id;
+            return View("Room");
         }
 
         public IActionResult PopulateScoreHistoryPartial(string id)

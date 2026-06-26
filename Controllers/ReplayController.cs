@@ -23,7 +23,7 @@ namespace BelotWebApp.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            return View("Replay");
         }
 
         public async Task<IActionResult> GetReplay(string replayId)

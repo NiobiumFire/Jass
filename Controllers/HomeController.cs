@@ -5,7 +5,6 @@ using System.Diagnostics;
 
 namespace BelotWebApp.Controllers
 {
-    //[Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -19,7 +18,7 @@ namespace BelotWebApp.Controllers
 
         public IActionResult Index()
         {
-            return View(new BelotRoomCreator());
+            return View("Home");
         }
 
         public IActionResult Privacy()

@@ -1,6 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity;
 @using System.Security.Claims
-@model BelotRoomCreator
 
 @section scripts {
     <script src="~/js/Belotlobby.js" asp-append-version="true"></script>
@@ -91,9 +90,7 @@
 
                 <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
 
-                <form id="createJassGameForm" asp-controller="Room" asp-action="Index" method="post" class="d-none">
-                    @Html.AntiForgeryToken()
-                </form>
+                <form id="createJassGameForm" asp-controller="Room" asp-action="Index" method="post" class="d-none"></form>
 
                 <div class="btn-group casual-btn-group" style="width: 100%" role="group">
                     <button type="button" class="btn2" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
@@ -114,7 +111,7 @@
                 }
                 else
                 {
-                    <p><button type="button" class="btn2 mb-2 mb-sm-4" onclick="location.href='/Replay/Index'" style="width: 100%">
+                    <p><button type="button" class="btn2 mb-2 mb-sm-4" onclick="location.href='@Url.Action("Index", "Replay")'" style="width: 100%">
                         Replay
                     </button></p>
                 }
