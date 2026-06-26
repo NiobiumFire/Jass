@@ -1,4 +1,3 @@
-using BelotWebApp.Areas.Identity.Data;
 using BelotWebApp.BelotClasses;
 using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.Configuration;
@@ -26,13 +25,19 @@ internal class Program
             options.UseSqlite($"Data Source={appPaths.DatabaseFile}");
         });
 
-        builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<AuthDbContext>()
+            .AddDefaultTokenProviders();
+
+        builder.Services.ConfigureApplicationCookie(options =>
         {
-            options.SignIn.RequireConfirmedAccount = false;
-            options.User.RequireUniqueEmail = true;
-        })
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<AuthDbContext>();
+            options.LoginPath = "/Account/Login";
+            options.AccessDeniedPath = "/Account/AccessDenied";
+        });
 
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
@@ -42,7 +47,7 @@ internal class Program
         });
 
         builder.Services.AddScoped<IEmailSender, EmailService>();
-        
+
         builder.Services.AddSingleton<IZipService, ZipService>();
 
         builder.Services.AddSingleton<BelotGameRegistry>();

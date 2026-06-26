@@ -1,5 +1,5 @@
-﻿@using BelotWebApp.Areas.Identity.Data;
-@using Microsoft.AspNetCore.Identity;
+﻿@using Microsoft.AspNetCore.Identity;
+@using BelotWebApp.Data;
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,12 +26,12 @@
                     <img src="~/images/NiobiumCrystal.png" height="30" />
                     <ul class="navbar-nav d-flex align-items-center">
                         <li class="nav-item me-3">
-                            <a class="navbar-brand mx-0 px-1" asp-area="" asp-controller="Home" asp-action="Index">NiobiumFire Jass</a>
+                            <a class="navbar-brand mx-0 px-1" asp-controller="Home" asp-action="Index">NiobiumFire Jass</a>
                         </li>
                         @if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link mx-0 px-1" asp-area="" asp-controller="Administration" asp-action="Index">Admin</a>
+                                <a class="nav-link mx-0 px-1" asp-controller="Administration" asp-action="Index">Admin</a>
                             </li>
                         }
                     </ul>
@@ -45,7 +45,7 @@
 
     <footer>
         <div class="container">
-            &copy; 2025 - NiobiumFire - <a style="color:white" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - NiobiumFire - <a style="color:white" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
 

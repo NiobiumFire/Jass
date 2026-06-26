@@ -1,5 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@using BelotWebApp.Areas.Identity.Data
+@using BelotWebApp.Data
 
 <ul class="navbar-nav">
     @if (signInManager.IsSignedIn(User))
@@ -10,10 +10,16 @@
                 <i class="bi-person-fill" style="font-size: 1.5em;"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a title="Manage" class="dropdown-item" href="/Identity/Account/Manage/Index">Manage</a></li>
-                <hr class="dropdown-divider">
                 <li>
-                    <a id="logout" class="dropdown-item" href="/Identity/Account/Logout">Logout</a>
+                    <a title="Manage" class="dropdown-item account-action-link" href="/Account/Username">Account</a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li>
+                    <form method="post" asp-page="/Account/Logout">
+                        <button type="submit" id="logout" class="dropdown-item account-action-link">Log out</button>
+                    </form>
                 </li>
             </ul>
         </li>
@@ -26,10 +32,14 @@
                 <i class="bi-person-fill" style="font-size: 1.5em;"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a title="Login" class="dropdown-item" href="/Identity/Account/Login">Log in</a></li>
-                <li><hr class="dropdown-divider"></li>
                 <li>
-                    <a id="Register" class="dropdown-item" href="/Identity/Account/Register">Register</a>
+                    <a title="Login" class="dropdown-item account-action-link" href="/Account/Login">Log in</a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li>
+                    <a id="Register" class="dropdown-item account-action-link" href="/Account/Register">Register</a>
                 </li>
             </ul>
         </li>

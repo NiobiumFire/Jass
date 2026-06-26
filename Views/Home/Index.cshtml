@@ -1,5 +1,4 @@
-﻿@using BelotWebApp.Areas.Identity.Data;
-@using Microsoft.AspNetCore.Identity;
+﻿@using Microsoft.AspNetCore.Identity;
 @using System.Security.Claims
 @model BelotRoomCreator
 
@@ -47,12 +46,12 @@
         @if (!isSignedIn)
         {
             <p>Welcome</p>
-            <p><a class="link" asp-area="Identity" asp-page="/Account/Login">Log in</a> or <a class="link" asp-area="Identity" asp-page="/Account/Register">register</a> for all features</p>
+            <p><a class="link" asp-page="/Account/Login">Log in</a> or <a class="link" asp-page="/Account/Register">register</a> for all features</p>
         }
         else if (!emailConfirmed)
         {
             <p>Welcome @userManager.GetUserName(User)</p>
-            <p><a class="link" asp-area="Identity" asp-page="/Account/Manage/Email">Confirm your email</a> for all features</p>
+            <p><a class="link" asp-page="/Account/Email">Confirm your email</a> for all features</p>
         }
         else
         {
@@ -92,7 +91,7 @@
 
                 <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
 
-                <form id="createJassGameForm" asp-area="" asp-controller="Room" asp-action="Index" method="post" class="d-none">
+                <form id="createJassGameForm" asp-controller="Room" asp-action="Index" method="post" class="d-none">
                     @Html.AntiForgeryToken()
                 </form>
 

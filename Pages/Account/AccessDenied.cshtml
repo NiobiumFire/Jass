@@ -1,0 +1,17 @@
+﻿@page
+@{
+    ViewData["Title"] = "Access denied";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<main>
+    <div class="parchment access-denied-background">
+        <div></div>
+        <h1 class="text-center text-danger">@ViewData["Title"]</h1>
+        <p class="text-center text-danger">You do not have access to this resource.</p>
+        <div class="img-container">
+            <img class="character" src="/images/AccessDenied.png" />
+        </div>
+        <div></div>
+    </div>
+</main>

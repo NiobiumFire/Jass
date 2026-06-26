@@ -7,13 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Areas\Identity\Pages\Account\Manage\ManageNavPages.cs" />
-    <Compile Remove="Areas\Identity\Pages\Account\Manage\SetPassword.cshtml.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="Areas\Identity\Pages\Account\Manage\SetPassword.cshtml" />
-    <Content Remove="Areas\Identity\Pages\Account\Manage\_ManageNav.cshtml" />
     <Content Remove="Views\Shared\_Crystal.cshtml" />
   </ItemGroup>
 

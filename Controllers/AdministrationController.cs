@@ -1,4 +1,4 @@
-﻿using BelotWebApp.Areas.Identity.Data;
+﻿using BelotWebApp.Data;
 using BelotWebApp.Models.Administration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -84,7 +84,7 @@ namespace BelotWebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.FindByNameAsync(id);
             if (user != null)
             {
                 var result = await _userManager.DeleteAsync(user);
