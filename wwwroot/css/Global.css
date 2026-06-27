@@ -21,6 +21,10 @@
     }
 }
 
+html {
+    position: fixed;
+}
+
 .allNoTrumps {
     font-family: 'Old English Text MT';
     font-style: normal;
