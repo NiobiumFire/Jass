@@ -1,5 +1,5 @@
 ﻿main {
-    grid-template-rows: 5% 25% 2% 10% 2% 56%;
+    grid-template-rows: 5% 25% 2% 10% 58%;
 }
 
 .title-banner {
@@ -24,9 +24,26 @@
 }
 
 @media (max-width: 576px) {
+    main {
+        grid-template-rows: 5% 20% 2% 10% 63%;
+    }
+
     ::deep .title-banner-text img {
         max-width: 90%;
         width: 90%;
+    }
+}
+
+.welcome-text-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (min-width: 600px) {
+    .welcome-text-container p {
+        font-size: 1.3rem;
     }
 }
 
@@ -37,7 +54,7 @@
     width: 100%;
     min-height: 0;
     height: 100%;
-    /*overflow: auto;*/
+    overflow: hidden;
 }
 
 @media (max-width: 1550px) {
@@ -53,6 +70,7 @@
 }
 
 .img-container {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -60,7 +78,6 @@
     width: 100%;
     min-height: 0;
     height: 100%;
-    overflow: hidden;
 }
 
 .menu-buttons-container {
@@ -69,6 +86,9 @@
     place-items: center;
     overflow-y: auto;
     padding-bottom: 5px;
+    z-index: 2;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* other */
 }
 
 .menu-buttons {
@@ -76,6 +96,7 @@
     flex-direction: column;
     width: 90%;
     max-height: 100%;
+    /*transform: translateY(-50px);*/
 }
 
 @media (max-width: 640px) {
@@ -147,7 +168,7 @@ p {
     }
 }
 
-.lobby-modal .modal-content{
+.lobby-modal .modal-content {
     max-height: 50vh;
 }
 
@@ -155,6 +176,6 @@ p {
     border-bottom: none;
 }
 
-.lobby-modal table{
+.lobby-modal table {
     table-layout: fixed;
 }
