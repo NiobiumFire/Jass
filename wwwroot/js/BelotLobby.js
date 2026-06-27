@@ -1,34 +1,82 @@
 ﻿"use strict";
 
+let refreshButton = null;
+let lobbyTable = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    refreshButton = document.getElementById("refreshBtn");
+
+    refreshButton.addEventListener("animationend", () => {
+        refreshButton.classList.remove("spinning");
+    });
+
+    lobbyTable = document.getElementById("lobby-table");
+});
+
+let lobbyActive = false;
+let lobbyTimer = null; // schedule an automated refresh for 5 seconds after the current refresh (manual or automated) finishes
+let isLoading = false; // prevent sending a second update request while waiting for the server to return one / processing and applying one
+
 function populateLobby() {
-    getNumRooms();
+
+    if (!lobbyActive) return;
+
+    if (isLoading) return;
+
+    if (lobbyTimer) {
+        clearTimeout(lobbyTimer);
+        lobbyTimer = null;
+    }
+
+    isLoading = true;
+
     $.ajax({
         url: "/Home/PopulateLobbyPartial",
         method: "GET",
         success: function (html) {
-            document.getElementById("lobby-table").innerHTML = html;
+            if (!lobbyActive) return;
+
+            lobbyTable.innerHTML = html;
+        },
+        complete: function () {
+            isLoading = false;
+
+            if (lobbyActive) {
+                lobbyTimer = setTimeout(populateLobby, 5000);
+            }
         }
     });
 }
 
-function getNumRooms() {
-    $.ajax({
-        url: "/Home/GetNumRooms",
-        method: "GET",
-        success: function (data) {
-            document.getElementById("gameCount").innerHTML = data;
-        }
-    });
-};
+function startLobbyRefresh() {
+    if (lobbyActive) return;
 
-function refreshLobby() {
+    lobbyActive = true;
+    populateLobby(); // initial trigger and start loop
+}
+
+function stopLobbyRefresh() {
+    lobbyActive = false;
+
+    if (lobbyTimer) {
+        clearTimeout(lobbyTimer);
+        lobbyTimer = null;
+    }
+}
+
+$('#jass-lobby-modal').on('shown.bs.modal', function () {
+    startLobbyRefresh();
+});
+
+$('#jass-lobby-modal').on('hidden.bs.modal', function () {
+    stopLobbyRefresh();
+});
+
+function refreshLobby() { // manual refresh clicked
     populateLobby();
-    const button = document.getElementById("refreshBtn");
 
-    button.classList.add('spinning');
-
-    // Remove the class after animation ends (so it can spin again next time)
-    button.addEventListener('animationend', () => {
-        button.classList.remove('spinning');
-    }, { once: true });
+    refreshButton.classList.remove("spinning");
+    void refreshButton.offsetWidth;
+    refreshButton.classList.add("spinning");
 };

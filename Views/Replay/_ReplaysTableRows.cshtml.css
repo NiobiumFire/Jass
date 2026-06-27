@@ -21,4 +21,5 @@ table tbody tr:nth-child(6n-3) td {
 
 .truncate-cell{
     padding-top: 0;
+    text-align: center;
 }

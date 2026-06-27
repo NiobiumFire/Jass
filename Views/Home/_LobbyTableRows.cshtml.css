@@ -3,9 +3,34 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 4px;
 }
 
-    .btn2 i {
-        transform: translate(-5%, 5%);
-    }
+table tbody tr:first-child {
+    border-top: 1px solid;
+    border-color: inherit;
+}
+
+table tbody tr:nth-child(3n-2) td,
+table tbody tr:nth-child(3n-1) td {
+    border-bottom: 0 none transparent;
+}
+
+table tbody tr:nth-child(6n-5) td,
+table tbody tr:nth-child(6n-4) td,
+table tbody tr:nth-child(6n-3) td {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.position-icon {
+    padding: 0;
+    text-align: center;
+}
+
+.truncate-cell {
+    padding-top: 0;
+    text-align: center;
+}
+
+.muted{
+    color: var(--medium-grey);
+}
