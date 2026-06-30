@@ -153,8 +153,8 @@
     transform: translateX(calc(var(--margin)/2)); /*offset backwards against the margin*/
     height: var(--replay-hand-card-height);
     width: var(--replay-hand-card-width);
-    border: 1px solid gray;
-    border-radius: 0.7em;
+    border: 1px solid black;
+    border-radius: 0.4em;
 }
 
 /* offcanvas & table */

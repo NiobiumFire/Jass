@@ -31,7 +31,7 @@ namespace BelotWebApp.Controllers
         }
 
         // GET: Room - Join casual game
-        [HttpGet("/Room/{id}")]
+        [HttpGet("/Room/{id:guid}")]
         public ActionResult Index(string id)
         {
             var gameContext = _gameRegistry.GetContext(id);
@@ -44,6 +44,7 @@ namespace BelotWebApp.Controllers
             return View("Room");
         }
 
+        [HttpGet("/Room/PopulateScoreHistoryPartial")]
         public IActionResult PopulateScoreHistoryPartial(string id)
         {
             var username = User?.Identity?.Name;
@@ -62,7 +63,7 @@ namespace BelotWebApp.Controllers
 
             var game = gameContext.Game;
 
-            if (!game.Players.Any(p => p.Username != username) && !game.Spectators.Any(p => p.Username != username))
+            if (!game.Players.Any(p => p.Username == username) && !game.Spectators.Any(p => p.Username == username))
             {
                 return Unauthorized();
             }
