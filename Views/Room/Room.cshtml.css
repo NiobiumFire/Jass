@@ -81,8 +81,13 @@
         mix-blend-mode: overlay;
     }
 
+::deep .cardboard .belot-card2 {
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 0.8em;
+}
+
 ::deep .cardboard-pulse .belot-card2:not(.belot-card2-invalid) {
-    background: black;
+    /*background: black;*/
     color: white;
     animation: pulse 3s ease-in-out infinite;
 }
