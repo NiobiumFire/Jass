@@ -1,13 +1,24 @@
 ﻿"use strict";
 
-var room = new signalR.HubConnectionBuilder().withUrl("/belotroom/" + document.getElementById("roomId").innerHTML).build();
+var room = new signalR.HubConnectionBuilder()
+    .withUrl("/belotroom/" + document.getElementById("roomId").innerHTML)
+    .withAutomaticReconnect([0, 200, 400])
+    .build();
 
 var declarations;
+
+let isUnloading = false; // the user is not deliberately leaving the room
+
+window.addEventListener("beforeunload", () => {
+    isUnloading = true;
+});
 
 room.start();
 
 room.onclose(() => {
-    alert("Disconnected. Try refresh the page to reconnect.");
+    if (!isUnloading) {
+        alert("Disconnected. Try refresh the page to reconnect.");
+    }
 });
 
 room.on("connectedUsers", function (players, spectators) {
