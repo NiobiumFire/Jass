@@ -36,8 +36,6 @@
     z-index: 4;
     background: var(--cream-text);
     border: 1px solid var(--col-2);
-    transform-origin: center center;
-    transform: rotate(calc(var(--seat-rotation)*1deg));
 }
 
     .turn-indicator i {
@@ -48,6 +46,12 @@
         color: var(--col-2);
         line-height: normal;
     }
+
+.turn-indicator-rotator {
+    display: flex;
+    transform-origin: center center;
+    transform: rotate(calc(var(--seat-rotation)*1deg));
+}
 
 .player-marker {
     display: flex;
@@ -515,12 +519,12 @@
     }
 }
 
-    .score-summary table {
-        table-layout: fixed;
-        margin: 0;
-        padding: 0;
-        border-style: hidden;
-    }
+.score-summary table {
+    table-layout: fixed;
+    margin: 0;
+    padding: 0;
+    border-style: hidden;
+}
 
 .table-heading-border {
     border-bottom: 1px solid var(--cream-text);
