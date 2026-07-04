@@ -258,7 +258,7 @@ function resetSuitSelection() {
     clearSuitIconClass(selectedSuit);
     clearSuitIconColourClass(selectedSuit);
     selectedSuit.classList.remove("suit-shadow");
-    selectedSuit.classList.add("bi", "bi-suit-spade-fill");
+    selectedSuit.classList.add("bi", NO_SUIT_CALL);
     document.getElementById("selectedmultiplier").innerHTML = "";
     setCallerIndicator(4);
 };

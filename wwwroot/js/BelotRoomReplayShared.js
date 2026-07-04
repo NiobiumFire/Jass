@@ -1,5 +1,7 @@
 ﻿"use strict";
 
+const NO_SUIT_CALL = "bi-ban";
+
 function setEmoteSuitContent(elEmote, iCall) {
     const text = ["Pass", "", "", "", "", "A", "J", "×2!", "×4!!", "⁹⁄₅"];
     const classes = ["", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps", "allNoTrumps", "allNoTrumps", ""];
@@ -38,7 +40,7 @@ function resetSuitIcon(icon) {
 }
 
 function clearSuitIconClass(el) {
-    el.classList.remove("bi", "bi-ban", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps");
+    el.classList.remove("bi", NO_SUIT_CALL, "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps");
 }
 
 function clearSuitIconColourClass(el) {
@@ -60,7 +62,7 @@ function setTableCardSlotUserNameAndLabelColour(position, username, occupied, is
 
 function setRoundSuit(suit) {
     const text = ["", "", "", "", "", "A", "J", "×2", "×4"];
-    const suits = ["bi-ban", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps"];
+    const suits = [NO_SUIT_CALL, "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps"];
     const colours = ["", "call-icon-black", "call-icon-red", "call-icon-red", "call-icon-black", "call-icon-purple", "call-icon-purple"];
     let selectedSuit = document.getElementById("selectedsuit");
     let selectedMultiplier = document.getElementById("selectedmultiplier");
