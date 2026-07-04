@@ -130,9 +130,12 @@
             </div>
         </div>
         <!-- Turn Indicator -->
-        <span class="badge rounded-circle seat-transition turn-indicator">
-            <i class="bi bi-suit-spade-fill seat-transition" id="turnIndicator"></i>
-        </span>
+        <div class="badge rounded-circle seat-transition turn-indicator">
+            <i class="bi bi-arrows-move seat-transition" id="turnIndicator"></i>
+            <span class="tooltiptext" id="turnTooltip">
+                Game not started
+            </span>
+        </div>
         <!-- Flex Column 3 -->
         <div class="d-flex flex-column justify-content-center" id="cardCol3">
             <!-- East -->
@@ -183,9 +186,9 @@
     <div class="call-summary-container">
         <div class="call-summary">
             <i class="bi bi-arrows-move seat-transition call-icon caller-indicator" id="wnescallindicator"></i>
-            <i class="bi bi-suit-spade-fill call-icon" id="selectedsuit"></i>
+            <i class="bi bi-ban call-icon" id="selectedsuit"></i>
             <i class="allNoTrumps cream-text" id="selectedmultiplier"></i>
-            <span class="tooltiptext" id="tooltiptext">
+            <span class="tooltiptext" id="callTooltip">
                 No call has been made
             </span>
         </div>

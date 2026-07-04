@@ -184,9 +184,7 @@ function setTableCard(tableCardPosition, tableCard) {
 // -------------------- Turn Indicator --------------------
 
 room.on("setTurnIndicator", function (turn) {
-    const icons = ["bi-arrow-left-circle-fill", "bi-arrow-up-circle-fill", "bi-arrow-right-circle-fill", "bi-arrow-down-circle-fill", "bi-suit-spade-fill"];
-    document.getElementById("turnIndicator").classList.remove("bi-arrow-left-circle-fill", "bi-arrow-up-circle-fill", "bi-arrow-right-circle-fill", "bi-arrow-down-circle-fill", "bi-suit-spade-fill");
-    document.getElementById("turnIndicator").classList.add(icons[turn]);
+    setTurn(turn);
 });
 
 // -------------------- Emote --------------------

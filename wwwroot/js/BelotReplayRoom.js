@@ -239,11 +239,6 @@ function setCaller(caller) {
     setCallerIndicator(caller);
 }
 
-function setTurn(turn) {
-    const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-suit-spade-fill"];
-    document.getElementById("turnIndicator").classList = turnIndicator[turn];
-}
-
 function setEmote(emote, i) {
     let bubble = document.getElementById("bubble" + i)
     if (emote == null || emote == "") {

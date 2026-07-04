@@ -19,6 +19,18 @@ function setEmoteSuitContent(elEmote, iCall) {
     icon.innerHTML = text[iCall];
 }
 
+function setTurn(turn) {
+    const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-arrows-move"];
+    document.getElementById("turnIndicator").classList = turnIndicator[turn];
+    if (turn < 4) {
+        document.getElementById("turnTooltip").innerHTML = document.getElementById("usernamelabel" + turn).innerHTML + " to play";
+    }
+    else {
+        document.getElementById("turnTooltip").innerHTML = "Game not started";
+        return;
+    }
+}
+
 function resetSuitIcon(icon) {
     clearSuitIconClass(icon);
     clearSuitIconColourClass(icon);
@@ -26,7 +38,7 @@ function resetSuitIcon(icon) {
 }
 
 function clearSuitIconClass(el) {
-    el.classList.remove("bi", "bi-suit-spade-fill", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps");
+    el.classList.remove("bi", "bi-ban", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps");
 }
 
 function clearSuitIconColourClass(el) {
@@ -48,7 +60,7 @@ function setTableCardSlotUserNameAndLabelColour(position, username, occupied, is
 
 function setRoundSuit(suit) {
     const text = ["", "", "", "", "", "A", "J", "×2", "×4"];
-    const suits = ["bi-suit-spade-fill", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps"];
+    const suits = ["bi-ban", "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps"];
     const colours = ["", "call-icon-black", "call-icon-red", "call-icon-red", "call-icon-black", "call-icon-purple", "call-icon-purple"];
     let selectedSuit = document.getElementById("selectedsuit");
     let selectedMultiplier = document.getElementById("selectedmultiplier");
@@ -104,7 +116,7 @@ function setCallTooltip() {
         caller = document.getElementById("usernamelabel" + wnesPos).innerHTML;
     }
     else {
-        document.getElementById("tooltiptext").innerHTML = "No call has been made";
+        document.getElementById("callTooltip").innerHTML = "No call has been made";
         return;
     }
 
@@ -124,13 +136,13 @@ function setCallTooltip() {
     }
 
     if (document.getElementById("selectedmultiplier").innerHTML == "×2") {
-        document.getElementById("tooltiptext").innerHTML = caller + " doubled in " + suit;
+        document.getElementById("callTooltip").innerHTML = caller + " doubled in " + suit;
     }
     else if (document.getElementById("selectedmultiplier").innerHTML == "×4") {
-        document.getElementById("tooltiptext").innerHTML = caller + " redoubled in " + suit;
+        document.getElementById("callTooltip").innerHTML = caller + " redoubled in " + suit;
     }
     else {
-        document.getElementById("tooltiptext").innerHTML = caller + " called " + suit;
+        document.getElementById("callTooltip").innerHTML = caller + " called " + suit;
     }
 }
 
