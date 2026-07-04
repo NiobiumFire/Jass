@@ -10,8 +10,15 @@
     --cream-text: #fffbe6;
     /*--cream-text: #bdb9a9;*/
 
-    --card-height: 150px;
-    --card-width: 105px;
+    --card-height: 180px;
+    --card-width: 126px;
+}
+
+@media only screen and (max-width: 1500px) {
+    :root {
+        --card-height: 150px;
+        --card-width: 105px;
+    }
 }
 
 @media only screen and (max-width: 767px) {
@@ -411,7 +418,7 @@ th, td {
     position: absolute;
     width: var(--card-width);
     height: var(--card-height);
-    border-radius: 13px; /* weird corner glow */
+    border-radius: 11px; /* weird corner glow */
     box-shadow: 0 4px 8px rgba(0,0,0,0.25);
     transform-origin: center var(--radius);
     transition: transform 0.4s ease;
