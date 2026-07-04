@@ -53,8 +53,8 @@ namespace BelotWebApp.Middleware
             context.Response.Cookies.Append("UserData1", encryptedGuestUsername, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
+                Secure = true, // prevents the browser from sending this cookie over http. Https only.
+                SameSite = SameSiteMode.Lax,
                 Expires = DateTimeOffset.UtcNow.AddHours(_cookieLifetime)
             });
 
