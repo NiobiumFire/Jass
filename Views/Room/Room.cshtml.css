@@ -124,7 +124,7 @@
 
     .deck-shimmer::before {
         content: "";
-        width:90%;
+        width: 90%;
         height: 120%;
         top: 50%;
         left: 50%;
@@ -204,6 +204,32 @@
     padding: 5px 0;
 }
 
+/* round summary modal */
+
+#summary-modal table {
+    table-layout: fixed;
+}
+
+#summary-modal thead th, #summary-modal tbody td {
+    text-align: center;
+}
+
+#summary-modal .modal-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+    #summary-modal .modal-footer div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+#summary-modal small {
+    margin: 0;
+}
+
 /* accordian */
 
 .accordion {
@@ -250,9 +276,9 @@
     margin-top: 2px;
 }
 
-.chat-input-container input {
-    padding: 10px;
-}
+    .chat-input-container input {
+        padding: 10px;
+    }
 
 .text-area-log {
     min-width: 100%;

@@ -5,9 +5,13 @@ var room = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect([0, 200, 400])
     .build();
 
+let isUnloading = false; // the user is not deliberately leaving the room
+
 var declarations;
 
-let isUnloading = false; // the user is not deliberately leaving the room
+let currentRoundToken = null; // round summary modal closing
+let roundSummaryAutoCloseTimer = null;
+let roundSummaryCountdownInterval = null;
 
 window.addEventListener("beforeunload", () => {
     isUnloading = true;
@@ -217,9 +221,8 @@ room.on("hideEmote", function (turn) {
 
 // -------------------- Round Summary --------------------
 
-
-room.on("showRoundSummary", function (trickPoints, declarationPoints, belotPoints, result, ew, ns) {
-
+room.on("showRoundSummary", function (trickPoints, declarationPoints, belotPoints, result, ew, ns, roundToken, roundSummaryDelay, requiredContinueVotes, voteToContinueDisabled) {
+    currentRoundToken = roundToken;
     document.getElementById("summary-belot-EW").innerHTML = belotPoints[0];
     document.getElementById("summary-belot-NS").innerHTML = belotPoints[1];
     document.getElementById("summary-dec-EW").innerHTML = declarationPoints[0];
@@ -232,12 +235,49 @@ room.on("showRoundSummary", function (trickPoints, declarationPoints, belotPoint
     document.getElementById("summary-game-NS").innerHTML = result[1];
     document.getElementById("summary-total-EW").innerHTML = ew;
     document.getElementById("summary-total-NS").innerHTML = ns;
+
+    roundSummaryContinueVotesUpdate(0, requiredContinueVotes);
+
+    document.getElementById("summary-continue-button").disabled = voteToContinueDisabled;
+
     $('#summary-modal').modal('show');
+
+    let remainingMs = roundSummaryDelay;
+    roundSummaryTimerUpdate(remainingMs);
+
+    roundSummaryCountdownInterval = setInterval(() => {
+        remainingMs -= 1000;
+        roundSummaryTimerUpdate(remainingMs);
+        if (remainingMs <= 0) {
+            clearInterval(roundSummaryCountdownInterval);
+        }
+    }, 1000);
+
+    roundSummaryAutoCloseTimer = setTimeout(() => $('#summary-modal').modal('hide'), roundSummaryDelay);
 });
 
+function roundSummaryTimerUpdate(remainingMs) {
+    document.getElementById("summary-countdown").innerHTML = `${Math.max(0, Math.ceil(remainingMs / 1000))} s`;
+}
+
+room.on("roundSummaryContinueVotesUpdate", function (current, required) {
+    roundSummaryContinueVotesUpdate(current, required);
+});
+
+function roundSummaryContinueVotesUpdate(current, required) {
+    document.getElementById("summary-continue-votes").innerHTML = `${current}/${required}`;
+}
+
 room.on("hideRoundSummary", function () {
+    clearTimeout(roundSummaryAutoCloseTimer);
+    clearInterval(roundSummaryCountdownInterval);
     $('#summary-modal').modal('hide');
 });
+
+function roundSummaryVoteToContinue() {
+    document.getElementById("summary-continue-button").disabled = true;
+    room.invoke("RoundSummaryVoteToContinue", currentRoundToken).catch(err => console.error(err));
+}
 
 // -------------------- Reset --------------------
 

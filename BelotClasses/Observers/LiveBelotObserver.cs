@@ -11,6 +11,7 @@ namespace BelotWebApp.BelotClasses.Observers
         private IHubCallerClients _clients;
         private IClientProxy _group;
         private readonly object _lock = new();
+        public RoundSummaryGate RoundSummaryGate = new();
 
         public LiveBelotObserver(BelotGame game, IHubCallerClients clients)
         {
@@ -200,9 +201,38 @@ namespace BelotWebApp.BelotClasses.Observers
             await SysAnnounce(message).ConfigureAwait(false);
             await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal).ConfigureAwait(false);
             await _group.SendAsync("UpdateScoreHistoryTable").ConfigureAwait(false);
-            await _group.SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints).ConfigureAwait(false);
-            await Task.Delay(_game.RoundSummaryDelay).ConfigureAwait(false);
-            await _group.SendAsync("HideRoundSummary").ConfigureAwait(false);
+
+            var requiredContinueVotes = _game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected);
+            if (requiredContinueVotes + _game.Spectators.Count() > 0)
+            {
+                var token = RoundSummaryGate.BeginRoundSummary(requiredContinueVotes);
+
+                void ContinueVotesUpdated(int current, int expected)
+                {
+                    _ = _group.SendAsync("RoundSummaryContinueVotesUpdate", current, expected);
+                }
+
+                RoundSummaryGate.ContinueVotesUpdated += ContinueVotesUpdated;
+                try
+                {
+                    foreach (var player in _game.Players.Where(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected)) // can vote to continue
+                    {
+                        await _clients.Client(player.ConnectionId).SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints, token, RoundSummaryGate.RoundSummaryDelay, requiredContinueVotes, false).ConfigureAwait(false);
+                    }
+                    foreach (var spectator in _game.Spectators) // cannot vote to continue
+                    {
+                        await _clients.Client(spectator.ConnectionId).SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints, token, RoundSummaryGate.RoundSummaryDelay, requiredContinueVotes, true).ConfigureAwait(false);
+                    }
+
+                    await RoundSummaryGate.WaitAsync();
+                }
+                finally
+                {
+                    RoundSummaryGate.ContinueVotesUpdated -= ContinueVotesUpdated;
+                }
+
+                await _group.SendAsync("HideRoundSummary").ConfigureAwait(false);
+            }
         }
 
         // --------------------------------------

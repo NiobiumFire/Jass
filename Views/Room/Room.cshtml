@@ -204,7 +204,7 @@
 </div>
 
 <!-- Round Summary Modal -->
-<div class="modal" id="summary-modal" tabindex="-1">
+<div class="modal" id="summary-modal" data-bs-backdrop="static" tabindex="-1">
     <div class="modal-dialog modal-sm modal-dialog-centered" id="summary-modal-dialog">
         <div class="modal-content parchment2">
             <div class="modal-header py-1">
@@ -256,7 +256,17 @@
                 </div>
             </div>
             <div class="modal-footer py-1">
-                <button type="button" class="btn2" data-bs-dismiss="modal">Continue</button>
+                <div>
+                    <small>auto continue</small>
+                    <small id="summary-countdown">10 s</small>
+                </div>
+                <div>
+                    <button type="button" class="btn2" onclick="roundSummaryVoteToContinue()" id="summary-continue-button">Continue</button>
+                </div>
+                <div>
+                    <small>continue votes</small>
+                    <small id="summary-continue-votes">0/4</small>
+                </div>
             </div>
         </div>
     </div>

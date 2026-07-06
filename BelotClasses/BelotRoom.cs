@@ -444,7 +444,7 @@ namespace BelotWebApp.BelotClasses
             var gameContext = GetGameContext();
             if (gameContext?.Game == null || gameContext.Observer == null)
             {
-                log?.Warning("[HubBookSeat] GameContext/Game/Observer was null");
+                log?.Warning("[HubAnnounce] GameContext/Game/Observer was null");
                 log?.Information("[HubAnnounce] exit");
                 return;
             }
@@ -454,6 +454,33 @@ namespace BelotWebApp.BelotClasses
             await group.SendAsync("showChatNotification");
 
             log?.Information("[HubAnnounce] exit");
+        }
+
+        #endregion
+
+        #region RoundSummary
+
+        public Task RoundSummaryVoteToContinue(Guid roundToken)
+        {
+            log?.Information("[RoundSummaryVoteToContinue] enter");
+
+            var gameContext = GetGameContext();
+            if (gameContext?.Game == null || gameContext.Observer == null)
+            {
+                log?.Warning("[RoundSummaryVoteToContinue] GameContext/Game/Observer was null");
+                return Task.CompletedTask;
+            }
+
+            var username = GetCallerUsername();
+
+            if (gameContext.Game.Players.Any(p => p.Username == username) && gameContext.Observer is LiveBelotObserver live)
+            {
+                live.RoundSummaryGate.RegisterContinueVote(GetCallerUsername(), roundToken);
+            }
+
+            log?.Information("[RoundSummaryVoteToContinue] exit");
+
+            return Task.CompletedTask;
         }
 
         #endregion
@@ -728,6 +755,7 @@ namespace BelotWebApp.BelotClasses
                     if (gameContext.Observer is LiveBelotObserver live)
                     {
                         await live.SysAnnounce(username + " disconnected.");
+                        live.RoundSummaryGate.RegisterDisconnect(username);
                     }
                     log?.Information($"[OnDisconnected] {username} disconnected after delay.");
                     playerReallyDisconnected = true;
@@ -741,17 +769,19 @@ namespace BelotWebApp.BelotClasses
 
             if (playerReallyDisconnected && game.Spectators.Count + game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected) == 0)
             {
-
-                int oldwinnerDelay = game.WinnerDelay;
-                int oldBotDelay = game.BotDelay;
-                int oldRoundSummaryDelay = game.RoundSummaryDelay;
-                game.WinnerDelay = 0;
-                game.BotDelay = 0;
-                game.RoundSummaryDelay = 0;
-                await Task.Delay(1500);
-                game.WinnerDelay = oldwinnerDelay;
-                game.BotDelay = oldBotDelay;
-                game.RoundSummaryDelay = oldRoundSummaryDelay;
+                if (gameContext.Observer is LiveBelotObserver live)
+                {
+                    int oldwinnerDelay = game.WinnerDelay;
+                    int oldBotDelay = game.BotDelay;
+                    int oldRoundSummaryDelay = live.RoundSummaryGate.RoundSummaryDelay;
+                    game.WinnerDelay = 0;
+                    game.BotDelay = 0;
+                    live.RoundSummaryGate.RoundSummaryDelay = 0;
+                    await Task.Delay(1500);
+                    game.WinnerDelay = oldwinnerDelay;
+                    game.BotDelay = oldBotDelay;
+                    live.RoundSummaryGate.RoundSummaryDelay = oldRoundSummaryDelay;
+                }
 
                 if (game.Spectators.Count + game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected) == 0)
                 {
@@ -779,6 +809,3 @@ namespace BelotWebApp.BelotClasses
         #endregion
     }
 }
-
-// when human to deal, nominate suit modal is shown before dealing
-// agent still console logging for the play decisions they make
