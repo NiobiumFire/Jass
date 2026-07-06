@@ -276,6 +276,7 @@ main {
         box-shadow: rgba(0, 0, 0, 0.8) 0 0.5px 1px inset, rgba(255, 255, 255, 0.1) 0 -0.5px 1px inset, black 0 0 0 0.5px inset;
     }
 
+@media (hover: hover) and (pointer: fine) {
     .btn2:hover {
         transition: none;
         background: linear-gradient(var(--col-4), var(--medium-grey));
@@ -284,23 +285,25 @@ main {
         color: white;
         z-index: 1;
     }
+}
 
-    .btn2:disabled {
+
+.btn2:disabled {
+    background: linear-gradient(var(--medium-grey), var(--dark-grey));
+    color: rgba(255, 255, 255, 0.5);
+    border: 0.5px solid black;
+    box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+    .btn2:disabled:hover,
+    .btn2:disabled:active,
+    .btn2[disabled]:hover {
         background: linear-gradient(var(--medium-grey), var(--dark-grey));
-        color: rgba(255, 255, 255, 0.5);
-        border: 0.5px solid black;
         box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset;
-        cursor: not-allowed;
-        pointer-events: none;
-        opacity: 0.7;
     }
-
-        .btn2:disabled:hover,
-        .btn2:disabled:active,
-        .btn2[disabled]:hover {
-            background: linear-gradient(var(--medium-grey), var(--dark-grey));
-            box-shadow: rgba(0, 0, 0, 1) 0 1px 3px, rgba(0, 0, 0, 1) 0 1px .5px, rgba(182, 229, 255, 0.4) 0 1px .5px inset, rgba(23, 45, 202, .46) 0 -1px .5px inset, black 0 0 0 .5px inset;
-        }
 
 .form-btn {
     color: var(--cream-text);
@@ -313,9 +316,11 @@ main {
     cursor: pointer;
 }
 
-    .form-btn:hover, .form-btn:focus {
+@media (hover: hover) and (pointer: fine) {
+    .form-btn:hover {
         text-shadow: 0 0 10px white, 0 0 20px var(--col-4), 0 0 30px var(--col-4), 0 0 40px var(--col-4), 0 0 50px var(--col-4);
     }
+}
 
 .btn-prompt {
     position: relative;
