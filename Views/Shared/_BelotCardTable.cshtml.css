@@ -47,11 +47,6 @@
         line-height: normal;
     }
 
-.turn-indicator-rotator {
-    display: flex;
-    transform-origin: center center;
-}
-
 .player-marker {
     display: flex;
     position: absolute;
@@ -351,8 +346,9 @@
 
 .fingerprint {
     position: absolute;
-    top: 30%;
+    top: 40%;
     font-size: 3em;
+    line-height: 1;
     background: linear-gradient(60deg, white 40%, transparent 50%, white 60%);
     background-size: 300% 100%;
     background-clip: text;
@@ -525,6 +521,7 @@
     padding: 5px;
     position: absolute;
     top: 110%;
+    pointer-events: none;
 }
 
 .anti-rotate-tooltip-wrapper {
@@ -534,9 +531,9 @@
     pointer-events: none;
 }
 
-.anti-rotate-tooltip-wrapper .tooltiptext {
-    transform: translate(-50%, 0);
-}
+    .anti-rotate-tooltip-wrapper .tooltiptext {
+        transform: translate(-50%, 0);
+    }
 
 .call-summary .tooltiptext {
     right: 0;

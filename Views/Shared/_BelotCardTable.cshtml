@@ -67,7 +67,7 @@
                 <!-- Fingerprint -->
                 @if (!isReplayRoom)
                 {
-                    <i class="fingerprint fingerprint0 seat-transition bi bi-fingerprint" onclick="openDialogue(this, 0)" id="fingerprint0"></i>
+                    <i class="fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 0)" id="fingerprint0"></i>
                 }
             </div>
         </div>
@@ -97,7 +97,7 @@
                 <!-- Fingerprint -->
                 @if (!isReplayRoom)
                 {
-                    <i class="fingerprint1 fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 1)" id="fingerprint1"></i>
+                    <i class="fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 1)" id="fingerprint1"></i>
                 }
             </div>
             <!-- South -->
@@ -124,15 +124,13 @@
                 <!-- Fingerprint -->
                 @if (!isReplayRoom)
                 {
-                    <i class="fingerprint3 fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 3)" id="fingerprint3"></i>
+                    <i class="fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 3)" id="fingerprint3"></i>
                 }
             </div>
         </div>
         <!-- Turn Indicator -->
-        <div class="badge rounded-circle turn-indicator">
-            <div class="seat-transition turn-indicator-rotator">
-                <i class="bi bi-arrows-move seat-transition" id="turnIndicator"></i>
-            </div>
+        <div class="badge rounded-circle turn-indicator" onclick=""> @* the empty onlick is used to instruct mobile browsers that this element can retain focus/hover for showing the tooltip *@
+            <i class="bi bi-arrows-move seat-transition" id="turn-indicator-arrow"></i>
             <div class="anti-rotate-tooltip-wrapper seat-transition">
                 <span class="tooltiptext" id="turn-tooltip">
                     Waiting for next game
@@ -165,7 +163,7 @@
                 <!-- Fingerprint -->
                 @if (!isReplayRoom)
                 {
-                    <i class="fingerprint2 fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 2)" id="fingerprint2"></i>
+                    <i class="fingerprint seat-transition bi bi-fingerprint" onclick="openDialogue(this, 2)" id="fingerprint2"></i>
                 }
             </div>
         </div>
@@ -191,7 +189,7 @@
             <i class="bi bi-arrows-move seat-transition call-icon caller-indicator" id="wnescallindicator"></i>
             <i class="bi bi-ban call-icon" id="selectedsuit"></i>
             <i class="allNoTrumps cream-text" id="selectedmultiplier"></i>
-            <span class="tooltiptext" id="callTooltip">
+            <span class="tooltiptext" id="call-tooltip">
                 No call has been made
             </span>
         </div>

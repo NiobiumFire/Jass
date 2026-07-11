@@ -23,7 +23,7 @@ function setEmoteSuitContent(elEmote, iCall) {
 
 function setTurn(turn, turnActionType) {
     const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-arrows-move"];
-    document.getElementById("turnIndicator").classList = turnIndicator[turn];
+    document.getElementById("turn-indicator-arrow").classList = turnIndicator[turn];
     if (turn < 4) {
         document.getElementById("turn-tooltip").innerHTML = `${document.getElementById("usernamelabel" + turn).innerHTML} to ${turnActionType}`;
     }
@@ -111,7 +111,7 @@ function setCallTooltip() {
         return;
     }
     else if (wnesPos === 4) {
-        document.getElementById("callTooltip").innerHTML = "No call has been made";
+        document.getElementById("call-tooltip").innerHTML = "No call has been made";
         return;
     }
 
@@ -135,13 +135,13 @@ function setCallTooltip() {
     }
 
     if (document.getElementById("selectedmultiplier").innerHTML == "×2") {
-        document.getElementById("callTooltip").innerHTML = caller + " doubled in " + suit;
+        document.getElementById("call-tooltip").innerHTML = caller + " doubled in " + suit;
     }
     else if (document.getElementById("selectedmultiplier").innerHTML == "×4") {
-        document.getElementById("callTooltip").innerHTML = caller + " redoubled in " + suit;
+        document.getElementById("call-tooltip").innerHTML = caller + " redoubled in " + suit;
     }
     else {
-        document.getElementById("callTooltip").innerHTML = caller + " called " + suit;
+        document.getElementById("call-tooltip").innerHTML = caller + " called " + suit;
     }
 }
 
