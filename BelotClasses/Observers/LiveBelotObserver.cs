@@ -1,6 +1,7 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.BelotClasses.Turn;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BelotWebApp.BelotClasses.Observers
@@ -36,9 +37,9 @@ namespace BelotWebApp.BelotClasses.Observers
             }
         }
 
-        public async Task OnTurnChanged()
+        public async Task OnTurnChanged(TurnActionType turnActionType)
         {
-            await _group.SendAsync("SetTurnIndicator", _game.Turn).ConfigureAwait(false);
+            await _group.SendAsync("SetTurnIndicator", _game.Turn, turnActionType.ToString().ToLower()).ConfigureAwait(false);
         }
 
         public async Task OnNewGame()
@@ -48,11 +49,12 @@ namespace BelotWebApp.BelotClasses.Observers
             await _group.SendAsync("CloseModalsAndButtons").ConfigureAwait(false);
             await _group.SendAsync("DisableRadios").ConfigureAwait(false);
             await _group.SendAsync("NewGame", _game.GameId).ConfigureAwait(false); // reset score table (offcanvas), reset score totals (card table), hide winner markers, set game id
+            await SysAnnounce("--- New game started ---");
         }
 
         public async Task OnNewRound()
         {
-            await _group.SendAsync("SetTurnIndicator", _game.Turn).ConfigureAwait(false); // show dealer
+            await _group.SendAsync("SetTurnIndicator", _game.Turn, TurnActionType.Deal.ToString().ToLower()).ConfigureAwait(false); // show dealer
             await _group.SendAsync("SetDealerMarker", _game.Turn).ConfigureAwait(false);
             await _group.SendAsync("NewRound").ConfigureAwait(false); // reset table, reset board, disable cards, reset suit selection 
 
@@ -105,8 +107,9 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnCallDecided()
         {
+            await SysAnnounce($"--- Round {_game.ScoreHistory.Count + 1} started ---");
             await SysAnnounce("The round will be played in " + BelotHelpers.GetSuitNameFromNumber(_game.RoundCall) + ".").ConfigureAwait(false);
-            await OnTurnChanged().ConfigureAwait(false);
+            await OnTurnChanged(TurnActionType.Deal).ConfigureAwait(false);
         }
 
         public async Task OnPendingCardPlay(int[] validCards)
@@ -179,7 +182,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
             await _group.SendAsync("SetDealerMarker", 4).ConfigureAwait(false);
             await _group.SendAsync("NewRound").ConfigureAwait(false);
-            await _group.SendAsync("SetTurnIndicator", 4).ConfigureAwait(false);
+            await _group.SendAsync("SetTurnIndicator", 4, null).ConfigureAwait(false);
             // animation and modal to indicate winning team?
             if (_game.EWTotal > _game.NSTotal)
             {

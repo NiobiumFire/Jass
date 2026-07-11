@@ -171,7 +171,7 @@ function setState(diff, after) {
     setRoundSuit(state.roundCall);
     setCaller(state.caller);
     setCallTooltip();
-    setTurn(state.turn);
+    setTurn(state.turn, "act");
 
     for (let i = 0; i < 4; i++) {
         setEmote(state.emotes[i], i);

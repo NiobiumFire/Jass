@@ -21,14 +21,14 @@ function setEmoteSuitContent(elEmote, iCall) {
     icon.innerHTML = text[iCall];
 }
 
-function setTurn(turn) {
+function setTurn(turn, turnActionType) {
     const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-arrows-move"];
     document.getElementById("turnIndicator").classList = turnIndicator[turn];
     if (turn < 4) {
-        document.getElementById("turn-tooltip").innerHTML = document.getElementById("usernamelabel" + turn).innerHTML + " to play";
+        document.getElementById("turn-tooltip").innerHTML = `${document.getElementById("usernamelabel" + turn).innerHTML} to ${turnActionType}`;
     }
     else {
-        document.getElementById("turn-tooltip").innerHTML = "Game not started";
+        document.getElementById("turn-tooltip").innerHTML = "Waiting for next game";
         return;
     }
 }

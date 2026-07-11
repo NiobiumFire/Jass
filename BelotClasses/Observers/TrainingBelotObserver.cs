@@ -1,6 +1,7 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Training;
+using BelotWebApp.BelotClasses.Turn;
 
 namespace BelotWebApp.BelotClasses.Observers
 {
@@ -15,7 +16,7 @@ namespace BelotWebApp.BelotClasses.Observers
             _result = new();
         }
 
-        public Task OnTurnChanged() => Task.CompletedTask;
+        public Task OnTurnChanged(TurnActionType turnState) => Task.CompletedTask;
         public Task OnNewGame() => Task.CompletedTask;
         public Task OnNewRound() => Task.CompletedTask;
         public Task OnDeal() => Task.CompletedTask;

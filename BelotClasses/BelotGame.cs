@@ -2,6 +2,7 @@
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Players;
 using BelotWebApp.BelotClasses.Replays;
+using BelotWebApp.BelotClasses.Turn;
 using BelotWebApp.Configuration;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
@@ -942,6 +943,27 @@ namespace BelotWebApp.BelotClasses
             {
                 return GetBotName(pos);
             }
+        }
+
+        public TurnActionType? GetCurrentTurnActionType()
+        {
+            if (IsNewGame)
+            {
+                return null;
+            }
+
+            // since cards are never removed from Hand[i] (unless it is a new/empty object), hand size of 5 and suit decided means we are awaiting dealing the remianing 3
+            if (Deck.Count == 0 || (Hand.All(h => h != null && h.Count == 5) && SuitDecided()))
+            {
+                return TurnActionType.Deal;
+            }
+
+            if (!SuitDecided())
+            {
+                return TurnActionType.Call;
+            }
+
+            return TurnActionType.Play;
         }
 
         #region Replay

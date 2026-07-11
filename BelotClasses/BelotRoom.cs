@@ -18,8 +18,6 @@ namespace BelotWebApp.BelotClasses
 
         public static Serilog.Core.Logger log;// = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 
-        #region Game Loop Continuation
-
         public BelotRoom(IAppPaths appPaths, BelotGameRegistry gameRegistry)
         {
             _gameRegistry = gameRegistry;
@@ -27,18 +25,37 @@ namespace BelotWebApp.BelotClasses
             log ??= new LoggerConfiguration().WriteTo.File(Path.Combine(appPaths.LogFolder, "BelotServerLog-.txt"), rollingInterval: RollingInterval.Day).CreateLogger();
         }
 
+        #region Game Loop Continuation
+
         public Task HubGameController() // called by client
         {
             log?.Information("[HubGameController] enter");
 
             var gameContext = GetGameContext();
-            if (gameContext?.Game == null || gameContext.Observer == null)
+            var game = gameContext?.Game;
+
+            if (game == null || gameContext?.Observer == null)
             {
                 log?.Warning("[HubGameController] GameContext/Game/Observer was null");
+                log?.Information("[HubGameController] exit");
                 return Task.CompletedTask;
             }
 
-            BelotGameEngine engine = new(gameContext.Game, gameContext.Observer);
+            if (!game.Players.All(p => p.Username != ""))
+            {
+                log?.Warning("[HubGameController] Game does not have 4 players");
+                log?.Information("[HubGameController] exit");
+                return Task.CompletedTask;
+            }
+
+            if (game.Players.Any(p => p.PlayerType == PlayerType.Human) && game.Spectators.Any(s => s.Username == GetCallerUsername()))
+            {
+                log?.Warning("[HubGameController] Game start not called by valid player");
+                log?.Information("[HubGameController] exit");
+                return Task.CompletedTask;
+            }
+
+            BelotGameEngine engine = new(game, gameContext.Observer);
 
             _ = Task.Run(async () =>
             {
@@ -376,10 +393,7 @@ namespace BelotWebApp.BelotClasses
                 // if human tries to occupy his own seat, do nothing
                 // human-occupied seat is requested by another human or by a bot on behalf of another human
 
-                if (game.Players.Where(s => s.Username != "").Count() == 4)
-                {
-                    await group.SendAsync("EnableNewGame");
-                }
+                await EnableGameStart(game, clients, group);
             }
             else // vacate and become spectator
             {
@@ -584,7 +598,7 @@ namespace BelotWebApp.BelotClasses
                 if (dealer == 4) dealer = 0;
 
                 await clients.Caller.SendAsync("SetDealerMarker", dealer);
-                await clients.Caller.SendAsync("SetTurnIndicator", game.Turn);
+                await clients.Caller.SendAsync("SetTurnIndicator", game.Turn, game.GetCurrentTurnActionType()?.ToString().ToLower());
                 await clients.Caller.SendAsync("DisableRadios");
 
                 await clients.Caller.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal);
@@ -646,9 +660,33 @@ namespace BelotWebApp.BelotClasses
                     }
                 }
             }
-            else if (game.Players.Where(s => s.Username != "").Count() == 4)
+            else
             {
-                await clients.Caller.SendAsync("EnableNewGame");
+                await EnableGameStart(game, clients, Clients.Group(game.RoomId));
+            }
+        }
+
+        private static async Task EnableGameStart(BelotGame game, IHubCallerClients clients, IClientProxy group)
+        {
+            if (!game.Players.All(p => p.Username != ""))
+            {
+                return;
+            }
+
+            if (game.Players.All(p => p.PlayerType != PlayerType.Human))
+            {
+                await group.SendAsync("EnableNewGame");
+            }
+            else
+            {
+                foreach (var spectator in game.Spectators)
+                {
+                    await clients.Client(spectator.ConnectionId).SendAsync("DisableNewGame");
+                }
+                foreach (var player in game.Players.Where(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected))
+                {
+                    await clients.Client(player.ConnectionId).SendAsync("EnableNewGame");
+                }
             }
         }
 

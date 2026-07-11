@@ -196,8 +196,8 @@ function setTableCard(tableCardPosition, tableCard) {
 
 // -------------------- Turn Indicator --------------------
 
-room.on("setTurnIndicator", function (turn) {
-    setTurn(turn);
+room.on("setTurnIndicator", function (turn, turnActionType) {
+    setTurn(turn, turnActionType);
 });
 
 // -------------------- Emote --------------------

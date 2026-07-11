@@ -3,6 +3,7 @@ using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.BelotClasses.Turn;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -71,7 +72,7 @@ namespace BelotWebApp.BelotClasses
             {
                 while (_game.IsRunning && !_game.SuitDecided() && !_game.WaitCall)
                 {
-                    await _observer.OnTurnChanged().ConfigureAwait(false);
+                    await _observer.OnTurnChanged(TurnActionType.Call).ConfigureAwait(false);
 
                     await CallController().ConfigureAwait(false);
                 }
@@ -109,7 +110,7 @@ namespace BelotWebApp.BelotClasses
 
                 while (_game.IsRunning && _game.NumCardsPlayed < 32 && !_game.WaitCard)
                 {
-                    await _observer.OnTurnChanged().ConfigureAwait(false);
+                    await _observer.OnTurnChanged(TurnActionType.Play).ConfigureAwait(false);
 
                     await TrickController().ConfigureAwait(false);
                 }
@@ -255,7 +256,7 @@ namespace BelotWebApp.BelotClasses
             }
             if (_game.NumCardsPlayed < 32)
             {
-                await _observer.OnTurnChanged().ConfigureAwait(false);
+                await _observer.OnTurnChanged(TurnActionType.Play).ConfigureAwait(false);
             }
         }
     }

@@ -1,10 +1,11 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
+using BelotWebApp.BelotClasses.Turn;
 
 namespace BelotWebApp.BelotClasses.Observers
 {
     public interface IBelotObserver
     {
-        Task OnTurnChanged();
+        Task OnTurnChanged(TurnActionType turnState);
         Task OnNewGame();
         Task OnNewRound();
         Task OnDeal();
