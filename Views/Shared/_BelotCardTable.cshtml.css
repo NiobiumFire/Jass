@@ -5,16 +5,14 @@
     padding: 0px 0;
     background-color: rgba(0, 0, 0, 0.3);
     border: 1px solid black;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     z-index: 1;
-    --seat-rotation: 0; /* controls which direction the caller and turn indicators point */
 }
 
 /* Main Board */
 
 ::deep .seat-transition {
-    transition: transform 1s ease-in-out !important;
+    transition: transform calc(var(--phase-length) * 1ms) ease-in-out;
 }
 
 .main-board {
@@ -25,6 +23,7 @@
     margin: 0px 0;
     height: 100%;
     margin: auto 0;
+    transform: rotate(calc(1deg * var(--board-rotate)));
 }
 
 .turn-indicator {
@@ -36,6 +35,7 @@
     z-index: 4;
     background: var(--cream-text);
     border: 1px solid var(--col-2);
+    cursor: pointer;
 }
 
     .turn-indicator i {
@@ -50,7 +50,6 @@
 .turn-indicator-rotator {
     display: flex;
     transform-origin: center center;
-    transform: rotate(calc(var(--seat-rotation)*1deg));
 }
 
 .player-marker {
@@ -95,74 +94,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-/* Actual West */
-#tableCardSlot0.inWest {
-    transform: translate(0px, 0px);
-}
-
-#tableCardSlot0.inNorth {
-    transform: translate(100%, -50%);
-}
-
-#tableCardSlot0.inEast {
-    transform: translate(200%, 0px);
-}
-
-#tableCardSlot0.inSouth {
-    transform: translate(100%, 50%);
-}
-
-/* Actual North */
-#tableCardSlot1.inWest {
-    transform: translate(-100%, 50%);
-}
-
-#tableCardSlot1.inNorth {
-    transform: translate(0px, 0px);
-}
-
-#tableCardSlot1.inEast {
-    transform: translate(100%, 50%);
-}
-
-#tableCardSlot1.inSouth {
-    transform: translate(0px, 100%);
-}
-
-/* Actual East */
-#tableCardSlot2.inWest {
-    transform: translate(-200%, 0px);
-}
-
-#tableCardSlot2.inNorth {
-    transform: translate(-100%, -50%);
-}
-
-#tableCardSlot2.inEast {
-    transform: translate(0px, 0px);
-}
-
-#tableCardSlot2.inSouth {
-    transform: translate(-100%, 50%);
-}
-
-/* Actual South */
-#tableCardSlot3.inWest {
-    transform: translate(-100%, -50%);
-}
-
-#tableCardSlot3.inNorth {
-    transform: translate(0px, -100%);
-}
-
-#tableCardSlot3.inEast {
-    transform: translate(100%, -50%);
-}
-
-#tableCardSlot3.inSouth {
-    transform: translate(0px, 0px);
+    --slot-tx: 0px;
+    --slot-ty: 0px;
+    transform: rotate(calc(-1deg * var(--board-rotate))) translate(var(--slot-tx, 0px), var(--slot-ty, 0px));
 }
 
 /* Player marker - container including name plate and bot icon */
@@ -562,7 +496,7 @@
 }
 
 .caller-indicator {
-    transform: rotate(calc(var(--seat-rotation) * 1deg));
+    transform: rotate(calc(1deg * var(--board-rotate)));
 }
 
 .call-icon {
@@ -593,6 +527,17 @@
     top: 110%;
 }
 
+.anti-rotate-tooltip-wrapper {
+    position: absolute;
+    inset: 0;
+    transform: rotate(calc(-1deg * var(--board-rotate)));
+    pointer-events: none;
+}
+
+.anti-rotate-tooltip-wrapper .tooltiptext {
+    transform: translate(-50%, 0);
+}
+
 .call-summary .tooltiptext {
     right: 0;
 }
@@ -602,11 +547,8 @@
 }
 
 #selectedmultiplier {
-    /*display: inline-block;
-    line-height: 1;*/
     color: var(--cream-text);
     font-size: 15px !important;
-    /*vertical-align: middle;*/
 }
 
 /* Throw Button */

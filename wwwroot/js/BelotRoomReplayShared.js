@@ -25,10 +25,10 @@ function setTurn(turn) {
     const turnIndicator = ["bi bi-arrow-left-circle-fill", "bi bi-arrow-up-circle-fill", "bi bi-arrow-right-circle-fill", "bi bi-arrow-down-circle-fill", "bi bi-arrows-move"];
     document.getElementById("turnIndicator").classList = turnIndicator[turn];
     if (turn < 4) {
-        document.getElementById("turnTooltip").innerHTML = document.getElementById("usernamelabel" + turn).innerHTML + " to play";
+        document.getElementById("turn-tooltip").innerHTML = document.getElementById("usernamelabel" + turn).innerHTML + " to play";
     }
     else {
-        document.getElementById("turnTooltip").innerHTML = "Game not started";
+        document.getElementById("turn-tooltip").innerHTML = "Game not started";
         return;
     }
 }
@@ -102,25 +102,22 @@ function setCallerIndicator(turn) {
 
 function setCallTooltip() {
     const callers = ["bi-arrow-left", "bi-arrow-up", "bi-arrow-right", "bi-arrow-down", "bi-arrows-move"];
-    const calls = ["bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill"];
-    const tooltip = ["Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps"];
 
-    let wnesClass = String(document.getElementById("wnescallindicator").classList).toLowerCase();
-    let wnesPos = 4;
-    for (let i = 0; i < 4; i++) {
-        if (wnesClass.includes(callers[i])) {
-            wnesPos = i;
-            break;
-        }
+    const classList = document.getElementById("wnescallindicator").classList;
+    const wnesPos = callers.findIndex(c => classList.contains(c));
+
+    if (wnesPos === -1) {
+        console.error("[setCallTooltip] unrecognised caller class");
+        return;
     }
-    let caller;
-    if (wnesPos < 4) {
-        caller = document.getElementById("usernamelabel" + wnesPos).innerHTML;
-    }
-    else {
+    else if (wnesPos === 4) {
         document.getElementById("callTooltip").innerHTML = "No call has been made";
         return;
     }
+
+    const calls = ["bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill"];
+    const tooltip = ["Clubs", "Diamonds", "Hearts", "Spades", "No Trumps", "All Trumps"];
+    const caller = document.getElementById(`usernamelabel${wnesPos}`).innerHTML;
 
     const selectedSuit = document.getElementById("selectedsuit");
 

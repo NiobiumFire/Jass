@@ -9,6 +9,8 @@
     grid-template-rows: 10% 65% 25%;
     height: 95%;
     width: 85%;
+    --board-rotate: 0;
+    --phase-length: 1500;
 }
 
 @media(max-width:500px) {

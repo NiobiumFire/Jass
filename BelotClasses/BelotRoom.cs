@@ -337,7 +337,7 @@ namespace BelotWebApp.BelotClasses
 
                 if ((isEmpty || isBot) && position < 4) // empty seat or bot-occupied requested by human
                 {
-                    await UnbookSeat(game, clients);
+                    await UnbookSeat(game, clients, false);
                     var spectator = game.Spectators.FirstOrDefault(s => s.Username == requestor);
                     if (spectator != null)
                     {
@@ -347,7 +347,6 @@ namespace BelotWebApp.BelotClasses
                     await UpdateConnectedUsers(game, clients);
                     await clients.OthersInGroup(game.RoomId).SendAsync("seatBooked", position, requestor, false);
                     await clients.Caller.SendAsync("seatBooked", position, requestor, true);
-                    await clients.Caller.SendAsync("enableRotation", true);
                     string[] scoreSummary = ["Us", "Them"];
                     await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(position + 1) % 2], scoreSummary[position % 2]);
 
@@ -367,7 +366,7 @@ namespace BelotWebApp.BelotClasses
                 {
                     position -= 4;
                     string botName = GetBotName(position);
-                    await UnbookSeat(game, clients);
+                    await UnbookSeat(game, clients, true);
                     game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
                     game.Players[position] = new Player(botGUID, "", PlayerType.Basic);
                     await UpdateConnectedUsers(game, clients);
@@ -375,10 +374,7 @@ namespace BelotWebApp.BelotClasses
                     await group.SendAsync("SetBotBadge", position, true);
                 }
                 // if human tries to occupy his own seat, do nothing
-                else if (!isEmpty && !isBot && !isSelf) // human-occupied seat is requested by another human or by a bot on behalf of another human
-                {
-                    await clients.Caller.SendAsync("SeatAlreadyBooked", occupier);
-                }
+                // human-occupied seat is requested by another human or by a bot on behalf of another human
 
                 if (game.Players.Where(s => s.Username != "").Count() == 4)
                 {
@@ -389,7 +385,7 @@ namespace BelotWebApp.BelotClasses
             {
                 if (!game.Spectators.Any(s => s.Username == requestor))
                 {
-                    await UnbookSeat(game, clients);
+                    await UnbookSeat(game, clients, true);
                     game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
                     await UpdateConnectedUsers(game, clients);
                 }
@@ -398,7 +394,7 @@ namespace BelotWebApp.BelotClasses
             log?.Information("[HubBookSeat] exit");
         }
 
-        private async Task UnbookSeat(BelotGame game, IHubCallerClients clients)
+        private async Task UnbookSeat(BelotGame game, IHubCallerClients clients, bool resetSeatOrientations)
         {
             log?.Information("[UnbookSeat] enter");
             var group = clients.Group(game.RoomId);
@@ -417,9 +413,9 @@ namespace BelotWebApp.BelotClasses
                 {
                     player.IsDisconnected = true;
                 }
-                await clients.Caller.SendAsync("EnableRotation", false);
                 await clients.Caller.SendAsync("SetScoreTitles", "N /S", "E/W");
-                await group.SendAsync("SeatUnbooked", position);
+                await clients.Caller.SendAsync("SeatUnbooked", position, resetSeatOrientations);
+                await clients.OthersInGroup(game.RoomId).SendAsync("SeatUnbooked", position, false);
             }
 
             await UpdateConnectedUsers(game, clients);
@@ -571,9 +567,13 @@ namespace BelotWebApp.BelotClasses
             }
 
             bool playerIsInGame = game.Players.Any(u => u.Username == GetCallerUsername());
+            int pos = -1;
+
             if (playerIsInGame)
             {
-                await clients.Caller.SendAsync("EnableRotation", true);
+                string[] scoreSummary = ["Us", "Them"];
+                pos = Array.IndexOf(game.Players, game.Players.FirstOrDefault(p => p.Username == GetCallerUsername()));
+                await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(pos + 1) % 2], scoreSummary[pos % 2]);
             }
 
             if (!game.IsNewGame)
@@ -608,11 +608,6 @@ namespace BelotWebApp.BelotClasses
                 // if the connecting user is a player
                 if (playerIsInGame)
                 {
-                    int pos = Array.IndexOf(game.Players, game.Players.FirstOrDefault(p => p.Username == GetCallerUsername()));
-
-                    string[] scoreSummary = ["Us", "Them"];
-                    await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(pos + 1) % 2], scoreSummary[pos % 2]);
-
                     await clients.Caller.SendAsync("Deal", game.Hand[pos]);
 
                     for (int i = 0; i < 8; i++)
@@ -751,7 +746,7 @@ namespace BelotWebApp.BelotClasses
                 var player = game.Players.FirstOrDefault(p => p.Username == username);
                 if (player != null && player.ConnectionId == Context.ConnectionId) // player has not reconnected, connectionId is stale
                 {
-                    await UnbookSeat(game, clients); // this will mark them as disconnected
+                    await UnbookSeat(game, clients, true); // this will mark them as disconnected
                     if (gameContext.Observer is LiveBelotObserver live)
                     {
                         await live.SysAnnounce(username + " disconnected.");

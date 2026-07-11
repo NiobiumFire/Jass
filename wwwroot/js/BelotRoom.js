@@ -1,10 +1,5 @@
 ﻿"use strict";
 
-var room = new signalR.HubConnectionBuilder()
-    .withUrl("/belotroom/" + document.getElementById("roomId").innerHTML)
-    .withAutomaticReconnect([0, 200, 400])
-    .build();
-
 let isUnloading = false; // the user is not deliberately leaving the room
 
 var declarations;
@@ -13,26 +8,29 @@ let currentRoundToken = null; // round summary modal closing
 let roundSummaryAutoCloseTimer = null;
 let roundSummaryCountdownInterval = null;
 
-window.addEventListener("beforeunload", () => {
+const dialog = document.querySelector('#seatActionsDialogue'); // fingerprints and seat selection
+let outsideClickListener;
+let dialogActivator;
+
+window.addEventListener("pagehide", () => {
     isUnloading = true;
 });
 
-room.start();
+// -------------------- Room Connection --------------------
+
+var room = new signalR.HubConnectionBuilder() // automatic reconnect does not work well with proceeding to .onclose on mobile, so leave it out entirely
+    .withUrl("/belotroom/" + document.getElementById("roomId").innerHTML)
+    .configureLogging(signalR.LogLevel.Warning)
+    .build();
+
+room.serverTimeoutInMilliseconds = 4500;
 
 room.onclose(() => {
-    if (!isUnloading) {
-        alert("Disconnected. Try refresh the page to reconnect.");
-    }
+    alert("Disconnected. Try refresh the page to reconnect.");
 });
 
-room.on("connectedUsers", function (players, spectators) {
-    document.getElementById("userList").innerHTML = "";
-    for (let i = 0; i < players.length; i++) {
-        document.getElementById("userList").innerHTML += "&#x25AA " + players[i] + "<br />";
-    };
-    for (let i = 0; i < spectators.length; i++) {
-        document.getElementById("userList").innerHTML += "&#x25AB " + spectators[i] + "<br />";
-    };
+room.start().catch(() => {
+    alert("Unable to connect.");
 });
 
 // -------------------- Play Card --------------------
@@ -570,9 +568,15 @@ room.on("setCallerIndicator", function (turn) {
 
 // -------------------- Seat Management --------------------
 
-const dialog = document.querySelector('#seatActionsDialogue');
-let outsideClickListener;
-let dialogActivator;
+room.on("connectedUsers", function (players, spectators) {
+    document.getElementById("userList").innerHTML = "";
+    for (let i = 0; i < players.length; i++) {
+        document.getElementById("userList").innerHTML += "&#x25AA " + players[i] + "<br />";
+    };
+    for (let i = 0; i < spectators.length; i++) {
+        document.getElementById("userList").innerHTML += "&#x25AB " + spectators[i] + "<br />";
+    };
+});
 
 function openDialogue(activator, pos) {
 
@@ -622,7 +626,7 @@ room.on("setSeatActions", function (actions, pos) {
 
     // set dialogue arrow direction
     // account for rotated seats: dialog arrow points to where clicked, but pos remains the global position irrespective of rotation
-    let r = parseInt(getComputedStyle(document.getElementById("card-table")).getPropertyValue('--seat-rotation'));
+    let r = parseInt(getComputedStyle(document.getElementById("board-container")).getPropertyValue('--board-rotate'));
     r = (pos + Math.round(r / 90) + 4) % 4;
     if (r < 0) r += 4;
 
@@ -694,16 +698,17 @@ room.on("disableNewGame", function () {
 
 room.on("seatBooked", function (position, username, isSelf) {
     setTableCardSlotUserNameAndLabelColour(position, username, true, isSelf);
+    if (isSelf) {
+        seatMyselfAsSouth(position);
+    }
 });
 
-room.on("seatUnbooked", function (position) {
+room.on("seatUnbooked", function (position, resetSeatOrientations) {
     let defaultSeatName = getSeatNameByNumber(position);
     setTableCardSlotUserNameAndLabelColour(position, defaultSeatName, false);
-});
-
-room.on("seatAlreadyBooked", function (occupier) {
-    document.getElementById("seat-modal-body").innerHTML = "This seat is already occupied by ".concat(occupier).concat(".");
-    $('#seat-modal').modal('show');
+    if (resetSeatOrientations) {
+        seatMyselfAsSouth(3);
+    }
 });
 
 room.on("setBotBadge", function (pos, isBot) {
@@ -712,57 +717,68 @@ room.on("setBotBadge", function (pos, isBot) {
 
 // -------------------- Seat Rotation --------------------
 
-room.on("enableRotation", function (setting) {
-    document.getElementById("rotateSeatsClockwiseBtn").disabled = !setting;
-    document.getElementById("rotateSeatsAntiClockwiseBtn").disabled = !setting;
-});
+const SEAT = { WEST: 0, NORTH: 1, EAST: 2, SOUTH: 3 };
 
-$("#rotateSeatsClockwiseBtn").on("click", function () {
-    rotateSeats(1);
-});
+const BOARD_ROTATION = {
+    [SEAT.SOUTH]: 0,
+    [SEAT.EAST]: 90,
+    [SEAT.NORTH]: 180,
+    [SEAT.WEST]: -90,
+};
 
-$("#rotateSeatsAntiClockwiseBtn").on("click", function () {
-    rotateSeats(-1);
-});
+const nudgeDirectionAndAxis = {
+    [SEAT.EAST]: { [SEAT.WEST]: { axis: 'h', sign: +1 }, [SEAT.NORTH]: { axis: 'w', sign: +1 }, [SEAT.EAST]: { axis: 'h', sign: -1 }, [SEAT.SOUTH]: { axis: 'w', sign: -1 } },
+    [SEAT.WEST]: { [SEAT.WEST]: { axis: 'h', sign: -1 }, [SEAT.NORTH]: { axis: 'w', sign: -1 }, [SEAT.EAST]: { axis: 'h', sign: +1 }, [SEAT.SOUTH]: { axis: 'w', sign: +1 } },
+    [SEAT.NORTH]: { [SEAT.WEST]: { axis: 'w', sign: 0 }, [SEAT.NORTH]: { axis: 'h', sign: 0 }, [SEAT.EAST]: { axis: 'w', sign: 0 }, [SEAT.SOUTH]: { axis: 'h', sign: 0 } },
+    [SEAT.SOUTH]: { [SEAT.WEST]: { axis: 'w', sign: 0 }, [SEAT.NORTH]: { axis: 'h', sign: 0 }, [SEAT.EAST]: { axis: 'w', sign: 0 }, [SEAT.SOUTH]: { axis: 'h', sign: 0 } },
+};
 
-function rotateSeats(direction) {
+function seatMyselfAsSouth(selectedSeat) {
+    const board = document.getElementById('board-container');
+    const slots = document.querySelectorAll('.table-card-slot');
 
-    const cardTable = document.getElementById("card-table");
+    const currentAngle = parseFloat(getComputedStyle(board).getPropertyValue('--board-rotate')) || 0;
+    let newAngle = getNewAngle(selectedSeat, currentAngle);
 
-    let r = parseInt(getComputedStyle(cardTable).getPropertyValue('--seat-rotation'));
+    const { width, height } = getCardSize();
+    const nudgeDistance = width - height / 2;
+    const seatClasses = ["inWest", "inNorth", "inEast", "inSouth"]; // for styling/position all children elements
 
-    cardTable.style.setProperty('--seat-rotation', `${r + 90 * direction}`);
+    const rotationDistance = Math.abs(currentAngle - currentAngle);
+    const duration = rotationDistance === 180 ? 3000 : 1500;
 
-    let tableCardSlotPos = ["inWest", "inNorth", "inEast", "inSouth"];
+    board.style.setProperty('--phase-length', `${duration}`);
+    board.style.setProperty('--board-rotate', `${newAngle}`);
 
-    for (let i = 0; i < 4; i++) {
-        let card = document.getElementById("tableCardSlot" + i);
-        for (let j = 0; j < 4; j++) {
-            if (card.classList.contains(tableCardSlotPos[j])) {
-                card.classList.remove(tableCardSlotPos[j]);
-                var d = j + direction;
-                d = (d + 4) % 4; // -1 -> 3 and 4 -> 0
-                card.classList.add(tableCardSlotPos[d]);
+    slots.forEach(slot => {
+        const currentSeat = Number(slot.dataset.seat);
+        const nudge = nudgeDirectionAndAxis[selectedSeat][currentSeat];
+        const offset = `${nudge.sign * nudgeDistance}px`;
 
-                document.getElementById("throwBoard" + i).classList = "throw throw" + d;
-                break;
-            };
-        };
+        slot.style.setProperty('--slot-tx', nudge.axis === 'w' ? offset : '0px');
+        slot.style.setProperty('--slot-ty', nudge.axis === 'h' ? offset : '0px');
+
+        const logicalRotation = ((BOARD_ROTATION[selectedSeat] / 90) + 4) % 4;
+        const newSeatNumber = (currentSeat + logicalRotation) % 4;
+        slot.classList.remove(...seatClasses);
+        slot.classList.add(seatClasses[newSeatNumber]);
+    });
+}
+
+function getCardSize() {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+        width: parseFloat(styles.getPropertyValue('--card-width')),
+        height: parseFloat(styles.getPropertyValue('--card-height')),
     };
-};
+}
 
-function getRotation(el) {
-    let r = el.style.transform;
-    if (r == "") r = 0;
-    else {
-        let s = r.search("rotate") + "rotate(".length;
-        let e = r.search("deg");
-        r = r.substring(s, e);
-    }
-    return parseInt(r);
-};
-
-
+function getNewAngle(mySeat, currentAngle) {
+    let newAngle = BOARD_ROTATION[mySeat];
+    while (newAngle - currentAngle > 180) newAngle -= 360;
+    while (newAngle - currentAngle < -180) newAngle += 360;
+    return newAngle;
+}
 
 // -------------------- Chat Log --------------------
 

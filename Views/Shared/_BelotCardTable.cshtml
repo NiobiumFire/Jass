@@ -7,7 +7,6 @@
         rounded = "";
     }
 }
-
 <div class="card-table @rounded" id="card-table">
     <!-- Score Totals -->
     <div class="score-summary-container">
@@ -29,23 +28,23 @@
         </div>
     </div>
 
+    <dialog class="fingerprint-menu" id="seatActionsDialogue">
+        <div class="seat-actions-arrow" id="seatActionsDialogueArrow"></div>
+        <menu>
+            <button class="btn2" id="occupySeat">Occupy Seat</button>
+            <button class="btn2" id="assignBot">Assign Bot</button>
+            <button class="btn2" id="vacate">Vacate</button>
+        </menu>
+    </dialog>
+
     <!-- Call Indicator (at the bottom so it's not blocked) -->
     <!-- Main -->
-    <div class="main-board" id="seatPanel">
-
-        <dialog class="fingerprint-menu" id="seatActionsDialogue">
-            <div class="seat-actions-arrow" id="seatActionsDialogueArrow"></div>
-            <menu>
-                <button class="btn2" id="occupySeat">Occupy Seat</button>
-                <button class="btn2" id="assignBot">Assign Bot</button>
-                <button class="btn2" id="vacate">Vacate</button>
-            </menu>
-        </dialog>
+    <div class="main-board seat-transition" id="seat-panel">
 
         <!-- Flex Column 1 -->
         <div class="d-flex flex-column justify-content-center" id="cardCol1">
             <!-- West -->
-            <div class="table-card-slot inWest seat-transition" id="tableCardSlot0">
+            <div class="table-card-slot inWest seat-transition" id="tableCardSlot0" data-seat="0">
                 <!-- Player Marker -->
                 <div class="player-marker seat-transition" id="player-marker0">
                     <!-- Player Name -->
@@ -75,7 +74,7 @@
         <!-- Flex Column 2 -->
         <div class="d-flex flex-column justify-content-center" id="cardCol2">
             <!-- North -->
-            <div class="table-card-slot inNorth seat-transition" id="tableCardSlot1">
+            <div class="table-card-slot inNorth seat-transition" id="tableCardSlot1" data-seat="1">
                 <!-- Player Marker -->
                 <div class="player-marker seat-transition" id="player-marker1">
                     <!-- Player Name -->
@@ -102,7 +101,7 @@
                 }
             </div>
             <!-- South -->
-            <div class="table-card-slot inSouth seat-transition" id="tableCardSlot3">
+            <div class="table-card-slot inSouth seat-transition" id="tableCardSlot3" data-seat="3">
                 <!-- Player Marker -->
                 <div class="player-marker seat-transition" id="player-marker3">
                     <!-- Player Name -->
@@ -134,14 +133,16 @@
             <div class="seat-transition turn-indicator-rotator">
                 <i class="bi bi-arrows-move seat-transition" id="turnIndicator"></i>
             </div>
-            <span class="tooltiptext" id="turnTooltip">
-                Game not started
-            </span>
+            <div class="anti-rotate-tooltip-wrapper seat-transition">
+                <span class="tooltiptext" id="turn-tooltip">
+                    Game not started
+                </span>
+            </div>
         </div>
         <!-- Flex Column 3 -->
         <div class="d-flex flex-column justify-content-center" id="cardCol3">
             <!-- East -->
-            <div class="table-card-slot inEast seat-transition" id="tableCardSlot2">
+            <div class="table-card-slot inEast seat-transition" id="tableCardSlot2" data-seat="2">
                 <!-- Player Marker -->
                 <div class="player-marker seat-transition" id="player-marker2">
                     <!-- Player Name -->
