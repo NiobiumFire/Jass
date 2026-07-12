@@ -217,19 +217,7 @@
 }
 
 #summary-modal .modal-footer {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-}
-
-    #summary-modal .modal-footer div {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-#summary-modal small {
-    margin: 0;
+    display: flex;
 }
 
 /* accordian */

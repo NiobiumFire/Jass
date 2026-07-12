@@ -261,7 +261,7 @@ room.on("showRoundSummary", function (trickPoints, declarationPoints, belotPoint
 });
 
 function roundSummaryTimerUpdate(remainingMs) {
-    document.getElementById("summary-countdown").innerHTML = `${Math.max(0, Math.ceil(remainingMs / 1000))} s`;
+    document.getElementById("summary-countdown").innerHTML = `${Math.max(0, Math.ceil(remainingMs / 1000))}s`;
 }
 
 room.on("roundSummaryContinueVotesUpdate", function (current, required) {
@@ -269,7 +269,7 @@ room.on("roundSummaryContinueVotesUpdate", function (current, required) {
 });
 
 function roundSummaryContinueVotesUpdate(current, required) {
-    document.getElementById("summary-continue-votes").innerHTML = `${current}/${required}`;
+    document.getElementById("summary-continue-button").innerHTML = `Continue [${current}/${required}]`;
 }
 
 room.on("hideRoundSummary", function () {
