@@ -9,7 +9,7 @@
     <link rel="manifest" href="~/manifest.json" asp-append-version="true">
     <meta name="theme-color" content="#000000">
     <link rel="shortcut icon" type="image/ico" href="~/images/NiobiumCrystal.ico">
-    <title>@ViewData["Title"] - NiobiumFire</title>
+    <title>@ViewData["Title"] - Nio Jass</title>
     @* CSS *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/Global.css" asp-append-version="true" />
@@ -26,7 +26,7 @@
                     <img src="~/images/NiobiumCrystal.png" height="30" />
                     <ul class="navbar-nav d-flex align-items-center">
                         <li class="nav-item me-3">
-                            <a class="navbar-brand mx-0 px-1" asp-controller="Home" asp-action="Index">NiobiumFire Jass</a>
+                            <a class="navbar-brand mx-0 px-1" asp-controller="Home" asp-action="Index">Main Menu</a>
                         </li>
                         @if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                         {

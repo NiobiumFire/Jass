@@ -33,10 +33,9 @@ html {
 }
 
 .allNoTrumps {
-    font-family: 'Old English Text MT';
+    font-family: 'Rye';
     font-style: normal;
-    font-weight: 600 !important;
-    font-size: 22px;
+    font-weight: 400 !important;
 }
 
 /* access denied & home screen images */

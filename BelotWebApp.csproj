@@ -33,9 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\images\BannerText.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Update="wwwroot\images\Nine.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -14,6 +14,24 @@
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    font-family: "Rye";
+    font-weight: 500;
+    font-size: 7em;
+    --hi: #f2ecd9; /* brightest highlight band */
+    --lo: #9b9280; /* upper mid tone */
+    --mid: #746c5c; /* mid tone */
+    --dark: #4a4438; /* darkest band */
+    --stroke-w: 1px;
+    --shadow-tone: #2a251d; /* lightness of the "extrusion" */
+    background: linear-gradient( 180deg, var(--hi) 0%, var(--hi) 8%, var(--lo) 8%, var(--mid) 24%, var(--dark) 24%, var(--mid) 34%, var(--dark) 40%, var(--mid) 48%, var(--lo) 52%, var(--mid) 58%, var(--dark) 64%, var(--mid) 72%, var(--dark) 100% );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-stroke: var(--stroke-w) #2b271f;
+    /* Many tightly stacked shadows in a dark tone build up the illusion
+       of extruded thickness (like a 3D bevel/emboss), then two final
+       drop-shadows add the ambient cast shadow off the page. */
+    filter: drop-shadow(0 0.01em 0 var(--shadow-tone)) drop-shadow(0 0.02em 0 var(--shadow-tone)) drop-shadow(0 0.03em 0 var(--shadow-tone)) drop-shadow(0 0.04em 0.02em rgba(0,0,0,0.4)) drop-shadow(0.01em 0.06em 0.04em rgba(0,0,0,0.3));
 }
 
 ::deep .title-banner-text img {
@@ -26,6 +44,10 @@
 @media (max-width: 576px) {
     main {
         grid-template-rows: 5% 20% 2% 10% 63%;
+    }
+
+    .title-banner-text {
+        font-size: 2.8em;
     }
 
     ::deep .title-banner-text img {
