@@ -16,6 +16,12 @@ window.addEventListener("pagehide", () => {
     isUnloading = true;
 });
 
+$('.modal').on('hide.bs.modal', function () { // remove focus from modals before they are hidden to prevent aria warnings
+    if (this.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
+});
+
 // -------------------- Room Connection --------------------
 
 var room = new signalR.HubConnectionBuilder() // automatic reconnect does not work well with proceeding to .onclose on mobile, so leave it out entirely
