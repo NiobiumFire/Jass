@@ -1,10 +1,8 @@
 ﻿using BelotWebApp.BelotClasses;
-using BelotWebApp.BelotClasses.Players;
 using BelotWebApp.Models;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace BelotWebApp.Controllers
 {
@@ -24,10 +22,15 @@ namespace BelotWebApp.Controllers
 
         // Create casual game then join it
         [HttpPost]
-        public ActionResult Index(BelotRoomCreator creator)
+        public ActionResult Create(BelotRoomCreationOptions options)
         {
+            if (!ModelState.IsValid)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             string id = Guid.NewGuid().ToString();
-            var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, _zipService, true);
+            var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, _zipService, true, options);
             _gameRegistry.AddContext(id, new(game, null));
             return RedirectToAction("Index", new { id });
         }

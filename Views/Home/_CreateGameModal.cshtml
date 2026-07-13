@@ -1,0 +1,56 @@
+﻿@model BelotRoomCreationOptions
+
+<div class="modal create-game-modal" tabindex="-1" id="create-game-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content parchment2">
+            <form asp-controller="Room" asp-action="Create" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create casual room</h5>
+                    <i class="bi bi-x-lg form-btn" data-bs-dismiss="modal"></i>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="game-options-container">
+                        <div class="form-floating mb-2 w-100">
+                            <input asp-for="RoomName" class="form-control" spellcheck="false" />
+                            <label asp-for="RoomName" class="form-label"></label>
+                        </div>
+
+                        <div class="score-target-container form-control">
+                            <label class="score-target-label form-label">Score target</label>
+
+                            <div class="d-flex justify-content-between">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="ScoreTarget" id="score501" value="501" />
+                                    <label class="form-check-label" for="score501">501</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="ScoreTarget" id="score1001" value="1001" />
+                                    <label class="form-check-label" for="score1001">1001</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="ScoreTarget" id="score1501" value="1501" />
+                                    <label class="form-check-label" for="score1501">1501</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check">
+                            <input asp-for="AllowChat" class="form-check-input" />
+                            <label asp-for="AllowChat" class="form-check-label"></label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn2">
+                        Create Room
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

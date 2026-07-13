@@ -4,6 +4,18 @@
 @section scripts {
     <script src="~/js/Belotlobby.js" asp-append-version="true"></script>
     <script src="~/js/FitCrystal.js" asp-append-version="true"></script>
+
+    <script>
+        $('.modal').on('hide.bs.modal', function () { // remove focus from modals before they are hidden to prevent aria warnings
+            if (this.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        });
+
+        $(document).ready(function () {
+            //$('#create-game-modal').modal('show');
+        });
+    </script>
 }
 
 @{
@@ -87,18 +99,16 @@
                 }
                 else
                 {
-                    <button type="button" class="btn2" style="width: 100%" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">
+                    <button type="button" class="btn2" style="width: 100%" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#join-game-modal">
                         Match
                     </button>
                 }
 
                 <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Casual ◆</p>
 
-                <form id="createJassGameForm" asp-controller="Room" asp-action="Index" method="post" class="d-none"></form>
-
                 <div class="btn-group casual-btn-group" style="width: 100%" role="group">
-                    <button type="button" class="btn2" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#jass-lobby-modal">Lobby</button>
-                    <button type="submit" class="btn2" form="createJassGameForm">Create</button>
+                    <button type="button" class="btn2" onclick="populateLobby()" data-bs-toggle="modal" data-bs-target="#join-game-modal">Lobby</button>
+                    <button type="button" class="btn2" data-bs-toggle="modal" data-bs-target="#create-game-modal">Create</button>
                 </div>
 
                 <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ General ◆</p>
@@ -136,12 +146,21 @@
 
 </main>
 
+<!-- Create Game Modal -->
+@{
+    var options = new BelotRoomCreationOptions
+            {
+                RoomName = $"{userManager.GetUserName(User)}'s room"
+            };
+}
+<partial name="_CreateGameModal" model="options"/>
+
 <!-- Join Game Modal -->
-<div class="modal lobby-modal" tabindex="-1" id="jass-lobby-modal">
+<div class="modal join-game-modal" tabindex="-1" id="join-game-modal">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content parchment2">
             <div class="modal-header">
-                <h5 class="modal-title">Casual Games</h5>
+                <h5 class="modal-title">Casual rooms</h5>
                 <div class="d-flex justify-content-center align-items-center">
                     <i class="bi bi-arrow-repeat form-btn" onclick="refreshLobby()" id="refreshBtn"></i>
                     <i class="bi bi-x-lg form-btn" data-bs-dismiss="modal"></i>

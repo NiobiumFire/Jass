@@ -65,11 +65,11 @@ function stopLobbyRefresh() {
     }
 }
 
-$('#jass-lobby-modal').on('shown.bs.modal', function () {
+$('#join-game-modal').on('shown.bs.modal', function () {
     startLobbyRefresh();
 });
 
-$('#jass-lobby-modal').on('hidden.bs.modal', function () {
+$('#join-game-modal').on('hidden.bs.modal', function () {
     stopLobbyRefresh();
 });
 

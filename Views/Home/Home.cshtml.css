@@ -190,14 +190,15 @@ p {
     }
 }
 
-.lobby-modal .modal-content {
+.join-game-modal .modal-content {
+    min-height: 20vh;
     max-height: 50vh;
 }
 
-.lobby-modal .modal-header {
+.join-game-modal .modal-header {
     border-bottom: none;
 }
 
-.lobby-modal table {
+.join-game-modal table {
     table-layout: fixed;
 }

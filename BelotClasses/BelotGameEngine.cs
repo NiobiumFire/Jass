@@ -28,7 +28,7 @@ namespace BelotWebApp.BelotClasses
                 await _observer.OnNewGame().ConfigureAwait(false);
             }
 
-            while (_game.IsRunning && ((_game.EWTotal < BelotGame.scoreTarget && _game.NSTotal < BelotGame.scoreTarget) || _game.EWTotal == _game.NSTotal || _game.Capot) && !_game.WaitDeal && !_game.WaitCall && !_game.WaitCard)
+            while (_game.IsRunning && ((_game.EWTotal < _game.scoreTarget && _game.NSTotal < _game.scoreTarget) || _game.EWTotal == _game.NSTotal || _game.Capot) && !_game.WaitDeal && !_game.WaitCall && !_game.WaitCard)
             {
                 await RoundController().ConfigureAwait(false);
             }

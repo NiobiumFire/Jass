@@ -4,6 +4,7 @@ using BelotWebApp.BelotClasses.Players;
 using BelotWebApp.BelotClasses.Replays;
 using BelotWebApp.BelotClasses.Turn;
 using BelotWebApp.Configuration;
+using BelotWebApp.Models;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using System.Text.Json;
@@ -12,7 +13,7 @@ namespace BelotWebApp.BelotClasses
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players, string roomId, IAppPaths appPaths, IZipService zipService, bool recordReplay)
+        public BelotGame(Player[] players, string roomId, IAppPaths appPaths, IZipService zipService, bool recordReplay, BelotRoomCreationOptions? options = null)
         {
             IsRunning = true;
             Players = players;
@@ -21,9 +22,14 @@ namespace BelotWebApp.BelotClasses
             RecordReplay = recordReplay;
             _appPaths = appPaths;
             _zipService = zipService;
+
+            if(options != null)
+            {
+                scoreTarget = options.ScoreTarget;
+            }
         }
 
-        public static readonly int scoreTarget = 1501;
+        public readonly int scoreTarget = 1501;
         private readonly IAppPaths _appPaths;
         private readonly IZipService _zipService;
 

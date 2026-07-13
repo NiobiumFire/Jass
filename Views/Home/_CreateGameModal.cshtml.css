@@ -1,0 +1,35 @@
+﻿.modal-body{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.game-options-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 70%;
+}
+
+.game-name-container .form-floating{
+    width: 100%;
+}
+
+.score-target-container {
+    padding: 6px 12px;
+    margin-bottom: 10px;
+}
+.score-target-label {
+    margin: 0;
+    color: white;
+    opacity: 0.6;
+    font-weight: 400;
+    transform: scale(.85) translateX(-6%);
+    user-select: none;
+}
+
+.modal-footer{
+    justify-content: center;
+}
