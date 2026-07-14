@@ -57,7 +57,7 @@ internal class Program
 
         builder.Services.AddSingleton<IZipService, ZipService>();
 
-        builder.Services.AddSingleton<BelotGameRegistry>();
+        builder.Services.AddSingleton<BelotRoomRegistry>();
 
         builder.Services.AddSingleton<BelotGameSimulator>();
 
@@ -99,7 +99,7 @@ internal class Program
 
         app.UseMiddleware<GuestMiddleware>();
 
-        app.MapHub<BelotRoom>("/belotroom/{roomId}");
+        app.MapHub<BelotRoomHub>("/belotroom/{roomId}");
 
         app.MapControllerRoute(
             name: "default",

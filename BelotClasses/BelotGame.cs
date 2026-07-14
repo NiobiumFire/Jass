@@ -13,27 +13,21 @@ namespace BelotWebApp.BelotClasses
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players, string roomId, IAppPaths appPaths, IZipService zipService, bool recordReplay, BelotRoomCreationOptions? options = null)
+        public BelotGame(Player[] players, IAppPaths appPaths, IZipService zipService, bool recordReplay, int scoreTarget = 1501)
         {
             IsRunning = true;
             Players = players;
-            RoomId = roomId;
             Spectators = [];
             RecordReplay = recordReplay;
             _appPaths = appPaths;
             _zipService = zipService;
-
-            if(options != null)
-            {
-                scoreTarget = options.ScoreTarget;
-            }
+            _scoreTarget = scoreTarget;
         }
 
-        public readonly int scoreTarget = 1501;
+        public readonly int _scoreTarget = 1501;
         private readonly IAppPaths _appPaths;
         private readonly IZipService _zipService;
 
-        public string RoomId { get; set; }
         public string GameId { get; set; } = "";
         public Player[] Players { get; set; }
         public List<Spectator> Spectators { get; set; }
@@ -73,7 +67,6 @@ namespace BelotWebApp.BelotClasses
         public bool WaitCall { get; set; }
         public bool WaitCard { get; set; }
         public bool IsRunning { get; set; }
-        //public string? LogPath { get; set; }
         public bool RecordReplay { get; set; }
         public BelotStateDiff ReplayState { get; set; }
 

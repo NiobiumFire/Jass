@@ -11,13 +11,13 @@ namespace BelotWebApp.Controllers
     {
         private readonly IAppPaths _appPaths;
         private readonly IZipService _zipService;
-        private readonly BelotGameRegistry _gameRegistry;
+        private readonly BelotRoomRegistry _roomRegistry;
 
-        public RoomController(IAppPaths appPaths, IZipService zipService, BelotGameRegistry gameRegistry)
+        public RoomController(IAppPaths appPaths, IZipService zipService, BelotRoomRegistry gameRegistry)
         {
             _appPaths = appPaths;
             _zipService = zipService;
-            _gameRegistry = gameRegistry;
+            _roomRegistry = gameRegistry;
         }
 
         // Create casual game then join it
@@ -29,23 +29,23 @@ namespace BelotWebApp.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            string id = Guid.NewGuid().ToString();
-            var game = new BelotGame([new(), new(), new(), new()], id, _appPaths, _zipService, true, options);
-            _gameRegistry.AddContext(id, new(game, null));
-            return RedirectToAction("Index", new { id });
+            string roomId = Guid.NewGuid().ToString();
+            var game = new BelotGame([new(), new(), new(), new()], _appPaths, _zipService, true, options.ScoreTarget);
+            _roomRegistry.AddRoom(roomId, new(roomId, game, null, options));
+            return RedirectToAction("Index", new { roomId });
         }
 
         // GET: Room - Join casual game
-        [HttpGet("/Room/{id:guid}")]
-        public ActionResult Index(string id)
+        [HttpGet("/Room/{roomId:guid}")]
+        public ActionResult Index(string roomId)
         {
-            var gameContext = _gameRegistry.GetContext(id);
+            var gameContext = _roomRegistry.GetRoom(roomId);
             if (gameContext == null)
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewData["roomId"] = id;
+            ViewData["roomId"] = roomId;
             return View("Room");
         }
 
@@ -59,7 +59,7 @@ namespace BelotWebApp.Controllers
                 return Unauthorized();
             }
 
-            var gameContext = _gameRegistry.GetContext(id);
+            var gameContext = _roomRegistry.GetRoom(id);
 
             if (gameContext == null)
             {

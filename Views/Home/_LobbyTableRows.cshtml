@@ -1,5 +1,5 @@
 ﻿@using BelotWebApp.BelotClasses
-@model List<BelotLobbyGame>
+@model IEnumerable<BelotRoomRecord>
 
 @functions {
     public string IsEmpty(string value) => value == "<empty>" ? "muted" : "";
@@ -16,15 +16,15 @@
         </td>
     </tr>
     <tr>
-        <td class="position-icon bi bi-arrow-left-circle @IsEmpty(room.West)"></td>
-        <td class="position-icon bi bi-arrow-up-circle @IsEmpty(room.North)"></td>
-        <td class="position-icon bi bi-arrow-right-circle @IsEmpty(room.East)"></td>
-        <td class="position-icon bi bi-arrow-down-circle @IsEmpty(room.South)"></td>
+        <td class="position-icon bi bi-arrow-left-circle @IsEmpty(room.Players[0])"></td>
+        <td class="position-icon bi bi-arrow-up-circle @IsEmpty(room.Players[1])"></td>
+        <td class="position-icon bi bi-arrow-right-circle @IsEmpty(room.Players[2])"></td>
+        <td class="position-icon bi bi-arrow-down-circle @IsEmpty(room.Players[3])"></td>
     </tr>
     <tr>
-        <td class="truncate-cell @IsEmpty(room.West)">@room.West</td>
-        <td class="truncate-cell @IsEmpty(room.North)">@room.North</td>
-        <td class="truncate-cell @IsEmpty(room.East)">@room.East</td>
-        <td class="truncate-cell @IsEmpty(room.South)">@room.South</td>
+        <td class="truncate-cell @IsEmpty(room.Players[0])">@room.Players[0]</td>
+        <td class="truncate-cell @IsEmpty(room.Players[1])">@room.Players[1]</td>
+        <td class="truncate-cell @IsEmpty(room.Players[2])">@room.Players[2]</td>
+        <td class="truncate-cell @IsEmpty(room.Players[3])">@room.Players[3]</td>
     </tr>
 }

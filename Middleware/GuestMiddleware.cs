@@ -8,13 +8,13 @@ namespace BelotWebApp.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly int _cookieLifetime = 1;
-        private readonly BelotGameRegistry _gameRegistry;
+        private readonly BelotRoomRegistry _roomRegistry;
         private readonly IDataProtector _protector;
 
-        public GuestMiddleware(RequestDelegate next, BelotGameRegistry gameRegistry, IDataProtectionProvider provider)
+        public GuestMiddleware(RequestDelegate next, BelotRoomRegistry gameRegistry, IDataProtectionProvider provider)
         {
             _next = next;
-            _gameRegistry = gameRegistry;
+            _roomRegistry = gameRegistry;
             _protector = provider.CreateProtector("GuestCookieProtector"); ;
         }
 
@@ -73,7 +73,7 @@ namespace BelotWebApp.Middleware
         {
             var random = new Random();
 
-            var games = _gameRegistry.GetAllGames();
+            var games = _roomRegistry.GetAllGames();
             var players = games.SelectMany(g => g.Players).Select(p => p.Username).ToHashSet();
             var spectators = games.SelectMany(g => g.Spectators).Select(p => p.Username).ToHashSet();
 

@@ -8,14 +8,16 @@ namespace BelotWebApp.BelotClasses.Observers
 {
     public class LiveBelotObserver : IBelotObserver
     {
+        private string _roomId;
         private readonly BelotGame _game;
         private IHubCallerClients _clients;
         private IClientProxy _group;
         private readonly object _lock = new();
         public RoundSummaryGate RoundSummaryGate = new();
 
-        public LiveBelotObserver(BelotGame game, IHubCallerClients clients)
+        public LiveBelotObserver(string roomId, BelotGame game, IHubCallerClients clients)
         {
+            _roomId = roomId;
             _game = game;
             UpdateClients(clients);
         }
@@ -25,7 +27,7 @@ namespace BelotWebApp.BelotClasses.Observers
             lock (_lock)
             {
                 _clients = clients;
-                _group = clients.Group(_game.RoomId);
+                _group = clients.Group(_roomId);
             }
         }
 
@@ -145,7 +147,7 @@ namespace BelotWebApp.BelotClasses.Observers
             if (emotes.Count > 0)
             {
                 var clients = GetClients();
-                await clients.Group(_game.RoomId).SendAsync("SetExtrasEmote", emotes, _game.Turn).ConfigureAwait(false);
+                await clients.Group(_roomId).SendAsync("SetExtrasEmote", emotes, _game.Turn).ConfigureAwait(false);
                 await Emote(_game.Turn, _game.BotDelay).ConfigureAwait(false);
             }
         }

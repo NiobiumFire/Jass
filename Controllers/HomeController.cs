@@ -8,12 +8,12 @@ namespace BelotWebApp.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly BelotGameRegistry _gameRegistry;
+        private readonly BelotRoomRegistry _roomRegistry;
 
-        public HomeController(ILogger<HomeController> logger, BelotGameRegistry gameRegistry)
+        public HomeController(ILogger<HomeController> logger, BelotRoomRegistry gameRegistry)
         {
             _logger = logger;
-            _gameRegistry = gameRegistry;
+            _roomRegistry = gameRegistry;
         }
 
         public IActionResult Index()
@@ -36,13 +36,7 @@ namespace BelotWebApp.Controllers
 
         public IActionResult PopulateLobbyPartial()
         {
-            List<BelotLobbyGame> games = [];
-            foreach (BelotGame game in _gameRegistry.GetAllGames())
-            {
-                games.Add(new BelotLobbyGame(game));
-            }
-
-            return PartialView("_LobbyTableRows", games);
+            return PartialView("_LobbyTableRows", _roomRegistry.GetRoomRecords());
         }
 
         #endregion

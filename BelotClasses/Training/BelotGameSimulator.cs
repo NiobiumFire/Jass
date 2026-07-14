@@ -90,14 +90,14 @@ namespace BelotWebApp.BelotClasses.Training
 
         private (int, int, int) GetNNSize()
         {
-            var game = new BelotGame([new(), new(), new(), new()], Guid.NewGuid().ToString(), _appPaths, _zipService, false);
+            var game = new BelotGame([new(), new(), new(), new()], _appPaths, _zipService, false);
             int inputs = AgentAdvanced.BuildNNInputVector(game).Length;
             return (inputs, 128, 8);
         }
 
         private BelotGame CreateGame(AgentAdvanced agent)
         {
-            var game = new BelotGame([new(), new(), new(), new()], Guid.NewGuid().ToString(), _appPaths, _zipService, false);
+            var game = new BelotGame([new(), new(), new(), new()], _appPaths, _zipService, false);
 
             Player agentPlayer = new() { PlayerType = PlayerType.Advanced, Agent = agent };
             Player[] players = [agentPlayer, new("bot2", "", PlayerType.Basic), new("bot3", "", PlayerType.Basic), new("bot4", "", PlayerType.Basic)];
