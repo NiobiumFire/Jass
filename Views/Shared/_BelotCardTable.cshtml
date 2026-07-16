@@ -11,6 +11,10 @@
     <!-- Score Totals -->
     <div class="score-summary-container">
         <div class="score-summary">
+            @if (!isReplayRoom)
+            {
+                <small class="score-target"><i class="bi bi-caret-right-fill"></i>@ViewData["ScoreTarget"]<i class="bi bi-caret-left-fill"></i></small>
+            }
             <table class="table" id="scoreTotals">
                 <thead>
                     <tr class="table-heading-border">
@@ -129,7 +133,8 @@
             </div>
         </div>
         <!-- Turn Indicator -->
-        <div class="badge rounded-circle turn-indicator" onclick=""> @* the empty onlick is used to instruct mobile browsers that this element can retain focus/hover for showing the tooltip *@
+        <div class="badge rounded-circle turn-indicator" onclick="">
+            @* the empty onlick is used to instruct mobile browsers that this element can retain focus/hover for showing the tooltip *@
             <i class="bi bi-arrows-move seat-transition" id="turn-indicator-arrow"></i>
             <div class="anti-rotate-tooltip-wrapper seat-transition">
                 <span class="tooltiptext" id="turn-tooltip">

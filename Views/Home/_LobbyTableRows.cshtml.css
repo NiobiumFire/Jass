@@ -3,22 +3,32 @@
     justify-content: center;
     align-items: center;
     width: 100%;
+    padding: 6px !important;
 }
 
-table tbody tr:first-child {
+table{
+    border-collapse: collapse;
+}
+
+table tbody tr:first-child td {
     border-top: 1px solid;
     border-color: inherit;
 }
 
-table tbody tr:nth-child(3n-2) td,
-table tbody tr:nth-child(3n-1) td {
-    border-bottom: 0 none transparent;
-}
+    table tbody tr:nth-child(3n-2) td,
+    table tbody tr:nth-child(3n-1) td {
+        border-bottom: 0 none transparent;
+    }
 
-table tbody tr:nth-child(6n-5) td,
-table tbody tr:nth-child(6n-4) td,
-table tbody tr:nth-child(6n-3) td {
-    background-color: rgba(0, 0, 0, 0.08);
+    table tbody tr:nth-child(3n-2) {
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0) 90%);
+        background-repeat: no-repeat;
+        -webkit-background-clip: padding-box;
+        background-clip: padding-box;
+    }
+
+td {
+    vertical-align: middle;
 }
 
 .position-icon {
@@ -31,6 +41,35 @@ table tbody tr:nth-child(6n-3) td {
     text-align: center;
 }
 
-.muted{
-    color: var(--medium-grey);
+.room-name {
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.room-settings {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-right: 16px;
+}
+
+    .room-settings i {
+        font-size: 1.3em;
+    }
+
+.score-target {
+    font-weight: 700;
+    font-size: 0.95rem;
+    min-width: 2.4em;
+    text-align: center;
+}
+
+.divider-dot {
+    opacity: 0.55;
+    font-size: 0.8em;
+}
+
+.muted {
+    color: rgba(255,255,255,0.4);
 }

@@ -449,6 +449,14 @@
     }
 }
 
+.score-target {
+    position: absolute;
+    top: -18px;
+    margin: 0;
+    font-size: 0.75em;
+    color: var(--cream-text);
+}
+
 .score-summary table {
     table-layout: fixed;
     margin: 0;
@@ -516,6 +524,7 @@
     .call-icon {
         font-size: 20px;
     }
+
         .call-icon.allNoTrumps {
             font-size: 22px;
         }

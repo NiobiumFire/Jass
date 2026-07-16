@@ -9,6 +9,7 @@ namespace BelotWebApp.BelotClasses
         public BelotRoom(string roomId, BelotGame game, IBelotObserver? observer, BelotRoomCreationOptions options)
         {
             RoomId = roomId;
+            RoomName = options.RoomName;
             Spectators = [];
             Game = game;
             Observer = observer;
@@ -16,6 +17,7 @@ namespace BelotWebApp.BelotClasses
         }
 
         public string RoomId { get; set; }
+        public string RoomName { get; set; }
         public List<Spectator> Spectators { get; set; }
         public BelotGame Game { get; set; }
         public IBelotObserver? Observer { get; set; }

@@ -450,11 +450,17 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
-
             var room = GetRoom();
             if (room?.Game == null || room.Observer == null)
             {
                 log?.Warning("[HubAnnounce] GameContext/Game/Observer was null");
+                log?.Information("[HubAnnounce] exit");
+                return;
+            }
+
+            if (!room.Options.AllowChat)
+            {
+                log?.Warning("[HubAnnounce] Tried chat when chat is disabled");
                 log?.Information("[HubAnnounce] exit");
                 return;
             }

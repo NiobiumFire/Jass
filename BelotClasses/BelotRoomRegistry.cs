@@ -18,9 +18,9 @@ namespace BelotWebApp.BelotClasses
             return context;
         }
 
-        public void AddRoom(string roomId, BelotRoom context)
+        public void AddRoom(string roomId, BelotRoom room)
         {
-            _rooms[roomId] = context;
+            _rooms[roomId] = room;
         }
 
         public void RemoveRoom(string roomId)
@@ -36,9 +36,16 @@ namespace BelotWebApp.BelotClasses
             }
         }
 
+        // Players are always stored in seating order: West, North, East, South
+        // GetDisplayName expects the player index, so preserve this ordering
         public IEnumerable<BelotRoomRecord> GetRoomRecords() => _rooms.Values
-            .Select(r => new BelotRoomRecord(r.RoomId, r.Game.Players.Select(p => p.Username != "" ? p.Username : "<empty>").ToArray(), !r.Game.IsNewGame, r.Options.ScoreTarget, r.Options.AllowChat));
-       
+            .Select(r => new BelotRoomRecord(r.RoomId,
+                r.RoomName,
+                r.Game.Players.Select((p, i) => p.Username != "" ? r.Game.GetDisplayName(i) : "<empty>").ToArray(),
+                !r.Game.IsNewGame,
+                r.Options.ScoreTarget,
+                r.Options.AllowChat));
+
         public IEnumerable<BelotGame> GetAllGames() => _rooms.Values.Select(g => g.Game);
 
         public bool GamesOngoing() => !_rooms.IsEmpty;

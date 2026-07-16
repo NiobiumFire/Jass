@@ -39,13 +39,15 @@ namespace BelotWebApp.Controllers
         [HttpGet("/Room/{roomId:guid}")]
         public ActionResult Index(string roomId)
         {
-            var gameContext = _roomRegistry.GetRoom(roomId);
-            if (gameContext == null)
+            var room = _roomRegistry.GetRoom(roomId);
+            if (room == null)
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewData["roomId"] = roomId;
+            ViewData["RoomId"] = roomId;
+            ViewData["AllowChat"] = room.Options.AllowChat;
+            ViewData["ScoreTarget"] = room.Options.ScoreTarget;
             return View("Room");
         }
 

@@ -3,16 +3,27 @@
 
 @functions {
     public string IsEmpty(string value) => value == "<empty>" ? "muted" : "";
+    public string HasStarted(bool hasStarted) => hasStarted ? "bi bi-play-circle" : "bi bi-hourglass-split muted2";
+    public string ChatAllowed(bool chatAllowed) => chatAllowed ? "bi bi-envelope-fill" : "bi bi-envelope-slash muted2";
 }
 
 @foreach (var room in Model)
 {
     <tr>
-        <td colspan="3">@(room.Started ? "Started" : "Not started")</td>
-        <td style="text-align: center">
-            <button class="w-100 bi bi-box-arrow-in-right py-1 px-1 btn2" onclick="window.location.href='@Url.Action("Index", "Room", new { id = room.RoomId })'">
-                @* <i class="bi bi-box-arrow-in-right"></i> *@
-            </button>
+        <td class="room-name" colspan="2">
+            @(room.RoomName)
+        </td>
+        <td colspan="1">
+            <span class="room-settings">
+                <span>@room.ScoreTarget</span>
+                <span class="divider-dot">•</span>
+                <i class="@ChatAllowed(room.AllowChat)"></i>
+                <span class="divider-dot">•</span>
+                <i class="@HasStarted(room.Started)" title="@(room.Started ? "Started" : "Not started")"></i>
+            </span>
+        </td>
+        <td colspan="1">
+            <button class="w-100 bi bi-box-arrow-in-right py-1 px-1 btn2" onclick="window.location.href='@Url.Action("Index", "Room", new { roomId = room.RoomId })'"></button>
         </td>
     </tr>
     <tr>
