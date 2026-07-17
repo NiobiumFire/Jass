@@ -103,9 +103,10 @@
     width: 100%;
     height: 100%;
     background: radial-gradient(circle at 50% 70%, var(--crystal-col-2) 2%, var(--crystal-col-1) 20%, var(--crystal-col-2) 100%);
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    clip-path: polygon(50% -3%, -3% 103%, 103% 103%);
     transform-origin: 50% 100%;
     transform: rotateX(-30deg);
+    opacity: 90%
 }
 
 .crystal-triangle-top {
@@ -125,9 +126,11 @@
     height: auto;
     background: radial-gradient(var(--crystal-col-2), 10%, var(--crystal-col-1), 90%, var(--crystal-col-2));
     transform: translate(-100%, -50%) rotateY(-90deg);
+    opacity: 90%
 }
 
 /* Animation */
+
 @keyframes crystal-rotation {
     0% {
         transform: rotateY(0deg);
