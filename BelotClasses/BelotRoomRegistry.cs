@@ -14,8 +14,8 @@ namespace BelotWebApp.BelotClasses
             {
                 return null;
             }
-            _rooms.TryGetValue(roomId, out var context);
-            return context;
+            _rooms.TryGetValue(roomId, out var room);
+            return room;
         }
 
         public void AddRoom(string roomId, BelotRoom room)
@@ -30,7 +30,7 @@ namespace BelotWebApp.BelotClasses
 
         public void RefreshObserver(string roomId, IHubCallerClients newClients)
         {
-            if (_rooms.TryGetValue(roomId, out var context) && context.Observer is LiveBelotObserver liveObserver)
+            if (_rooms.TryGetValue(roomId, out var room) && room.Observer is LiveBelotObserver liveObserver)
             {
                 liveObserver.UpdateClients(newClients);
             }
