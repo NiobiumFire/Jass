@@ -1,7 +1,9 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Cards;
+using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.BelotClasses.Turn;
+using BelotWebApp.BelotClasses.Users;
 
 namespace BelotWebApp.BelotClasses.Observers
 {
@@ -31,7 +33,7 @@ namespace BelotWebApp.BelotClasses.Observers
             var player = game.Players[game.Turn];
             var hand = game.Hand[game.Turn];
 
-            if (player.PlayerType == Players.PlayerType.Advanced)
+            if (player.PlayerType == PlayerType.Advanced)
             {
                 float[] output = player.Agent.PlayCard(game);
 
@@ -68,7 +70,7 @@ namespace BelotWebApp.BelotClasses.Observers
         }
 
 
-        public Task OnDeclaration(List<string> messages, List<string> emotes) => Task.CompletedTask;
+        public Task<List<string>> OnDeclaration(List<Declaration> declaredDeclarations) => Task.FromResult(new List<string>());
         public Task OnCardPlayEnd() => Task.CompletedTask;
         public Task OnHumanLastCard() => Task.CompletedTask;
         public Task OnTrickWinnerDetermined(int winner) => Task.CompletedTask;

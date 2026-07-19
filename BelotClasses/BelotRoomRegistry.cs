@@ -41,12 +41,12 @@ namespace BelotWebApp.BelotClasses
         public IEnumerable<BelotRoomRecord> GetRoomRecords() => _rooms.Values
             .Select(r => new BelotRoomRecord(r.RoomId,
                 r.RoomName,
-                r.Game.Players.Select((p, i) => p.Username != "" ? r.Game.GetDisplayName(i) : "<empty>").ToArray(),
+                r.Game.Players.Select(p => p == null ? "<empty>" : p.PlayerName).ToArray(),
                 !r.Game.IsNewGame,
                 r.Options.ScoreTarget,
                 r.Options.AllowChat));
 
-        public IEnumerable<BelotGame> GetAllGames() => _rooms.Values.Select(g => g.Game);
+        public IEnumerable<string> GetAllConnectedUsers() => _rooms.Values.SelectMany(r => r.ConnectedUsers).Select(u => u.Username);
 
         public bool GamesOngoing() => !_rooms.IsEmpty;
     }

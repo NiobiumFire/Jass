@@ -1,6 +1,6 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Observers;
-using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using System.Collections.Concurrent;
@@ -90,17 +90,17 @@ namespace BelotWebApp.BelotClasses.Training
 
         private (int, int, int) GetNNSize()
         {
-            var game = new BelotGame([new(), new(), new(), new()], _appPaths, _zipService, false);
+            var game = new BelotGame([new(0), new(1), new(2), new(3)], _appPaths, _zipService, false);
             int inputs = AgentAdvanced.BuildNNInputVector(game).Length;
             return (inputs, 128, 8);
         }
 
         private BelotGame CreateGame(AgentAdvanced agent)
         {
-            var game = new BelotGame([new(), new(), new(), new()], _appPaths, _zipService, false);
+            var game = new BelotGame([new(0), new(1), new(2), new(3)], _appPaths, _zipService, false);
 
-            Player agentPlayer = new() { PlayerType = PlayerType.Advanced, Agent = agent };
-            Player[] players = [agentPlayer, new("bot2", "", PlayerType.Basic), new("bot3", "", PlayerType.Basic), new("bot4", "", PlayerType.Basic)];
+            Player agentPlayer = new(0) { PlayerType = PlayerType.Advanced, Agent = agent };
+            Player[] players = [agentPlayer, new(1), new(2), new(3)];
 
             game.Players = players;
 

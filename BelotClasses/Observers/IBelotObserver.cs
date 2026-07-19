@@ -1,4 +1,5 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
+using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Turn;
 
 namespace BelotWebApp.BelotClasses.Observers
@@ -15,7 +16,7 @@ namespace BelotWebApp.BelotClasses.Observers
         Task OnCallDecided();
         Task OnPendingCardPlay(int[] validCards);
         Card OnBotSelectCard(BelotGame game, int[] validCards);
-        Task OnDeclaration(List<string> messages, List<string> emotes);
+        Task<List<string>> OnDeclaration(List<Declaration> declaredDeclarations);
         Task OnCardPlayEnd();
         Task OnHumanLastCard();
         Task OnTrickWinnerDetermined(int winner);

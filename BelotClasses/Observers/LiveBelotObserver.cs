@@ -1,24 +1,25 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Cards;
-using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.BelotClasses.Turn;
 using Microsoft.AspNetCore.SignalR;
+using BelotWebApp.BelotClasses.Declarations;
 
 namespace BelotWebApp.BelotClasses.Observers
 {
     public class LiveBelotObserver : IBelotObserver
     {
-        private string _roomId;
+        private readonly BelotRoom _room;
         private readonly BelotGame _game;
         private IHubCallerClients _clients;
         private IClientProxy _group;
         private readonly object _lock = new();
         public RoundSummaryGate RoundSummaryGate = new();
 
-        public LiveBelotObserver(string roomId, BelotGame game, IHubCallerClients clients)
+        public LiveBelotObserver(BelotRoom room, IHubCallerClients clients)
         {
-            _roomId = roomId;
-            _game = game;
+            _room = room;
+            _game = room.Game;
             UpdateClients(clients);
         }
 
@@ -27,7 +28,7 @@ namespace BelotWebApp.BelotClasses.Observers
             lock (_lock)
             {
                 _clients = clients;
-                _group = clients.Group(_roomId);
+                _group = clients.Group(_room.RoomId);
             }
         }
 
@@ -46,6 +47,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnNewGame()
         {
+            _game.AddInitialState(Enumerable.Range(0, 4).Select(_room.GetDisplayName).ToArray());
             await _group.SendAsync("HideDeck", true).ConfigureAwait(false);
             await _group.SendAsync("DisableNewGame").ConfigureAwait(false);
             await _group.SendAsync("CloseModalsAndButtons").ConfigureAwait(false);
@@ -61,16 +63,22 @@ namespace BelotWebApp.BelotClasses.Observers
             await _group.SendAsync("NewRound").ConfigureAwait(false); // reset table, reset board, disable cards, reset suit selection 
 
             var player = _game.Players[_game.Turn];
-
-            var clients = GetClients();
-
-            if (player.PlayerType == PlayerType.Human)
+            if (player != null)
             {
-                await clients.Client(player.ConnectionId).SendAsync("EnableDealBtn").ConfigureAwait(false);
-            }
-            else
-            {
-                await Task.Delay(_game.BotDelay).ConfigureAwait(false);
+                var clients = GetClients();
+
+                if (player.PlayerType == PlayerType.Human)
+                {
+                    var user = _room.GetUserBySeat(_game.Turn);
+                    if (user != null)
+                    {
+                        await clients.Client(user.ConnectionId).SendAsync("EnableDealBtn").ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    await Task.Delay(_game.BotDelay).ConfigureAwait(false);
+                }
             }
         }
 
@@ -80,11 +88,14 @@ namespace BelotWebApp.BelotClasses.Observers
 
             for (int i = 0; i < 4; i++)
             {
-                var player = _game.Players[i];
-                if (player.PlayerType == PlayerType.Human)
+                if (_game.Players[i]?.PlayerType == PlayerType.Human)
                 {
-                    await clients.Client(player.ConnectionId).SendAsync("Deal", _game.Hand[i]).ConfigureAwait(false);
-                    await clients.Client(player.ConnectionId).SendAsync("RotateCards").ConfigureAwait(false);
+                    var user = _room.GetUserBySeat(i);
+                    if (user != null)
+                    {
+                        await clients.Client(user.ConnectionId).SendAsync("Deal", _game.Hand[i]).ConfigureAwait(false);
+                        await clients.Client(user.ConnectionId).SendAsync("RotateCards").ConfigureAwait(false);
+                    }
                 }
             }
         }
@@ -93,8 +104,12 @@ namespace BelotWebApp.BelotClasses.Observers
         {
             bool fiveUnderNine = _game.Calls.Count < 4 && BelotHelpers.FiveUnderNine(_game.Hand[_game.Turn]);
 
-            var clients = GetClients();
-            await clients.Client(_game.Players[_game.Turn].ConnectionId).SendAsync("ShowSuitModal", validCalls, fiveUnderNine).ConfigureAwait(false);
+            var user = _room.GetUserBySeat(_game.Turn);
+            if (user != null)
+            {
+                var clients = GetClients();
+                await clients.Client(user.ConnectionId).SendAsync("ShowSuitModal", validCalls, fiveUnderNine).ConfigureAwait(false);
+            }
         }
 
         public async Task OnSuitNomination()
@@ -116,17 +131,21 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnPendingCardPlay(int[] validCards)
         {
-            var clients = GetClients();
-
-            if (_game.TableCards.All(c => c.IsNull()))
+            var user = _room.GetUserBySeat(_game.Turn);
+            if (user != null)
             {
-                if (_game.GetWinners(_game.Turn).Count(w => w == 2) == _game.Hand[_game.Turn].Count(c => !c.Played) && _game.NumCardsPlayed > 3)
+                var clients = GetClients();
+
+                if (_game.TableCards.All(c => c.IsNull()))
                 {
-                    await clients.Client(_game.Players[_game.Turn].ConnectionId).SendAsync("ShowThrowBtn").ConfigureAwait(false);
+                    if (_game.GetWinners(_game.Turn).Count(w => w == 2) == _game.Hand[_game.Turn].Count(c => !c.Played) && _game.NumCardsPlayed > 3)
+                    {
+                        await clients.Client(user.ConnectionId).SendAsync("ShowThrowBtn").ConfigureAwait(false);
+                    }
                 }
+                await clients.Client(user.ConnectionId).SendAsync("EnableCards", validCards).ConfigureAwait(false);
+                // once a card is clicked, declarable extras are calculated in hub method, human selects and declares extras, then the card is played and game loop reinitiates
             }
-            await clients.Client(_game.Players[_game.Turn].ConnectionId).SendAsync("EnableCards", validCards).ConfigureAwait(false);
-            // once a card is clicked, declarable extras are calculated in hub method, human selects and declares extras, then the card is played and game loop reinitiates
         }
 
         public Card OnBotSelectCard(BelotGame game, int[] validCards)
@@ -137,8 +156,10 @@ namespace BelotWebApp.BelotClasses.Observers
             //}
         }
 
-        public async Task OnDeclaration(List<string> messages, List<string> emotes)
+        public async Task<List<string>> OnDeclaration(List<Declaration> declaredDeclarations)
         {
+            var (messages, emotes) = BelotHelpers.GetDeclarationMessagesAndEmotes(declaredDeclarations, _room);
+
             foreach (var message in messages)
             {
                 await SysAnnounce(message).ConfigureAwait(false);
@@ -147,9 +168,11 @@ namespace BelotWebApp.BelotClasses.Observers
             if (emotes.Count > 0)
             {
                 var clients = GetClients();
-                await clients.Group(_roomId).SendAsync("SetExtrasEmote", emotes, _game.Turn).ConfigureAwait(false);
+                await clients.Group(_room.RoomId).SendAsync("SetExtrasEmote", emotes, _game.Turn).ConfigureAwait(false);
                 await Emote(_game.Turn, _game.BotDelay).ConfigureAwait(false);
             }
+
+            return emotes;
         }
 
         public async Task OnCardPlayEnd()
@@ -160,9 +183,13 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnHumanLastCard()
         {
-            var clients = GetClients();
+            var user = _room.GetUserBySeat(_game.Turn);
+            if (user != null)
+            {
+                var clients = GetClients();
 
-            await clients.Client(_game.Players[_game.Turn].ConnectionId).SendAsync("PlayFinalCard").ConfigureAwait(false);
+                await clients.Client(user.ConnectionId).SendAsync("PlayFinalCard").ConfigureAwait(false);
+            }
         }
 
         public async Task OnTrickWinnerDetermined(int winner)
@@ -207,8 +234,8 @@ namespace BelotWebApp.BelotClasses.Observers
             await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal).ConfigureAwait(false);
             await _group.SendAsync("UpdateScoreHistoryTable").ConfigureAwait(false);
 
-            var requiredContinueVotes = _game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected);
-            if (requiredContinueVotes + _game.Spectators.Count() > 0)
+            var requiredContinueVotes = _game.Players.Count(p => p?.PlayerType == PlayerType.Human && !p.IsDisconnected);
+            if (_room.ConnectedUsers.Count > 0)
             {
                 var token = RoundSummaryGate.BeginRoundSummary(requiredContinueVotes);
 
@@ -220,11 +247,12 @@ namespace BelotWebApp.BelotClasses.Observers
                 RoundSummaryGate.ContinueVotesUpdated += ContinueVotesUpdated;
                 try
                 {
-                    foreach (var player in _game.Players.Where(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected)) // can vote to continue
+                    var (spectators, players) = _room.GetSpectatorsAndConnectedHumanPlayers();
+                    foreach (var player in players) // can vote to continue
                     {
                         await _clients.Client(player.ConnectionId).SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints, token, RoundSummaryGate.RoundSummaryDelay, requiredContinueVotes, false).ConfigureAwait(false);
                     }
-                    foreach (var spectator in _game.Spectators) // cannot vote to continue
+                    foreach (var spectator in spectators) // cannot vote to continue
                     {
                         await _clients.Client(spectator.ConnectionId).SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints, token, RoundSummaryGate.RoundSummaryDelay, requiredContinueVotes, true).ConfigureAwait(false);
                     }
@@ -255,7 +283,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task AnnounceSuit()
         {
-            string username = GetDisplayName();
+            string username = _room.GetDisplayName(_game.Turn);
 
             string message = username;
 
@@ -298,25 +326,6 @@ namespace BelotWebApp.BelotClasses.Observers
             await _group.SendAsync("ShowEmote", seat).ConfigureAwait(false);
             await Task.Delay(duration).ConfigureAwait(false);
             await _group.SendAsync("HideEmote", seat).ConfigureAwait(false);
-        }
-
-        private string GetDisplayName()
-        {
-            var player = _game.Players[_game.Turn];
-            if (player.PlayerType == PlayerType.Human)
-            {
-                return player.Username;
-            }
-            else
-            {
-                return GetBotName(_game.Turn);
-            }
-        }
-
-        private static string GetBotName(int pos)
-        {
-            string[] seat = ["West", "North", "East", "South"];
-            return $"Robot {seat[pos]}";
         }
     }
 }

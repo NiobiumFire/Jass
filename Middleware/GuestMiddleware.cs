@@ -11,10 +11,10 @@ namespace BelotWebApp.Middleware
         private readonly BelotRoomRegistry _roomRegistry;
         private readonly IDataProtector _protector;
 
-        public GuestMiddleware(RequestDelegate next, BelotRoomRegistry gameRegistry, IDataProtectionProvider provider)
+        public GuestMiddleware(RequestDelegate next, BelotRoomRegistry roomRegistry, IDataProtectionProvider provider)
         {
             _next = next;
-            _roomRegistry = gameRegistry;
+            _roomRegistry = roomRegistry;
             _protector = provider.CreateProtector("GuestCookieProtector"); ;
         }
 
@@ -61,6 +61,7 @@ namespace BelotWebApp.Middleware
             // Assign a claims principal
             var claims = new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Name, guestUsername)
             };
             var identity = new ClaimsIdentity(claims);
@@ -73,9 +74,7 @@ namespace BelotWebApp.Middleware
         {
             var random = new Random();
 
-            var games = _roomRegistry.GetAllGames();
-            var players = games.SelectMany(g => g.Players).Select(p => p.Username).ToHashSet();
-            var spectators = games.SelectMany(g => g.Spectators).Select(p => p.Username).ToHashSet();
+            var allUsers = _roomRegistry.GetAllConnectedUsers().ToHashSet();
 
             int attempts = 0;
 
@@ -88,9 +87,9 @@ namespace BelotWebApp.Middleware
                     return string.Concat("Guest ", Guid.NewGuid().ToString("N").AsSpan(0, 8));
                 }
 
-                username = $"Guest {Random.Shared.Next(1000, 9999)}";
+                username = $"Guest {Random.Shared.Next(1000, 10000)}";
             }
-            while (players.Contains(username) || spectators.Contains(username));
+            while (allUsers.Contains(username));
 
             return username;
         }

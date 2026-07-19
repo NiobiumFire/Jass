@@ -1,6 +1,6 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
-using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.BelotClasses.Replays;
 using BelotWebApp.BelotClasses.Turn;
 using BelotWebApp.Configuration;
@@ -17,7 +17,16 @@ namespace BelotWebApp.BelotClasses
         {
             IsRunning = true;
             Players = players;
-            Spectators = [];
+            RecordReplay = recordReplay;
+            _appPaths = appPaths;
+            _zipService = zipService;
+            _scoreTarget = scoreTarget;
+        }
+
+        public BelotGame(IAppPaths appPaths, IZipService zipService, bool recordReplay, int scoreTarget = 1501)
+        {
+            IsRunning = true;
+            Players = [null, null, null, null];
             RecordReplay = recordReplay;
             _appPaths = appPaths;
             _zipService = zipService;
@@ -29,8 +38,7 @@ namespace BelotWebApp.BelotClasses
         private readonly IZipService _zipService;
 
         public string GameId { get; set; } = "";
-        public Player[] Players { get; set; }
-        public List<Spectator> Spectators { get; set; }
+        public Player?[] Players { get; set; } = [null, null, null, null];
         public List<Card> Deck { get; set; }
         public List<Card>[] Hand { get; set; }
         public int CardsDealt { get; set; }
@@ -94,7 +102,6 @@ namespace BelotWebApp.BelotClasses
             if (RecordReplay)
             {
                 SetLogger();
-                AddInitialState();
             }
         }
 
@@ -234,7 +241,7 @@ namespace BelotWebApp.BelotClasses
 
                     diff.SetRoundCall(ReplayState, Call.NoCall);
 
-                    if (NSTotal != ReplayState.Scores[0] || EWTotal != ReplayState.Scores[1])
+                    if (NSTotal != ReplayState.Scores?[0] || EWTotal != ReplayState.Scores[1])
                     {
                         diff.Before.Scores = ReplayState.Scores;
                         diff.After.Scores = [NSTotal, EWTotal];
@@ -926,24 +933,6 @@ namespace BelotWebApp.BelotClasses
             return String.Join(" ", message) + ".";
         }
 
-        public string GetBotName(int pos)
-        {
-            string[] seat = { "West", "North", "East", "South" };
-            return "Robot " + seat[pos];
-        }
-
-        public string GetDisplayName(int pos)
-        {
-            if (Players[pos].PlayerType == PlayerType.Human)
-            {
-                return Players[pos].Username;
-            }
-            else
-            {
-                return GetBotName(pos);
-            }
-        }
-
         public TurnActionType? GetCurrentTurnActionType()
         {
             if (IsNewGame)
@@ -973,13 +962,13 @@ namespace BelotWebApp.BelotClasses
             File.Create(logPath).Close();
         }
 
-        public void AddInitialState()
+        public void AddInitialState(string[] usernames)
         {
             var logPath = Path.Combine(_appPaths.LogFolder, GameId + ".txt");
 
             ReplayState = new()
             {
-                Players = Enumerable.Range(0, 4).Select(GetDisplayName).ToArray(),
+                Players = usernames,
                 Scores = [EWTotal, NSTotal],
                 Dealer = FirstPlayer,
                 RoundCall = Call.NoCall,

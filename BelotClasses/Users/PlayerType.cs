@@ -1,4 +1,4 @@
-﻿namespace BelotWebApp.BelotClasses.Players
+﻿namespace BelotWebApp.BelotClasses.Users
 {
     public enum PlayerType
     {

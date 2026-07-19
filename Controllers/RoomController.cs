@@ -3,6 +3,7 @@ using BelotWebApp.Models;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BelotWebApp.Controllers
 {
@@ -30,7 +31,7 @@ namespace BelotWebApp.Controllers
             }
 
             string roomId = Guid.NewGuid().ToString();
-            var game = new BelotGame([new(), new(), new(), new()], _appPaths, _zipService, true, options.ScoreTarget);
+            var game = new BelotGame(_appPaths, _zipService, true, options.ScoreTarget);
             _roomRegistry.AddRoom(roomId, new(roomId, game, null, options));
             return RedirectToAction("Index", new { roomId });
         }
@@ -54,28 +55,26 @@ namespace BelotWebApp.Controllers
         [HttpGet("/Room/PopulateScoreHistoryPartial")]
         public IActionResult PopulateScoreHistoryPartial(string id)
         {
-            var username = User?.Identity?.Name;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (username == null)
+            if (userId == null)
             {
                 return Unauthorized();
             }
 
-            var gameContext = _roomRegistry.GetRoom(id);
+            var room = _roomRegistry.GetRoom(id);
 
-            if (gameContext == null)
+            if (room == null)
             {
                 return NotFound();
             }
 
-            var game = gameContext.Game;
-
-            if (!game.Players.Any(p => p.Username == username) && !game.Spectators.Any(p => p.Username == username))
+            if (!room.ConnectedUsers.Any(u => u.UserId == userId))
             {
                 return Unauthorized();
             }
 
-            return PartialView("_ScoreHistoryTable", game.ScoreHistory);
+            return PartialView("_ScoreHistoryTable", room.Game.ScoreHistory);
         }
     }
 }

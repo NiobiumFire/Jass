@@ -112,25 +112,27 @@ namespace BelotWebApp.BelotClasses
             return hand.Count(c => c.Rank < Rank.Nine) == 5;
         }
 
-        public static (List<string>, List<string>) GetDeclarationMessagesAndEmotes(List<Declaration> declarations, BelotGame game)
+        public static (List<string>, List<string>) GetDeclarationMessagesAndEmotes(List<Declaration> declarations, BelotRoom room)
         {
             List<string> messages = [];
             List<string> emotes = [];
 
+            var username = room.GetDisplayName(room.Game.Turn);
+
             foreach (var declaration in declarations.OfType<Belot>())
             {
-                messages.Add(game.GetDisplayName(game.Turn) + " called a Belot.");
+                messages.Add(username + " called a Belot.");
                 emotes.Add("Belot");
             }
             foreach (var declaration in declarations.OfType<Carre>())
             {
-                messages.Add(game.GetDisplayName(game.Turn) + " called a Carre.");
+                messages.Add(username + " called a Carre.");
                 emotes.Add("Carre");
             }
             foreach (var declaration in declarations.OfType<Run>())
             {
                 string runName = GetRunNameFromLength(declaration.Length);
-                messages.Add(game.GetDisplayName(game.Turn) + " called a " + runName + ".");
+                messages.Add(username + " called a " + runName + ".");
                 emotes.Add(runName);
             }
 

@@ -1,11 +1,13 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Observers;
-using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.Services.AppPathService;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using Serilog.Context;
+using System.Collections.Concurrent;
+using System.Security.Claims;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -13,9 +15,7 @@ namespace BelotWebApp.BelotClasses
     {
         private readonly BelotRoomRegistry _roomRegistry;
 
-        public static Dictionary<string, string> allConnections = []; // connectionId, roomId
-
-        public static readonly string botGUID = "7eae0694-38c9-48c0-9016-40e7d9ab962c";
+        private static ConcurrentDictionary<string, string> allConnections = []; // connectionId, roomId
 
         public static Serilog.Core.Logger log;// = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 
@@ -37,11 +37,6 @@ namespace BelotWebApp.BelotClasses
             return LogContext.PushProperty("RoomId", room?.RoomId ?? "Unknown");
         }
 
-        private static IDisposable BeginRoomLogScope(string roomId)
-        {
-            return LogContext.PushProperty("RoomId", roomId);
-        }
-
         #region Game Loop Continuation
 
         public Task HubGameController() // called by client
@@ -60,13 +55,13 @@ namespace BelotWebApp.BelotClasses
                 return Task.CompletedTask;
             }
 
-            if (!game.Players.All(p => p.Username != ""))
+            if (game.Players.Any(p => p == null))
             {
                 log?.Warning("[HubGameController] Game does not have 4 players");
                 return Task.CompletedTask;
             }
 
-            if (game.Players.Any(p => p.PlayerType == PlayerType.Human) && game.Spectators.Any(s => s.Username == GetCallerUsername()))
+            if (game.Players.Any(p => p != null && p.PlayerType == PlayerType.Human) && room.GetPlayerById(GetCallerUserId()) == null)
             {
                 log?.Warning("[HubGameController] Game start not called by valid player");
                 return Task.CompletedTask;
@@ -219,11 +214,12 @@ namespace BelotWebApp.BelotClasses
             if (game.RoundCall != Call.NoTrumps)
             {
                 var declaredDeclarations = game.DeclareDeclarations(validDeclarations);
-                (messages, emotes) = BelotHelpers.GetDeclarationMessagesAndEmotes(declaredDeclarations, game);
+
 
                 if (room.Observer is LiveBelotObserver live)
                 {
-                    await live.OnDeclaration(messages, emotes);
+                    //await live.OnDeclaration(messages, emotes);
+                    await live.OnDeclaration(declaredDeclarations);
                 }
             }
 
@@ -292,7 +288,7 @@ namespace BelotWebApp.BelotClasses
             game.NumCardsPlayed = 32;
             game.WaitCard = false;
 
-            await group.SendAsync("ThrowCards", GetDisplayName(game), game.Hand);
+            await group.SendAsync("ThrowCards", room.GetDisplayName(game.Turn), game.Hand);
             await Task.Delay(5000);
             await group.SendAsync("CloseThrowModal");
 
@@ -332,13 +328,13 @@ namespace BelotWebApp.BelotClasses
             var game = room.Game;
             var clients = Clients;
 
-            string requestor = GetCallerUsername();
+            string requestorId = GetCallerUserId();
 
             var players = game.Players;
 
-            bool occupiedByHuman = players[position].PlayerType == PlayerType.Human;
-            bool occupiedByBot = !string.IsNullOrEmpty(players[position].Username) && players[position].PlayerType != PlayerType.Human;
-            bool isMe = players[position].Username == requestor;
+            bool occupiedByHuman = players[position]?.PlayerType == PlayerType.Human;
+            bool occupiedByBot = players[position] != null && players[position]?.PlayerType != PlayerType.Human;
+            bool isMe = room.Game.Players[position]?.PlayerId == requestorId;
 
             var actions = new
             {
@@ -360,6 +356,12 @@ namespace BelotWebApp.BelotClasses
 
             log?.Information("[HubBookSeat] enter");
 
+            if (position is < 0 or > 8)
+            {
+                log?.Warning("[HubBookSeat] invalid position {position}", position);
+                return;
+            }
+
             if (room?.Game == null || room.Observer == null)
             {
                 log?.Warning("[HubBookSeat] Room/Game/Observer was null");
@@ -370,109 +372,88 @@ namespace BelotWebApp.BelotClasses
             var clients = Clients;
             var group = Clients.Group(room.RoomId);
 
-            string[] seats = ["West", "North", "East", "South"];
-
-            string requestor = GetCallerUsername();
+            string requestorId = GetCallerUserId();
+            string requestorUsername = GetCallerUsername();
 
             if (position != 8)
             {
-                string occupier;
-                if (position > 3)
-                {
-                    occupier = game.Players[position - 4].Username;
-                }
-                else
-                {
-                    occupier = game.Players[position].Username;
-                }
+                string? occupierId = game.Players[position % 4]?.PlayerId;
 
-                var isBot = occupier == botGUID;
-                var isEmpty = string.IsNullOrEmpty(occupier);
-                var isSelf = occupier == requestor;
+                var isBot = occupierId == Player._botGUID;
+                var isEmpty = string.IsNullOrEmpty(occupierId);
+                var isSelf = occupierId == requestorId;
 
                 if ((isEmpty || isBot) && position < 4) // empty seat or bot-occupied requested by human
                 {
-                    await UnbookSeat(room.RoomId, game, clients, false);
-                    var spectator = game.Spectators.FirstOrDefault(s => s.Username == requestor);
-                    if (spectator != null)
-                    {
-                        game.Spectators.Remove(spectator);
-                    }
-                    game.Players[position] = new Player(requestor, Context.ConnectionId, PlayerType.Human);
-                    await UpdateConnectedUsers(room.RoomId, game, clients);
-                    await clients.OthersInGroup(room.RoomId).SendAsync("seatBooked", position, requestor, false);
-                    await clients.Caller.SendAsync("seatBooked", position, requestor, true);
+                    await UnbookSeat(room, clients, false);
+                    game.Players[position] = new(requestorId, requestorUsername, PlayerType.Human);
+                    await UpdateConnectedUsers(room, clients);
+                    await clients.OthersInGroup(room.RoomId).SendAsync("seatBooked", position, requestorUsername, false);
+                    await clients.Caller.SendAsync("seatBooked", position, requestorUsername, true);
                     string[] scoreSummary = ["Us", "Them"];
                     await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(position + 1) % 2], scoreSummary[position % 2]);
 
                     await group.SendAsync("SetBotBadge", position, false);
                 }
-                else if (isEmpty && position > 3) // empty seat requested by bot
+                else if (isEmpty && position > 3) // empty seat requested for bot
                 {
                     position -= 4;
-                    string botName = GetBotName(position);
-                    game.Players[position] = new Player(botGUID, "", PlayerType.Basic);
-                    await UpdateConnectedUsers(room.RoomId, game, clients);
-                    await group.SendAsync("SeatBooked", position, botName, false);
+                    game.Players[position] = new Player(position);
+                    await UpdateConnectedUsers(room, clients);
+                    await group.SendAsync("SeatBooked", position, game.Players[position]!.PlayerName, false);
                     await group.SendAsync("SetBotBadge", position, true);
                 }
-                // if bot occupied seat requested by bot -> do nothing
+                // if bot-occupied seat requested for bot -> do nothing
                 else if (isSelf && position > 3) // human assigns bot to his own occupied seat
                 {
                     position -= 4;
-                    string botName = GetBotName(position);
-                    await UnbookSeat(room.RoomId, game, clients, true);
-                    game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
-                    game.Players[position] = new Player(botGUID, "", PlayerType.Basic);
-                    await UpdateConnectedUsers(room.RoomId, game, clients);
-                    await group.SendAsync("SeatBooked", position, botName, false);
+                    await UnbookSeat(room, clients, true);
+                    game.Players[position] = new Player(position);
+                    await UpdateConnectedUsers(room, clients);
+                    await group.SendAsync("SeatBooked", position, game.Players[position]!.PlayerName, false);
                     await group.SendAsync("SetBotBadge", position, true);
                 }
                 // if human tries to occupy his own seat, do nothing
                 // human-occupied seat is requested by another human or by a bot on behalf of another human
 
-                await EnableGameStart(game, clients, group);
+                await EnableGameStart(room, clients, group);
             }
             else // vacate and become spectator
             {
-                if (!game.Spectators.Any(s => s.Username == requestor))
-                {
-                    await UnbookSeat(room.RoomId, game, clients, true);
-                    game.Spectators.Add(new Spectator(requestor, Context.ConnectionId));
-                    await UpdateConnectedUsers(room.RoomId, game, clients);
-                }
+                await UnbookSeat(room, clients, true);
             }
 
             log?.Information("[HubBookSeat] exit");
         }
 
-        private async Task UnbookSeat(string roomId, BelotGame game, IHubCallerClients clients, bool resetSeatOrientations)
+        private async Task UnbookSeat(BelotRoom room, IHubCallerClients clients, bool resetSeatOrientations) // only for players: we cannot unbook a bot directly but we can take their seat
         {
-            using var logScope = BeginRoomLogScope(roomId);
+            using var logScope = BeginRoomLogScope(room);
 
             log?.Information("[UnbookSeat] enter");
-            var group = clients.Group(roomId);
-            string username = GetCallerUsername();
 
-            var player = game.Players.FirstOrDefault(s => s.Username == username);
-            if (player != null)
+            string userId = GetCallerUserId();
+            var player = room.GetPlayerById(userId);
+            if (player != null) //unbook only if I was booked
             {
-                int position = Array.IndexOf(game.Players, player);
-                if (game.IsNewGame)
+                var group = clients.Group(room.RoomId);
+
+                var position = Array.IndexOf(room.Game.Players, player);
+                if (room.Game.IsNewGame)
                 {
                     await group.SendAsync("DisableNewGame");
-                    game.Players[position] = new();
+                    room.Game.Players[position] = null;
                 }
                 else
                 {
                     player.IsDisconnected = true;
                 }
-                await clients.Caller.SendAsync("SetScoreTitles", "N /S", "E/W");
+                await clients.Caller.SendAsync("SetScoreTitles", "N/S", "E/W");
                 await clients.Caller.SendAsync("SeatUnbooked", position, resetSeatOrientations);
-                await clients.OthersInGroup(roomId).SendAsync("SeatUnbooked", position, false);
+                await clients.OthersInGroup(room.RoomId).SendAsync("SeatUnbooked", position, false);
+                await UpdateConnectedUsers(room, clients);
             }
 
-            await UpdateConnectedUsers(roomId, game, clients);
             log?.Information("[UnbookSeat] exit");
         }
 
@@ -531,9 +512,9 @@ namespace BelotWebApp.BelotClasses
                 return Task.CompletedTask;
             }
 
-            var username = GetCallerUsername();
+            var userId = GetCallerUserId();
 
-            if (room.Game.Players.Any(p => p.Username == username) && room.Observer is LiveBelotObserver live)
+            if (room.Game.Players.Any(p => p?.PlayerId == userId) && room.Observer is LiveBelotObserver live)
             {
                 live.RoundSummaryGate.RegisterContinueVote(GetCallerUsername(), roundToken);
             }
@@ -553,27 +534,14 @@ namespace BelotWebApp.BelotClasses
             return DateTime.Now.ToString("HH:mm");
         }
 
+        public string GetCallerUserId()
+        {
+            return Context.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Unknown Entity";
+        }
+
         public string GetCallerUsername()
         {
             return Context.User?.Identity?.Name ?? "Unknown Entity";
-        }
-
-        private static string GetBotName(int pos)
-        {
-            string[] seat = { "West", "North", "East", "South" };
-            return "Robot " + seat[pos];
-        }
-
-        private static string GetDisplayName(BelotGame game)
-        {
-            if (game.Players[game.Turn].PlayerType == PlayerType.Human)
-            {
-                return game.Players[game.Turn].Username;
-            }
-            else
-            {
-                return GetBotName(game.Turn);
-            }
         }
 
         private BelotRoom? GetRoom()
@@ -589,38 +557,48 @@ namespace BelotWebApp.BelotClasses
 
         #region Connection
 
-        private static async Task UpdateConnectedUsers(string roomId, BelotGame game, IHubCallerClients clients)
+        private static async Task UpdateConnectedUsers(BelotRoom room, IHubCallerClients clients)
         {
-            string[] playerNames = game.Players.Where(d => !d.IsDisconnected && d.Username != "" && d.Username != botGUID).Select(s => s.Username).ToArray();
-            Array.Sort(playerNames);
-            string[] specNames = game.Spectators.Select(s => s.Username).ToArray();
-            Array.Sort(specNames);
-            await clients.Group(roomId).SendAsync("ConnectedUsers", playerNames, specNames);
+            var (spectators, players) = room.GetSpectatorsAndConnectedHumanPlayers();
+            var spectatorNames = spectators.Select(u => u.Username).OrderBy(u => u).ToArray();
+            var playerNames = players.Select(u => u.Username).OrderBy(u => u).ToArray();
+            await clients.Group(room.RoomId).SendAsync("ConnectedUsers", playerNames, spectatorNames);
         }
 
-        private async Task LoadContext(string roomId, BelotGame game, IHubCallerClients clients)
+        private async Task LoadContext(BelotRoom room, IHubCallerClients clients)
         {
+            var game = room.Game;
+            var user = room.GetUserById(GetCallerUserId());
+
+            if (game.Players == null || user == null)
+            {
+                return;
+            }
+
             await clients.Caller.SendAsync("SetGameId", game.GameId);
 
             for (int i = 0; i < 4; i++)
             {
                 // Update table seats
-                if (game.Players[i].PlayerType == PlayerType.Human && !game.Players[i].IsDisconnected)
+                var player_i = game.Players[i];
+                if (player_i != null)
                 {
-                    if (game.Players[i].Username == Context?.User?.Identity?.Name)
+                    if (player_i.PlayerType != PlayerType.Human)
                     {
-                        await clients.Caller.SendAsync("SeatBooked", i, game.Players[i].Username, true);
+                        await clients.Caller.SendAsync("SeatBooked", i, player_i.PlayerName, false);
+                        await clients.Caller.SendAsync("SetBotBadge", i, true);
                     }
-                    else
+                    else if (!player_i.IsDisconnected)
                     {
-                        await clients.Caller.SendAsync("SeatBooked", i, game.Players[i].Username, false);
+                        if (player_i.PlayerName == GetCallerUsername())
+                        {
+                            await clients.Caller.SendAsync("SeatBooked", i, player_i.PlayerName, true);
+                        }
+                        else
+                        {
+                            await clients.Caller.SendAsync("SeatBooked", i, player_i.PlayerName, false);
+                        }
                     }
-                }
-                else if (game.Players[i].Username == botGUID)
-                {
-                    string[] seat = ["West", "North", "East", "South"];
-                    await clients.Caller.SendAsync("SeatBooked", i, GetBotName(i), false);
-                    await clients.Caller.SendAsync("SetBotBadge", i, true);
                 }
 
                 // Update table cards
@@ -630,13 +608,14 @@ namespace BelotWebApp.BelotClasses
                 }
             }
 
-            bool playerIsInGame = game.Players.Any(u => u.Username == GetCallerUsername());
+            var player = room.GetPlayerById(user.UserId);
+            bool userIsPlayer = player != null;
             int pos = -1;
 
-            if (playerIsInGame)
+            if (userIsPlayer)
             {
                 string[] scoreSummary = ["Us", "Them"];
-                pos = Array.IndexOf(game.Players, game.Players.FirstOrDefault(p => p.Username == GetCallerUsername()));
+                pos = Array.IndexOf(room.Game.Players, player);
                 await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(pos + 1) % 2], scoreSummary[pos % 2]);
             }
 
@@ -670,7 +649,7 @@ namespace BelotWebApp.BelotClasses
                 }
 
                 // if the connecting user is a player
-                if (playerIsInGame)
+                if (userIsPlayer)
                 {
                     await clients.Caller.SendAsync("Deal", game.Hand[pos]);
 
@@ -712,28 +691,29 @@ namespace BelotWebApp.BelotClasses
             }
             else
             {
-                await EnableGameStart(game, clients, Clients.Group(roomId));
+                await EnableGameStart(room, clients, Clients.Group(room.RoomId));
             }
         }
 
-        private static async Task EnableGameStart(BelotGame game, IHubCallerClients clients, IClientProxy group)
+        private static async Task EnableGameStart(BelotRoom room, IHubCallerClients clients, IClientProxy group)
         {
-            if (!game.Players.All(p => p.Username != ""))
+            if (room.Game.Players.Any(p => p == null))
             {
                 return;
             }
 
-            if (game.Players.All(p => p.PlayerType != PlayerType.Human))
+            if (room.Game.Players.All(p => p!.PlayerType != PlayerType.Human))
             {
                 await group.SendAsync("EnableNewGame");
             }
             else
             {
-                foreach (var spectator in game.Spectators)
+                var (spectators, players) = room.GetSpectatorsAndConnectedHumanPlayers();
+                foreach (var spectator in spectators)
                 {
                     await clients.Client(spectator.ConnectionId).SendAsync("DisableNewGame");
                 }
-                foreach (var player in game.Players.Where(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected))
+                foreach (var player in players)
                 {
                     await clients.Client(player.ConnectionId).SendAsync("EnableNewGame");
                 }
@@ -748,7 +728,7 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
-            allConnections.Add(Context.ConnectionId, roomId);
+            allConnections.TryAdd(Context.ConnectionId, roomId);
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
             var clients = Clients;
 
@@ -766,7 +746,7 @@ namespace BelotWebApp.BelotClasses
 
             if (room.Observer == null)
             {
-                room.Observer = new LiveBelotObserver(room.RoomId, room.Game, Clients);
+                room.Observer = new LiveBelotObserver(room, Clients);
             }
             else
             {
@@ -775,29 +755,40 @@ namespace BelotWebApp.BelotClasses
 
             BelotGame game = room.Game;
 
+            string connectionType;
+
+            string userId = GetCallerUserId();
             string username = GetCallerUsername();
-            var player = game.Players?.FirstOrDefault(p => p.Username == username);
-            if (player == null)
+            var user = room.GetUserById(userId); // check for a user reconnecting from a quick page refresh
+            if (user != null)
             {
-                game.Spectators.Add(new Spectator(username, Context.ConnectionId));
+                user.ConnectionId = Context.ConnectionId;
+                user.Username = username;
+                connectionType = "reconnected";
             }
             else
             {
-                player.ConnectionId = Context.ConnectionId;
-                player.IsDisconnected = false;
-                int pos = Array.IndexOf(game.Players!, player);
-                await clients.OthersInGroup(room.RoomId).SendAsync("SeatBooked", pos, username, false);
+                user = room.AddUser(userId, username, Context.ConnectionId);
+                connectionType = "connected";
+                var player = room.GetPlayerById(userId); // check for an existing booking and reassign
+                if (player != null)
+                {
+                    var pos = Array.IndexOf(game.Players, player);
+                    player.PlayerName = username;
+                    player.IsDisconnected = false;
+                    await clients.OthersInGroup(room.RoomId).SendAsync("SeatBooked", pos, username, false);
+                }
             }
-            await UpdateConnectedUsers(room.RoomId, game, clients);
+            await UpdateConnectedUsers(room, clients);
 
             if (room.Observer is LiveBelotObserver liveObserver)
             {
-                await liveObserver.SysAnnounce(username + " connected.");
+                await liveObserver.SysAnnounce($"{username} {connectionType}.");
             }
 
-            log?.Information(username + " Connected.");
+            log?.Information($"{username} {connectionType}.");
 
-            await LoadContext(room.RoomId, game, clients);
+            await LoadContext(room, clients);
 
             log?.Information("[OnConnected] exit");
             await base.OnConnectedAsync();
@@ -820,43 +811,52 @@ namespace BelotWebApp.BelotClasses
             BelotGame game = room.Game;
             var clients = Clients;
 
-            string username = GetCallerUsername();
+            string userId = GetCallerUserId();
+            var user = room.GetUserById(userId);
+
+            if (user == null)
+            {
+                log?.Warning("[OnDisconnected] User was null");
+                return;
+            }
+
             bool playerReallyDisconnected = false; // guards against race condition of a reconnect updating ConnectionId but not setting player.IsDisconnected = false before continuing here
 
-            var spectator = game.Spectators.FirstOrDefault(p => p.Username == username);
-            if (spectator != null)
+            var player = room.GetPlayerById(userId);
+            if (player == null) // they are a spectator
             {
-                game.Spectators.Remove(spectator);
-                await UpdateConnectedUsers(room.RoomId, game, clients);
+                room.RemoveUser(user);
+                await UpdateConnectedUsers(room, clients);
                 if (room.Observer is LiveBelotObserver live)
                 {
-                    await live.SysAnnounce(username + " disconnected.");
+                    await live.SysAnnounce(user.Username + " disconnected.");
                 }
                 playerReallyDisconnected = true;
             }
             else
             {
-                await Task.Delay(500); // allow for possible reconnect
-                var player = game.Players.FirstOrDefault(p => p.Username == username);
-                if (player != null && player.ConnectionId == Context.ConnectionId) // player has not reconnected, connectionId is stale
+                await Task.Delay(1500); // allow for possible reconnect
+                if (user.ConnectionId == Context.ConnectionId) // player has not reconnected, connectionId is stale
                 {
-                    await UnbookSeat(room.RoomId, game, clients, true); // this will mark them as disconnected
+                    await UnbookSeat(room, clients, true); // this will mark them as disconnected
+                    room.RemoveUser(user);
+                    await UpdateConnectedUsers(room, clients);
                     if (room.Observer is LiveBelotObserver live)
                     {
-                        await live.SysAnnounce(username + " disconnected.");
-                        live.RoundSummaryGate.RegisterDisconnect(username);
+                        await live.SysAnnounce(user.Username + " disconnected.");
+                        live.RoundSummaryGate.RegisterDisconnect(userId);
                     }
-                    log?.Information($"[OnDisconnected] {username} disconnected after delay.");
+                    log?.Information($"[OnDisconnected] {userId} disconnected after delay.");
                     playerReallyDisconnected = true;
                 }
                 else // player reconnected, don't proceed with disconnection
                 {
-                    log?.Information($"[OnDisconnected] {username} reconnected before disconnect cleanup.");
+                    log?.Information($"[OnDisconnected] {userId} reconnected before disconnect cleanup.");
                 }
 
             }
 
-            if (playerReallyDisconnected && game.Spectators.Count + game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected) == 0)
+            if (playerReallyDisconnected && room.ConnectedUsers.Count == 0)
             {
                 if (room.Observer is LiveBelotObserver live)
                 {
@@ -866,13 +866,13 @@ namespace BelotWebApp.BelotClasses
                     game.WinnerDelay = 0;
                     game.BotDelay = 0;
                     live.RoundSummaryGate.RoundSummaryDelay = 0;
-                    await Task.Delay(1500);
+                    await Task.Delay(1500); // let all bots play out remaining actions and a final wait for users to rejoin before deleting the room
                     game.WinnerDelay = oldwinnerDelay;
                     game.BotDelay = oldBotDelay;
                     live.RoundSummaryGate.RoundSummaryDelay = oldRoundSummaryDelay;
                 }
 
-                if (game.Spectators.Count + game.Players.Count(p => p.PlayerType == PlayerType.Human && !p.IsDisconnected) == 0)
+                if (room.ConnectedUsers.Count == 0)
                 {
                     _roomRegistry.RemoveRoom(room.RoomId);
                     game.IsRunning = false;
@@ -880,7 +880,7 @@ namespace BelotWebApp.BelotClasses
                 }
             }
 
-            allConnections.Remove(Context.ConnectionId);
+            allConnections.TryRemove(Context.ConnectionId, out _);
 
             _roomRegistry.RefreshObserver(room.RoomId, Clients);
 

@@ -2,7 +2,7 @@
 using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.Observers;
-using BelotWebApp.BelotClasses.Players;
+using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.BelotClasses.Turn;
 
 namespace BelotWebApp.BelotClasses
@@ -25,7 +25,7 @@ namespace BelotWebApp.BelotClasses
                 _game.IsNewGame = false;
                 _game.NewGame();
 
-                await _observer.OnNewGame().ConfigureAwait(false);
+                await _observer.OnNewGame().ConfigureAwait(false); // includes initialising replay state for LiveBelotObserver
             }
 
             while (_game.IsRunning && ((_game.EWTotal < _game._scoreTarget && _game.NSTotal < _game._scoreTarget) || _game.EWTotal == _game.NSTotal || _game.Capot) && !_game.WaitDeal && !_game.WaitCall && !_game.WaitCard)
@@ -166,7 +166,7 @@ namespace BelotWebApp.BelotClasses
                 var player = _game.Players[_game.Turn];
                 if (hand.Count(c => !c.Played) == 1) // auto-play last card
                 {
-                    if (player.PlayerType == PlayerType.Human)
+                    if (player?.PlayerType == PlayerType.Human)
                     {
                         await _observer.OnHumanLastCard().ConfigureAwait(false);
                     }
@@ -176,7 +176,7 @@ namespace BelotWebApp.BelotClasses
                     continue;
                 }
                 int[] validCards = _game.ValidCards();
-                if (player.PlayerType == PlayerType.Human)
+                if (player?.PlayerType == PlayerType.Human)
                 {
                     _game.WaitCard = true;
 
@@ -188,7 +188,6 @@ namespace BelotWebApp.BelotClasses
 
                     _game.PlayCard(card);
 
-                    List<string> messages = [];
                     List<string> emotes = [];
 
                     if (_game.RoundCall != Call.NoTrumps)
@@ -200,9 +199,8 @@ namespace BelotWebApp.BelotClasses
                             declaredDeclarations.Add(declaration);
                         }
 
-                        (messages, emotes) = BelotHelpers.GetDeclarationMessagesAndEmotes(declaredDeclarations, _game);
-
-                        await _observer.OnDeclaration(messages, emotes).ConfigureAwait(false);
+                        // TrainingObserver returns empty list. BelotGame does contain player usernames, so emotes can be deduced in case logging in _game.RecordCardPlayed is desired in future
+                        emotes = await _observer.OnDeclaration(declaredDeclarations).ConfigureAwait(false);
                     }
 
                     _game.RecordCardPlayed(emotes);

@@ -32,7 +32,9 @@ var room = new signalR.HubConnectionBuilder() // automatic reconnect does not wo
 room.serverTimeoutInMilliseconds = 4500;
 
 room.onclose(() => {
-    alert("Disconnected. Try refresh the page to reconnect.");
+    if (!isUnloading) {
+        alert("Disconnected. Try refresh the page to reconnect.");
+    }
 });
 
 room.start().catch(() => {
