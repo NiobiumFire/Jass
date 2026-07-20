@@ -47,7 +47,7 @@ internal class Program
         builder.Services.AddRazorPages();
         builder.Services.AddSignalR(options =>
         {
-            options.KeepAliveInterval = TimeSpan.FromMilliseconds(1500);
+            options.KeepAliveInterval = TimeSpan.FromMilliseconds(3000);
         }).AddJsonProtocol(options =>
         {
             options.PayloadSerializerOptions.Converters.Add(new DeclarationConverter());

@@ -29,12 +29,14 @@ var room = new signalR.HubConnectionBuilder() // automatic reconnect does not wo
     .configureLogging(signalR.LogLevel.Warning)
     .build();
 
-room.serverTimeoutInMilliseconds = 4500;
+room.serverTimeoutInMilliseconds = 10000;
 
 room.onclose(() => {
-    if (!isUnloading) {
-        alert("Disconnected. Try refresh the page to reconnect.");
-    }
+    setTimeout(() => { // delay as fallback for pagehide not executing/executing after socket is closed (e.g. transport is SSE). js context will be removed and alert will not show if user refreshed/intentionally browsed away
+        if (!isUnloading) {
+            alert("Disconnected. Try refresh the page to reconnect.");
+        }
+    }, 300);
 });
 
 room.start().catch(() => {
