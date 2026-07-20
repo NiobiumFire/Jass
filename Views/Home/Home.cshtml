@@ -1,5 +1,4 @@
 ﻿@using Microsoft.AspNetCore.Identity;
-@using System.Security.Claims
 
 @section scripts {
     <script src="~/js/Belotlobby.js" asp-append-version="true"></script>
@@ -51,28 +50,23 @@
     </div>
 
     @* <svg class="d-none">
-        <filter id="wavy2">
-            <feTurbulence x="0" y="0" baseFrequency="0.02" numOctaves="5" seed="1"></feTurbulence>
-            <feDisplacementMap in="SourceGraphic" scale="20" />
-        </filter>
+    <filter id="wavy2">
+    <feTurbulence x="0" y="0" baseFrequency="0.02" numOctaves="5" seed="1"></feTurbulence>
+    <feDisplacementMap in="SourceGraphic" scale="20" />
+    </filter>
     </svg> *@
 
     <div></div>
 
     <div class="welcome-text-container">
+        <p>Welcome, @User.Identity?.Name</p>
         @if (!isSignedIn)
         {
-            <p>Welcome</p>
             <p><a class="link" asp-page="/Account/Login">Log in</a> or <a class="link" asp-page="/Account/Register">register</a> for all features</p>
         }
         else if (!emailConfirmed)
         {
-            <p>Welcome @userManager.GetUserName(User)</p>
             <p><a class="link" asp-page="/Account/Email">Confirm your email</a> for all features</p>
-        }
-        else
-        {
-            <p>Welcome @userManager.GetUserName(User)</P>
         }
     </div>
 
@@ -86,7 +80,7 @@
 
         <div class="menu-buttons-container">
             <div class="menu-buttons">
-        
+
                 <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ Ranked ◆</p>
 
                 @if (!isSignedIn || !emailConfirmed)
@@ -118,16 +112,20 @@
                 @if (!isSignedIn || !emailConfirmed)
                 {
                     <span title="Sign into an account with a confirmed email address">
-                        <p><button type="button" class="btn2 mb-2 mb-sm-4" style="width: 100%" disabled>
-                            Replay <i class="bi bi-lock-fill"></i>
-                        </button></p>
+                        <p>
+                            <button type="button" class="btn2 mb-2 mb-sm-4" style="width: 100%" disabled>
+                                Replay <i class="bi bi-lock-fill"></i>
+                            </button>
+                        </p>
                     </span>
                 }
                 else
                 {
-                    <p><button type="button" class="btn2 mb-2 mb-sm-4" onclick="location.href='@Url.Action("Index", "Replay")'" style="width: 100%">
-                        Replay
-                    </button></p>
+                    <p>
+                        <button type="button" class="btn2 mb-2 mb-sm-4" onclick="location.href='@Url.Action("Index", "Replay")'" style="width: 100%">
+                            Replay
+                        </button>
+                    </p>
                 }
 
                 @if (await userManager.GetUserAsync(User) is ApplicationUser user && await userManager.IsInRoleAsync(user, "Admin"))
@@ -153,7 +151,7 @@
                 RoomName = $"{userManager.GetUserName(User)}'s room"
             };
 }
-<partial name="_CreateGameModal" model="options"/>
+<partial name="_CreateGameModal" model="options" />
 
 <!-- Join Game Modal -->
 <div class="modal join-game-modal" tabindex="-1" id="join-game-modal">
