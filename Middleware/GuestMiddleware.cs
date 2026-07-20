@@ -1,6 +1,8 @@
 ﻿using BelotWebApp.BelotClasses;
+using BelotWebApp.BelotClasses.Users;
 using Microsoft.AspNetCore.DataProtection;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace BelotWebApp.Middleware
 {
@@ -22,19 +24,23 @@ namespace BelotWebApp.Middleware
         {
             if (context.User?.Identity?.IsAuthenticated == true)
             {
-                context.Response.Cookies.Delete("UserData1");
+                context.Response.Cookies.Delete("GuestData");
                 await _next(context);
                 return;
             }
 
+            string? guestId = null;
             string? guestUsername = null;
 
             // Try decrypting existing cookie
-            if (context.Request.Cookies.TryGetValue("UserData1", out string? encryptedGuestUsername))
+            if (context.Request.Cookies.TryGetValue("GuestData", out string? encryptedGuestData))
             {
                 try
                 {
-                    guestUsername = _protector.Unprotect(encryptedGuestUsername);
+                    var json = _protector.Unprotect(encryptedGuestData);
+                    var guestData = JsonSerializer.Deserialize<GuestData>(json);
+                    guestId = guestData?.Id;
+                    guestUsername = guestData?.Username;
                 }
                 catch
                 {
@@ -42,15 +48,22 @@ namespace BelotWebApp.Middleware
                 }
             }
 
-            if (string.IsNullOrEmpty(guestUsername))
+            if (string.IsNullOrEmpty(guestId) || string.IsNullOrEmpty(guestUsername))
             {
+                guestId = Guid.NewGuid().ToString();
                 guestUsername = GenerateUniqueGuestName();
             }
 
-            encryptedGuestUsername = _protector.Protect(guestUsername);
+            var data = new GuestData
+            {
+                Id = guestId,
+                Username = guestUsername
+            };
+
+            encryptedGuestData = _protector.Protect(JsonSerializer.Serialize(data));
 
             // Create or refresh cookie
-            context.Response.Cookies.Append("UserData1", encryptedGuestUsername, new CookieOptions
+            context.Response.Cookies.Append("GuestData", encryptedGuestData, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true, // prevents the browser from sending this cookie over http. Https only.
@@ -61,7 +74,7 @@ namespace BelotWebApp.Middleware
             // Assign a claims principal
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, guestId),
                 new Claim(ClaimTypes.Name, guestUsername)
             };
             var identity = new ClaimsIdentity(claims);
