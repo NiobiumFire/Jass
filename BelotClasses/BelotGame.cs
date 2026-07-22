@@ -1,10 +1,9 @@
 ﻿using BelotWebApp.BelotClasses.Cards;
 using BelotWebApp.BelotClasses.Declarations;
-using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.BelotClasses.Replays;
 using BelotWebApp.BelotClasses.Turn;
+using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.Configuration;
-using BelotWebApp.Models;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using System.Text.Json;
@@ -921,11 +920,6 @@ namespace BelotWebApp.BelotClasses
                     EWRoundPoints = 0;
                 }
             }
-
-            //if (EWRoundPoints > 1000 || NSRoundPoints > 1000)
-            //{
-
-            //}
 
             EWTotal += EWRoundPoints;
             NSTotal += NSRoundPoints;

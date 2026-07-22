@@ -395,6 +395,15 @@ th, td {
         text-overflow: unset;
     }
 
+.total-row {
+    border-top-width: 3px;
+    border-top-style: double;
+}
+
+.dark-row {
+    background: rgba(0, 0, 0, 0.1);
+}
+
 /* Modals and banners */
 
 .parchment {

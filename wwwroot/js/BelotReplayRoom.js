@@ -220,8 +220,8 @@ function setControls() {
 }
 
 function setScore(scores) {
-    document.getElementById("ns-score").innerHTML = scores[0];
-    document.getElementById("ew-score").innerHTML = scores[1];
+    document.getElementById("score-summary-score-1").innerHTML = scores[0];
+    document.getElementById("score-summary-score-2").innerHTML = scores[1];
 }
 
 function setDealer(dealer) {

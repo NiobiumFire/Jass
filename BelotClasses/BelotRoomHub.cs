@@ -390,8 +390,7 @@ namespace BelotWebApp.BelotClasses
                     await UpdateConnectedUsers(room, clients);
                     await clients.OthersInGroup(room.RoomId).SendAsync("seatBooked", position, requestorUsername, false);
                     await clients.Caller.SendAsync("seatBooked", position, requestorUsername, true);
-                    string[] scoreSummary = ["Us", "Them"];
-                    await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(position + 1) % 2], scoreSummary[position % 2]);
+                    await clients.Caller.SendAsync("SetScoreTitles", "Us", "Them");
 
                     await group.SendAsync("SetBotBadge", position, false);
                 }
@@ -609,17 +608,14 @@ namespace BelotWebApp.BelotClasses
             }
 
             var player = room.GetPlayerById(user.UserId);
-            bool userIsPlayer = player != null;
-            int pos = -1;
+            int pos = Array.IndexOf(room.Game.Players, player);
 
-            if (userIsPlayer)
+            if (pos >= 0) // user is player
             {
-                string[] scoreSummary = ["Us", "Them"];
-                pos = Array.IndexOf(room.Game.Players, player);
-                await clients.Caller.SendAsync("SetScoreTitles", scoreSummary[(pos + 1) % 2], scoreSummary[pos % 2]);
+                await clients.Caller.SendAsync("SetScoreTitles", "Us", "Them");
             }
 
-            if (!game.IsNewGame)
+            if (game?.IsNewGame == false)
             {
                 await clients.Caller.SendAsync("HideDeck", true);
 
@@ -629,9 +625,11 @@ namespace BelotWebApp.BelotClasses
                 await clients.Caller.SendAsync("SetDealerMarker", dealer);
                 await clients.Caller.SendAsync("SetTurnIndicator", game.Turn, game.GetCurrentTurnActionType()?.ToString().ToLower());
                 await clients.Caller.SendAsync("DisableRadios");
+                
+                var ewFirst = game?.Players[0]?.PlayerId == user.UserId || game?.Players[2]?.PlayerId == user.UserId;
 
-                await clients.Caller.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal);
-                await clients.Caller.SendAsync("UpdateScoreHistoryTable");
+                await clients.Caller.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal, ewFirst);
+                await clients.Caller.SendAsync("UpdateScoreHistoryTable", ewFirst);
 
                 await clients.Caller.SendAsync("SuitNominated", game.RoundCall);
                 if (game.Multiplier == 2)
@@ -649,7 +647,7 @@ namespace BelotWebApp.BelotClasses
                 }
 
                 // if the connecting user is a player
-                if (userIsPlayer)
+                if (pos >= 0)
                 {
                     await clients.Caller.SendAsync("Deal", game.Hand[pos]);
 

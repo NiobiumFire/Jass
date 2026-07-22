@@ -74,7 +74,12 @@ namespace BelotWebApp.Controllers
                 return Unauthorized();
             }
 
-            return PartialView("_ScoreHistoryTable", room.Game.ScoreHistory);
+            var player = room.GetPlayerById(userId);
+            string[] titles = player == null ? ["N/S", "E/W"] : ["Us", "Them"];
+
+            var ewFirst = room.Game?.Players[0]?.PlayerId == userId || room.Game?.Players[2]?.PlayerId == userId; // if user is not seated or is in seat 1 or 3, score order is NS/EW, else EW/NS
+
+            return PartialView("_ScoreHistoryTable", (scoreHistory: room.Game?.ScoreHistory, titles, ewFirst));
         }
     }
 }

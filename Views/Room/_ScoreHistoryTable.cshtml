@@ -1,24 +1,27 @@
-﻿@model List<int[]>
+﻿@model (List<int[]> scoreHistory, string[] titles, bool ewFirst)
+@{
+    int[] scoreOrder = Model.ewFirst ? [0, 1] : [1, 0];
+}
 
 <thead>
     <tr>
         <th scope="col">Round</th>
-        <th scope="col" id="scoreHistoryNSTitle">N/S</th>
-        <th scope="col" id="scoreHistoryEWTitle">E/W</th>
+        <th scope="col" id="score-history-heading-1">@Model.titles[0]</th>
+        <th scope="col" id="score-history-heading-2">@Model.titles[1]</th>
     </tr>
 </thead>
 <tbody>
-    @for (int i = 0; i < Model.Count; i++)
+    @for (int i = 0; i < Model.scoreHistory.Count; i++)
     {
         <tr>
             <td>@(i + 1)</td>
-            <td>@Model[i][1]</td>
-            <td>@Model[i][0]</td>
+            <td>@Model.scoreHistory[i][scoreOrder[0]]</td>
+            <td>@Model.scoreHistory[i][scoreOrder[1]]</td>
         </tr>
     }
-    <tr class="total-row">
+    <tr class="total-row dark-row">
         <th scope="row">Total</th>
-        <td>@Model.Where(s => s.Length == 2).Sum(x => x[1])</td>
-        <td>@Model.Where(s => s.Length == 2).Sum(x => x[0])</td>
+        <td>@Model.scoreHistory.Where(s => s.Length == 2).Sum(x => x[scoreOrder[0]])</td>
+        <td>@Model.scoreHistory.Where(s => s.Length == 2).Sum(x => x[scoreOrder[1]])</td>
     </tr>
 </tbody>

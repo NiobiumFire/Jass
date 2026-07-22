@@ -229,28 +229,31 @@ room.on("hideEmote", function (turn) {
 
 // -------------------- Round Summary --------------------
 
-room.on("showRoundSummary", function (trickPoints, declarationPoints, belotPoints, result, ew, ns, roundToken, roundSummaryDelay, requiredContinueVotes, voteToContinueDisabled) {
-    currentRoundToken = roundToken;
-    document.getElementById("summary-belot-EW").innerHTML = belotPoints[0];
-    document.getElementById("summary-belot-NS").innerHTML = belotPoints[1];
-    document.getElementById("summary-dec-EW").innerHTML = declarationPoints[0];
-    document.getElementById("summary-dec-NS").innerHTML = declarationPoints[1];
-    document.getElementById("summary-tr-EW").innerHTML = trickPoints[0];
-    document.getElementById("summary-tr-NS").innerHTML = trickPoints[1];
-    document.getElementById("summary-sum-EW").innerHTML = belotPoints[0] + declarationPoints[0] + trickPoints[0];
-    document.getElementById("summary-sum-NS").innerHTML = belotPoints[1] + declarationPoints[1] + trickPoints[1];
-    document.getElementById("summary-game-EW").innerHTML = result[0];
-    document.getElementById("summary-game-NS").innerHTML = result[1];
-    document.getElementById("summary-total-EW").innerHTML = ew;
-    document.getElementById("summary-total-NS").innerHTML = ns;
+room.on("showRoundSummary", function (roundSummaryInfo) {
+    currentRoundToken = roundSummaryInfo.roundToken;
 
-    roundSummaryContinueVotesUpdate(0, requiredContinueVotes);
+    let index = roundSummaryInfo.ewFirst ? [0, 1] : [1, 0]; // E/W comes first in the arrays
 
-    document.getElementById("summary-continue-button").disabled = voteToContinueDisabled;
+    document.getElementById("summary-belot-1").innerHTML = roundSummaryInfo.belotPoints[index[0]];
+    document.getElementById("summary-belot-2").innerHTML = roundSummaryInfo.belotPoints[index[1]];
+    document.getElementById("summary-dec-1").innerHTML = roundSummaryInfo.declarationPoints[index[0]];
+    document.getElementById("summary-dec-2").innerHTML = roundSummaryInfo.declarationPoints[index[1]];
+    document.getElementById("summary-tr-1").innerHTML = roundSummaryInfo.trickPoints[index[0]];
+    document.getElementById("summary-tr-2").innerHTML = roundSummaryInfo.trickPoints[index[1]];
+    document.getElementById("summary-sum-1").innerHTML = roundSummaryInfo.belotPoints[index[0]] + roundSummaryInfo.declarationPoints[index[0]] + roundSummaryInfo.trickPoints[index[0]];
+    document.getElementById("summary-sum-2").innerHTML = roundSummaryInfo.belotPoints[index[1]] + roundSummaryInfo.declarationPoints[index[1]] + roundSummaryInfo.trickPoints[index[1]];
+    document.getElementById("summary-game-1").innerHTML = roundSummaryInfo.result[index[0]];
+    document.getElementById("summary-game-2").innerHTML = roundSummaryInfo.result[index[1]];
+    document.getElementById("summary-total-1").innerHTML = roundSummaryInfo.roundPoints[index[0]];
+    document.getElementById("summary-total-2").innerHTML = roundSummaryInfo.roundPoints[index[1]];
+
+    roundSummaryContinueVotesUpdate(0, roundSummaryInfo.requiredContinueVotes);
+
+    document.getElementById("summary-continue-button").disabled = roundSummaryInfo.voteToContinueDisabled;
 
     $('#summary-modal').modal('show');
 
-    let remainingMs = roundSummaryDelay;
+    let remainingMs = roundSummaryInfo.roundSummaryDelay;
     roundSummaryTimerUpdate(remainingMs);
 
     roundSummaryCountdownInterval = setInterval(() => {
@@ -261,7 +264,7 @@ room.on("showRoundSummary", function (trickPoints, declarationPoints, belotPoint
         }
     }, 1000);
 
-    roundSummaryAutoCloseTimer = setTimeout(() => $('#summary-modal').modal('hide'), roundSummaryDelay);
+    roundSummaryAutoCloseTimer = setTimeout(() => $('#summary-modal').modal('hide'), roundSummaryInfo.roundSummaryDelay);
 });
 
 function roundSummaryTimerUpdate(remainingMs) {
@@ -334,8 +337,8 @@ room.on("newGame", function (gameId) {
     table.rows[1].cells[1].innerHTML = 0;
     table.rows[1].cells[2].innerHTML = 0;
 
-    document.getElementById("ns-score").innerHTML = 0;
-    document.getElementById("ew-score").innerHTML = 0;
+    document.getElementById("score-summary-score-1").innerHTML = 0;
+    document.getElementById("score-summary-score-2").innerHTML = 0;
 
     document.getElementById("0winnermarker").hidden = true;
     document.getElementById("1winnermarker").hidden = true;
@@ -364,18 +367,21 @@ room.on("showGameWinner", function (winner) {
     marker.hidden = !marker.hidden;
 });
 
-room.on("setScoreTitles", function (nsTitle, ewTitle) {
-    document.getElementById("scoreSummaryNSTitle").innerHTML = nsTitle;
-    document.getElementById("scoreSummaryEWTitle").innerHTML = ewTitle;
-    document.getElementById("roundSummaryNSTitle").innerHTML = nsTitle;
-    document.getElementById("roundSummaryEWTitle").innerHTML = ewTitle;
-    document.getElementById("scoreHistoryNSTitle").innerHTML = nsTitle;
-    document.getElementById("scoreHistoryEWTitle").innerHTML = ewTitle;
+room.on("setScoreTitles", function (heading1, heading2) {
+    document.getElementById("score-summary-heading-1").innerHTML = heading1;
+    document.getElementById("score-summary-heading-2").innerHTML = heading2;
+    document.getElementById("round-summary-heading-1").innerHTML = heading1;
+    document.getElementById("round-summary-heading-2").innerHTML = heading2;
+    document.getElementById("score-history-heading-1").innerHTML = heading1;
+    document.getElementById("score-history-heading-2").innerHTML = heading2;
 });
 
-room.on("updateScoreTotals", function (ewPoints, nsPoints) {
-    document.getElementById("ns-score").innerHTML = nsPoints;
-    document.getElementById("ew-score").innerHTML = ewPoints;
+room.on("updateScoreTotals", function (points1, points2, ewFirst) {
+    if (!ewFirst) {
+        [points1, points2] = [points2, points1];
+    }
+    document.getElementById("score-summary-score-1").innerHTML = points1;
+    document.getElementById("score-summary-score-2").innerHTML = points2;
 });
 
 room.on("updateScoreHistoryTable", function () {

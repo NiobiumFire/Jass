@@ -4,6 +4,7 @@ using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.BelotClasses.Turn;
 using Microsoft.AspNetCore.SignalR;
 using BelotWebApp.BelotClasses.Declarations;
+using BelotWebApp.BelotClasses.RoundSummary;
 
 namespace BelotWebApp.BelotClasses.Observers
 {
@@ -229,9 +230,14 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnRoundComplete(string message)
         {
+            if (_game == null)
+            {
+                return;
+            }
+
             await _group.SendAsync("NewRound").ConfigureAwait(false);
             await SysAnnounce(message).ConfigureAwait(false);
-            await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal).ConfigureAwait(false);
+
             await _group.SendAsync("UpdateScoreHistoryTable").ConfigureAwait(false);
 
             var requiredContinueVotes = _game.Players.Count(p => p?.PlayerType == PlayerType.Human && !p.IsDisconnected);
@@ -250,11 +256,38 @@ namespace BelotWebApp.BelotClasses.Observers
                     var (spectators, players) = _room.GetSpectatorsAndConnectedHumanPlayers();
                     foreach (var player in players) // can vote to continue
                     {
-                        await _clients.Client(player.ConnectionId).SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints, token, RoundSummaryGate.RoundSummaryDelay, requiredContinueVotes, false).ConfigureAwait(false);
+                        var ewFirst = _game.Players[0]?.PlayerId == player.UserId || _game.Players[2]?.PlayerId == player.UserId;
+                        await _group.SendAsync("UpdateScoreTotals", _game?.EWTotal, _game?.NSTotal, ewFirst).ConfigureAwait(false);
+                        await _clients.Client(player.ConnectionId).SendAsync("ShowRoundSummary", new RoundSummaryInfo()
+                        {
+                            TrickPoints = _game.TrickPoints,
+                            DeclarationPoints = _game.DeclarationPoints,
+                            BelotPoints = _game.BelotPoints,
+                            Result = _game.Result,
+                            RoundPoints = [_game.EWRoundPoints, _game.NSRoundPoints],
+                            EWFirst = ewFirst,
+                            RoundToken = token,
+                            RoundSummaryDelay = RoundSummaryGate.RoundSummaryDelay,
+                            RequiredContinueVotes = requiredContinueVotes,
+                            VoteToContinueDisabled = false
+                        }).ConfigureAwait(false);
                     }
                     foreach (var spectator in spectators) // cannot vote to continue
                     {
-                        await _clients.Client(spectator.ConnectionId).SendAsync("ShowRoundSummary", _game.TrickPoints, _game.DeclarationPoints, _game.BelotPoints, _game.Result, _game.EWRoundPoints, _game.NSRoundPoints, token, RoundSummaryGate.RoundSummaryDelay, requiredContinueVotes, true).ConfigureAwait(false);
+                        await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal, false).ConfigureAwait(false);
+                        await _clients.Client(spectator.ConnectionId).SendAsync("ShowRoundSummary", new RoundSummaryInfo()
+                        {
+                            TrickPoints = _game.TrickPoints,
+                            DeclarationPoints = _game.DeclarationPoints,
+                            BelotPoints = _game.BelotPoints,
+                            Result = _game.Result,
+                            RoundPoints = [_game.EWRoundPoints, _game.NSRoundPoints],
+                            EWFirst = false,
+                            RoundToken = token,
+                            RoundSummaryDelay = RoundSummaryGate.RoundSummaryDelay,
+                            RequiredContinueVotes = requiredContinueVotes,
+                            VoteToContinueDisabled = true
+                        }).ConfigureAwait(false);
                     }
 
                     await RoundSummaryGate.WaitAsync();

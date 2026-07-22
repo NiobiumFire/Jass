@@ -216,44 +216,44 @@
             </div>
             <div class="modal-body py-1">
                 <div class="d-flex flex-column m-0 p-0 justify-content-around align-items-center" style="min-width:0">
-                    <table class="table table-sm table-striped table-responsive">
+                    <table class="table table-sm table-responsive">
                         <thead>
                             <tr>
                                 <th scope="col"></th>
-                                <th scope="col" id="roundSummaryNSTitle">N/S</th>
-                                <th scope="col" id="roundSummaryEWTitle">E/W</th>
+                                <th scope="col" id="round-summary-heading-1">N/S</th>
+                                <th scope="col" id="round-summary-heading-2">E/W</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <th scope="row">Belots</th>
-                                <td id="summary-belot-NS">0</td>
-                                <td id="summary-belot-EW">0</td>
+                                <td id="summary-belot-1">0</td>
+                                <td id="summary-belot-2">0</td>
                             </tr>
                             <tr>
-                                <th scope="row">Declaration</th>
-                                <td id="summary-dec-NS">0</td>
-                                <td id="summary-dec-EW">0</td>
+                                <th scope="row">Declarations</th>
+                                <td id="summary-dec-1">0</td>
+                                <td id="summary-dec-2">0</td>
                             </tr>
                             <tr>
                                 <th scope="row">Tricks</th>
-                                <td id="summary-tr-NS">0</td>
-                                <td id="summary-tr-EW">0</td>
+                                <td id="summary-tr-1">0</td>
+                                <td id="summary-tr-2">0</td>
                             </tr>
-                            <tr>
+                            <tr class="dark-row">
                                 <th scope="row">Sum</th>
-                                <td id="summary-sum-NS">0</td>
-                                <td id="summary-sum-EW">0</td>
+                                <td id="summary-sum-1">0</td>
+                                <td id="summary-sum-2">0</td>
                             </tr>
                             <tr>
-                                <th scope="row">Game</th>
-                                <td id="summary-game-NS">0</td>
-                                <td id="summary-game-EW">0</td>
+                                <th scope="row">Result</th>
+                                <td id="summary-game-1">0</td>
+                                <td id="summary-game-2">0</td>
                             </tr>
-                            <tr>
+                            <tr class="dark-row total-row">
                                 <th scope="row">Total</th>
-                                <td id="summary-total-NS">0</td>
-                                <td id="summary-total-EW">0</td>
+                                <td id="summary-total-1">0</td>
+                                <td id="summary-total-2">0</td>
                             </tr>
                         </tbody>
                     </table>
@@ -346,7 +346,7 @@
                 <div class="accordion-collapse collapse" id="scoreHistoryAccordian">
                     <div class="accordion-body p-0 px-2">
                         <table class="table table-sm table-striped table-responsive" id="scoreTable">
-                            @await Html.PartialAsync("_ScoreHistoryTable", new List<int[]>())
+                            @await Html.PartialAsync("_ScoreHistoryTable", (scoreHistory: new List<int[]>(), titles: new[] { "N/S", "E/W" }, ewOrder: false))
                         </table>
                     </div>
                 </div>
