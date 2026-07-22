@@ -368,6 +368,12 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
+            if (!room.Game.IsNewGame)
+            {
+                log?.Warning("[HubBookSeat] booking requested after game start");
+                return;
+            }
+
             var game = room.Game;
             var clients = Clients;
             var group = Clients.Group(room.RoomId);
@@ -625,7 +631,7 @@ namespace BelotWebApp.BelotClasses
                 await clients.Caller.SendAsync("SetDealerMarker", dealer);
                 await clients.Caller.SendAsync("SetTurnIndicator", game.Turn, game.GetCurrentTurnActionType()?.ToString().ToLower());
                 await clients.Caller.SendAsync("DisableRadios");
-                
+
                 var ewFirst = game?.Players[0]?.PlayerId == user.UserId || game?.Players[2]?.PlayerId == user.UserId;
 
                 await clients.Caller.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal, ewFirst);
