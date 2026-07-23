@@ -1,6 +1,7 @@
 ﻿"use strict";
 
 let isUnloading = false; // the user is not deliberately leaving the room
+let isConnectionSuperseded = false; // the user has not connected in another session
 
 var declarations;
 
@@ -33,7 +34,7 @@ room.serverTimeoutInMilliseconds = 10000;
 
 room.onclose(() => {
     setTimeout(() => { // delay as fallback for pagehide not executing/executing after socket is closed (e.g. transport is SSE). js context will be removed and alert will not show if user refreshed/intentionally browsed away
-        if (!isUnloading) {
+        if (!isUnloading && !isConnectionSuperseded) {
             alert("Disconnected. Try refresh the page to reconnect.");
         }
     }, 300);
@@ -41,6 +42,13 @@ room.onclose(() => {
 
 room.start().catch(() => {
     alert("Unable to connect.");
+});
+
+room.on("connectionSuperseded", async function () {
+    isConnectionSuperseded = true;
+    await room.stop();
+    alert("You have connected in another session. This connection has been closed.");
+    window.location.replace("/");
 });
 
 // -------------------- Play Card --------------------

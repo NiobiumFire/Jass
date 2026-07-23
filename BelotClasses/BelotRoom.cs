@@ -1,7 +1,6 @@
 ﻿using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.Models;
-using System.Xml.Linq;
 
 namespace BelotWebApp.BelotClasses
 {
@@ -11,29 +10,37 @@ namespace BelotWebApp.BelotClasses
         {
             RoomId = roomId;
             RoomName = options.RoomName;
-            ConnectedUsers = [];
             Game = game;
             Observer = observer;
             Options = options;
         }
 
-        public string RoomId { get; set; }
-        public string RoomName { get; set; }
+        public string RoomId { get; private set; }
+        public string RoomName { get; private set; }
         public BelotGame Game { get; set; }
         public IBelotObserver? Observer { get; set; }
-        public BelotRoomCreationOptions Options { get; set; }
-        public List<ConnectedUser> ConnectedUsers { get; } = [];
+        public BelotRoomCreationOptions Options { get; private set; }
+
+        private readonly List<ConnectedUser> _connectedUsers = [];
+        public IReadOnlyList<ConnectedUser> ConnectedUsers => _connectedUsers;
+
 
         public ConnectedUser AddUser(string userId, string username, string connectionId)
         {
             ConnectedUser user = new(userId, username, connectionId);
-            ConnectedUsers.Add(user);
+            _connectedUsers.Add(user);
+            return user;
+        }
+
+        public ConnectedUser UpdateUser(ConnectedUser user, string username, string connectionId)
+        {
+            user.Update(username, connectionId);
             return user;
         }
 
         public void RemoveUser(ConnectedUser user)
         {
-            ConnectedUsers.Remove(user);
+            _connectedUsers.Remove(user);
         }
 
         public ConnectedUser? GetUserById(string userId)

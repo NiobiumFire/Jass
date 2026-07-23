@@ -17,7 +17,7 @@ namespace BelotWebApp.BelotClasses
 
         private static ConcurrentDictionary<string, string> allConnections = []; // connectionId, roomId
 
-        public static Serilog.Core.Logger log;// = new LoggerConfiguration().WriteTo.File(ConfigurationManager.AppSettings["logfilepath"] + "BelotServerLog-.txt", rollingInterval: RollingInterval.Day).CreateLogger();
+        private static Serilog.Core.Logger log;
 
         public BelotRoomHub(IAppPaths appPaths, BelotRoomRegistry gameRegistry)
         {
@@ -37,33 +37,62 @@ namespace BelotWebApp.BelotClasses
             return LogContext.PushProperty("RoomId", room?.RoomId ?? "Unknown");
         }
 
+        private (BelotRoom? room, ConnectedUser? user) ValidateEntry(string entryPoint)
+        {
+            var room = GetRoom();
+
+            if (room?.Game == null || room.Observer == null)
+            {
+                log?.Warning($"[{entryPoint}] Room/Game/Observer was null");
+                return (null, null);
+            }
+
+            using var logScope = BeginRoomLogScope(room);
+
+            var user = room.GetUserById(GetCallerUserId());
+            if (user == null)
+            {
+                log?.Warning($"[{entryPoint}] user was null");
+                return (null, null);
+            }
+
+            var connectionId = Context.ConnectionId;
+            if (user.ConnectionId != connectionId)
+            {
+                log?.Warning($"[{entryPoint}] connection {connectionId} has been superseded by {user.ConnectionId}");
+                Context.Abort();
+                return (null, null);
+            }
+
+            return (room, user);
+        }
+
         #region Game Loop Continuation
 
         public Task HubGameController() // called by client
         {
-            var room = GetRoom();
-
-            using var logScope = BeginRoomLogScope(room);
-
-            log?.Information("[HubGameController] enter");
-
-            var game = room?.Game;
-
-            if (game == null || room?.Observer == null)
+            string entryPoint = "HubGameController";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
             {
-                log?.Warning("[HubGameController] Room/Game/Observer was null");
                 return Task.CompletedTask;
             }
 
+            using var logScope = BeginRoomLogScope(room);
+
+            log?.Information($"[{entryPoint}] enter");
+
+            var game = room.Game;
+
             if (game.Players.Any(p => p == null))
             {
-                log?.Warning("[HubGameController] Game does not have 4 players");
+                log?.Warning($"[{entryPoint}] Game does not have 4 players");
                 return Task.CompletedTask;
             }
 
             if (game.Players.Any(p => p != null && p.PlayerType == PlayerType.Human) && room.GetPlayerById(GetCallerUserId()) == null)
             {
-                log?.Warning("[HubGameController] Game start not called by valid player");
+                log?.Warning($"[{entryPoint}] Game start not called by valid player");
                 return Task.CompletedTask;
             }
 
@@ -77,28 +106,27 @@ namespace BelotWebApp.BelotClasses
                 }
                 catch (Exception ex)
                 {
-                    log?.Error(ex, $"[HubGameController] Unhandled exception");
+                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
                 }
             });
 
-            log?.Information("[HubGameController] exit");
+            log?.Information($"[{entryPoint}] exit");
 
             return Task.CompletedTask;
         }
 
         public Task HubShuffle() // called by client
         {
-            var room = GetRoom();
+            string entryPoint = "HubShuffle";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
+            {
+                return Task.CompletedTask;
+            }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information("[HubShuffle] enter");
-
-            if (room?.Game == null || room.Observer == null)
-            {
-                log?.Warning("[HubShuffle] Room/Game/Observer was null");
-                return Task.CompletedTask;
-            }
+            log?.Information($"[{entryPoint}] enter");
 
             BelotGameEngine engine = new(room.Game, room.Observer);
 
@@ -112,28 +140,27 @@ namespace BelotWebApp.BelotClasses
                 }
                 catch (Exception ex)
                 {
-                    log?.Error(ex, $"[HubShuffle] Unhandled exception");
+                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
                 }
             });
 
-            log?.Information("[HubShuffle] exit");
+            log?.Information($"[{entryPoint}] exit");
 
             return Task.CompletedTask;
         }
 
         public async Task HubNominateSuit(Call call) // called by client
         {
-            var room = GetRoom();
+            string entryPoint = "HubNominateSuit";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
+            {
+                return;
+            }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information("[HubNominateSuit] enter");
-
-            if (room?.Game == null || room.Observer == null)
-            {
-                log?.Warning("[HubNominateSuit] Room/Game/Observer was null");
-                return;
-            }
+            log?.Information($"[{entryPoint}] enter");
 
             BelotGameEngine engine = new(room.Game, room.Observer);
 
@@ -153,54 +180,50 @@ namespace BelotWebApp.BelotClasses
                 }
                 catch (Exception ex)
                 {
-                    log?.Error(ex, $"[HubNominateSuit] Unhandled exception");
+                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
                 }
             });
 
-            log?.Information("[HubNominateSuit] exit");
+            log?.Information($"[{entryPoint}] exit");
 
             return;
         }
 
         public async Task HubPlayCard(Card card) // called by client
         {
-            var room = GetRoom();
-
-            using var logScope = BeginRoomLogScope(room);
-
-            log?.Information("[HubPlayCard] enter");
-
-            if (room?.Game == null || room.Observer == null)
+            string entryPoint = "HubPlayCard";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
             {
-                log?.Warning("[HubPlayCard] Room/Game/Observer was null");
                 return;
             }
 
+            using var logScope = BeginRoomLogScope(room);
+
+            log?.Information($"[{entryPoint}] enter");
+
             var game = room.Game;
             var clients = Clients;
-
-            BelotGameEngine engine = new(game, room.Observer); //---------------------------------------------------------- needed?
 
             room.Game.PlayCard(card);
             await clients.Caller.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
             await clients.Caller.SendAsync("DeclareExtras", game.Declarations.Where(d => d.Player == game.Turn && d.IsDeclarable));
 
-            log?.Information("[HubPlayCard] exit");
+            log?.Information($"[{entryPoint}] exit");
         }
 
         public async Task HubExtrasDeclared(List<Declaration> declarations) // called by client
         {
-            var room = GetRoom();
+            string entryPoint = "HubExtrasDeclared";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
+            {
+                return;
+            }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information("[HubExtrasDeclared] enter");
-
-            if (room?.Game == null || room.Observer == null)
-            {
-                log?.Warning("[HubExtrasDeclared] Room/Game/Observer was null");
-                return;
-            }
+            log?.Information($"[{entryPoint}] enter");
 
             var game = room.Game;
 
@@ -235,26 +258,25 @@ namespace BelotWebApp.BelotClasses
                 }
                 catch (Exception ex)
                 {
-                    log?.Error(ex, $"[HubExtrasDeclared] Unhandled exception");
+                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
                 }
             });
 
-            log?.Information("[HubExtrasDeclared] exit");
+            log?.Information($"[{entryPoint}] exit");
         }
 
         public async Task HubThrowCards() // called by client
         {
-            var room = GetRoom();
+            string entryPoint = "HubThrowCards";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
+            {
+                return;
+            }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information("[HubThrowCards] enter");
-
-            if (room?.Game == null || room.Observer == null)
-            {
-                log?.Warning("[HubThrowCards] Room/Game/Observer was null");
-                return;
-            }
+            log?.Information($"[{entryPoint}] enter");
 
             var game = room.Game;
             var group = Clients.Group(room.RoomId);
@@ -300,30 +322,29 @@ namespace BelotWebApp.BelotClasses
                 }
                 catch (Exception ex)
                 {
-                    log?.Error(ex, $"[HubThrowCards] Unhandled exception");
+                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
                 }
             });
 
-            log?.Information("[HubThrowCards] exit");
+            log?.Information($"[{entryPoint}] exit");
         }
 
         #endregion
 
         #region Seat Management
 
-        public async Task HubGetSeatActions(int position)
+        public async Task HubGetSeatActions(int position) // called by client
         {
-            var room = GetRoom();
+            string entryPoint = "HubGetSeatActions";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
+            {
+                return;
+            }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information("[HubGetSeatActions] enter");
-
-            if (room?.Game == null || room.Observer == null)
-            {
-                log?.Warning("[HubGetSeatActions] Room/Game/Observer was null");
-                return;
-            }
+            log?.Information($"[{entryPoint}] enter");
 
             var game = room.Game;
             var clients = Clients;
@@ -345,32 +366,31 @@ namespace BelotWebApp.BelotClasses
 
             await clients.Caller.SendAsync("SetSeatActions", actions, position);
 
-            log?.Information("[HubGetSeatActions] exit");
+            log?.Information($"[{entryPoint}] exit");
         }
 
         public async Task HubBookSeat(int position) // called by client // 0 = W, 1 = N, 2 = E, 3 = S, 4-7 = Robot, 8 = vacate
         {
-            var room = GetRoom();
-
-            using var logScope = BeginRoomLogScope(room);
-
-            log?.Information("[HubBookSeat] enter");
-
-            if (position is < 0 or > 8)
+            string entryPoint = "HubBookSeat";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
             {
-                log?.Warning("[HubBookSeat] invalid position {position}", position);
                 return;
             }
 
-            if (room?.Game == null || room.Observer == null)
+            using var logScope = BeginRoomLogScope(room);
+
+            log?.Information($"[{entryPoint}] enter");
+
+            if (position is < 0 or > 8)
             {
-                log?.Warning("[HubBookSeat] Room/Game/Observer was null");
+                log?.Warning($"[{entryPoint}] invalid position {position}", position);
                 return;
             }
 
             if (!room.Game.IsNewGame)
             {
-                log?.Warning("[HubBookSeat] booking requested after game start");
+                log?.Warning($"[{entryPoint}] booking requested after game start");
                 return;
             }
 
@@ -428,14 +448,15 @@ namespace BelotWebApp.BelotClasses
                 await UnbookSeat(room, clients, true);
             }
 
-            log?.Information("[HubBookSeat] exit");
+            log?.Information($"[{entryPoint}] exit");
         }
 
         private async Task UnbookSeat(BelotRoom room, IHubCallerClients clients, bool resetSeatOrientations) // only for players: we cannot unbook a bot directly but we can take their seat
         {
+            string entryPoint = "UnbookSeat";
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information("[UnbookSeat] enter");
+            log?.Information($"[{entryPoint}] enter");
 
             string userId = GetCallerUserId();
             var player = room.GetPlayerById(userId);
@@ -459,7 +480,7 @@ namespace BelotWebApp.BelotClasses
                 await UpdateConnectedUsers(room, clients);
             }
 
-            log?.Information("[UnbookSeat] exit");
+            log?.Information($"[{entryPoint}] exit");
         }
 
         #endregion
@@ -468,27 +489,26 @@ namespace BelotWebApp.BelotClasses
 
         public async void HubAnnounce(string message) // called by client
         {
-            var room = GetRoom();
-
-            using var logScope = BeginRoomLogScope(room);
-
-            log?.Information("[HubAnnounce] enter");
-
-            if (string.IsNullOrEmpty(message))
+            string entryPoint = "HubAnnounce";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
             {
-                log?.Warning("[HubAnnounce] empty chat message");
                 return;
             }
 
-            if (room?.Game == null || room.Observer == null)
+            using var logScope = BeginRoomLogScope(room);
+
+            log?.Information($"[{entryPoint}] enter");
+
+            if (string.IsNullOrEmpty(message))
             {
-                log?.Warning("[HubAnnounce] Room/Game/Observer was null");
+                log?.Warning($"[{entryPoint}] empty chat message");
                 return;
             }
 
             if (!room.Options.AllowChat)
             {
-                log?.Warning("[HubAnnounce] chat when chat is disabled");
+                log?.Warning($"[{entryPoint}] chat when chat is disabled");
                 return;
             }
 
@@ -496,26 +516,25 @@ namespace BelotWebApp.BelotClasses
             await group.SendAsync("AppendChatLog", $"[{GetServerDateTime()} • {GetCallerUsername()}] {message}");
             await group.SendAsync("showChatNotification");
 
-            log?.Information("[HubAnnounce] exit");
+            log?.Information($"[{entryPoint}] exit");
         }
 
         #endregion
 
         #region RoundSummary
 
-        public Task RoundSummaryVoteToContinue(Guid roundToken)
+        public Task RoundSummaryVoteToContinue(Guid roundToken) // called by client
         {
-            var room = GetRoom();
+            string entryPoint = "RoundSummaryVoteToContinue";
+            var (room, user) = ValidateEntry(entryPoint);
+            if (room == null || user == null || room.Game == null || room.Observer == null)
+            {
+                return Task.CompletedTask;
+            }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information("[RoundSummaryVoteToContinue] enter");
-
-            if (room?.Game == null || room.Observer == null)
-            {
-                log?.Warning("[RoundSummaryVoteToContinue] Room/Game/Observer was null");
-                return Task.CompletedTask;
-            }
+            log?.Information($"[{entryPoint}] enter");
 
             var userId = GetCallerUserId();
 
@@ -524,7 +543,7 @@ namespace BelotWebApp.BelotClasses
                 live.RoundSummaryGate.RegisterContinueVote(GetCallerUsername(), roundToken);
             }
 
-            log?.Information("[RoundSummaryVoteToContinue] exit");
+            log?.Information($"[{entryPoint}] exit");
 
             return Task.CompletedTask;
         }
@@ -535,16 +554,15 @@ namespace BelotWebApp.BelotClasses
 
         private static string GetServerDateTime()
         {
-            //return DateTime.Now.ToString("dd/MM/yyyy HH:mm");
             return DateTime.Now.ToString("HH:mm");
         }
 
-        public string GetCallerUserId()
+        private string GetCallerUserId()
         {
             return Context.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Unknown Entity";
         }
 
-        public string GetCallerUsername()
+        private string GetCallerUsername()
         {
             return Context.User?.Identity?.Name ?? "Unknown Entity";
         }
@@ -570,10 +588,9 @@ namespace BelotWebApp.BelotClasses
             await clients.Group(room.RoomId).SendAsync("ConnectedUsers", playerNames, spectatorNames);
         }
 
-        private async Task LoadContext(BelotRoom room, IHubCallerClients clients)
+        private async Task LoadContext(BelotRoom room, ConnectedUser user, IHubCallerClients clients)
         {
             var game = room.Game;
-            var user = room.GetUserById(GetCallerUserId());
 
             if (game.Players == null || user == null)
             {
@@ -726,9 +743,10 @@ namespace BelotWebApp.BelotClasses
 
         public override async Task OnConnectedAsync()
         {
+            string entryPoint = "OnConnected";
             if (Context?.GetHttpContext()?.GetRouteValue("roomId") is not string roomId)
             {
-                log?.Warning("[OnConnected] roomId was null ConnectionId={ConnectionId}", Context?.ConnectionId);
+                log?.Warning($"[{entryPoint}] roomId was null");
                 return;
             }
 
@@ -738,15 +756,17 @@ namespace BelotWebApp.BelotClasses
 
             var room = GetRoom();
 
-            using var logScope = BeginRoomLogScope(room);
-
-            log?.Information("[OnConnected] enter", Context.ConnectionId);
-
             if (room?.Game == null)
             {
-                log?.Warning("[OnConnected] Room/Game was null");
+                allConnections.TryRemove(Context.ConnectionId, out _);
+                Context.Abort();
+                log?.Warning($"[{entryPoint}] Room/Game was null");
                 return;
             }
+
+            using var logScope = BeginRoomLogScope(room);
+
+            log?.Information($"[{entryPoint}] enter");
 
             if (room.Observer == null)
             {
@@ -766,8 +786,8 @@ namespace BelotWebApp.BelotClasses
             var user = room.GetUserById(userId); // check for a user reconnecting from a quick page refresh
             if (user != null)
             {
-                user.ConnectionId = Context.ConnectionId;
-                user.Username = username;
+                await clients.Client(user.ConnectionId).SendAsync("ConnectionSuperseded");
+                room.UpdateUser(user, username, Context.ConnectionId);
                 connectionType = "reconnected";
             }
             else
@@ -790,27 +810,29 @@ namespace BelotWebApp.BelotClasses
                 await liveObserver.SysAnnounce($"{username} {connectionType}.");
             }
 
-            log?.Information($"{username} {connectionType}.");
+            log?.Information($"[{entryPoint}] {username} {connectionType}");
 
-            await LoadContext(room, clients);
+            await LoadContext(room, user, clients);
 
-            log?.Information("[OnConnected] exit");
+            log?.Information($"[{entryPoint}] exit");
             await base.OnConnectedAsync();
         }
 
-        public async override Task OnDisconnectedAsync(Exception? ex)
+        public async override Task OnDisconnectedAsync(Exception? ex) //
         {
+            string entryPoint = "OnDisconnected";
+
             var room = GetRoom();
-
-            using var logScope = BeginRoomLogScope(room);
-
-            log?.Information("[OnDisconnected] enter");
 
             if (room?.Game == null || room.Observer == null)
             {
-                log?.Warning("[OnDisconnected] Room/Game/Observer was null");
+                log?.Warning($"[{entryPoint}] Room/Game/Observer was null");
                 return;
             }
+
+            using var logScope = BeginRoomLogScope(room);
+
+            log?.Information($"[{entryPoint}] enter");
 
             BelotGame game = room.Game;
             var clients = Clients;
@@ -820,75 +842,55 @@ namespace BelotWebApp.BelotClasses
 
             if (user == null)
             {
-                log?.Warning("[OnDisconnected] User was null");
+                log?.Warning($"[{entryPoint}] User was null");
                 return;
             }
 
-            bool playerReallyDisconnected = false; // guards against race condition of a reconnect updating ConnectionId but not setting player.IsDisconnected = false before continuing here
+            await Task.Delay(1000); // allow for possible reconnect
 
-            var player = room.GetPlayerById(userId);
-            if (player == null) // they are a spectator
+            if (user.ConnectionId == Context.ConnectionId) // player has not reconnected, connectionId is stale
             {
+                await UnbookSeat(room, clients, true); // this will mark them as disconnected
                 room.RemoveUser(user);
                 await UpdateConnectedUsers(room, clients);
+                log?.Information($"[{entryPoint}] {userId} disconnected after delay.");
                 if (room.Observer is LiveBelotObserver live)
                 {
                     await live.SysAnnounce(user.Username + " disconnected.");
-                }
-                playerReallyDisconnected = true;
-            }
-            else
-            {
-                await Task.Delay(1500); // allow for possible reconnect
-                if (user.ConnectionId == Context.ConnectionId) // player has not reconnected, connectionId is stale
-                {
-                    await UnbookSeat(room, clients, true); // this will mark them as disconnected
-                    room.RemoveUser(user);
-                    await UpdateConnectedUsers(room, clients);
-                    if (room.Observer is LiveBelotObserver live)
+                    live.RoundSummaryGate.RegisterDisconnect(userId);
+
+                    if (room.ConnectedUsers.Count == 0)
                     {
-                        await live.SysAnnounce(user.Username + " disconnected.");
-                        live.RoundSummaryGate.RegisterDisconnect(userId);
+                        int oldwinnerDelay = game.WinnerDelay;
+                        int oldBotDelay = game.BotDelay;
+                        int oldRoundSummaryDelay = live.RoundSummaryGate.RoundSummaryDelay;
+                        game.WinnerDelay = 0;
+                        game.BotDelay = 0;
+                        live.RoundSummaryGate.RoundSummaryDelay = 0;
+                        await Task.Delay(1500); // let all bots play out remaining actions and a final wait for users to rejoin before deleting the room
+                        game.WinnerDelay = oldwinnerDelay;
+                        game.BotDelay = oldBotDelay;
+                        live.RoundSummaryGate.RoundSummaryDelay = oldRoundSummaryDelay;
+
+                        if (room.ConnectedUsers.Count == 0)
+                        {
+                            _roomRegistry.RemoveRoom(room.RoomId);
+                            game.IsRunning = false;
+                            game.CloseLog();
+                        }
                     }
-                    log?.Information($"[OnDisconnected] {userId} disconnected after delay.");
-                    playerReallyDisconnected = true;
                 }
-                else // player reconnected, don't proceed with disconnection
-                {
-                    log?.Information($"[OnDisconnected] {userId} reconnected before disconnect cleanup.");
-                }
-
             }
-
-            if (playerReallyDisconnected && room.ConnectedUsers.Count == 0)
+            else // player reconnected, don't proceed with disconnection
             {
-                if (room.Observer is LiveBelotObserver live)
-                {
-                    int oldwinnerDelay = game.WinnerDelay;
-                    int oldBotDelay = game.BotDelay;
-                    int oldRoundSummaryDelay = live.RoundSummaryGate.RoundSummaryDelay;
-                    game.WinnerDelay = 0;
-                    game.BotDelay = 0;
-                    live.RoundSummaryGate.RoundSummaryDelay = 0;
-                    await Task.Delay(1500); // let all bots play out remaining actions and a final wait for users to rejoin before deleting the room
-                    game.WinnerDelay = oldwinnerDelay;
-                    game.BotDelay = oldBotDelay;
-                    live.RoundSummaryGate.RoundSummaryDelay = oldRoundSummaryDelay;
-                }
-
-                if (room.ConnectedUsers.Count == 0)
-                {
-                    _roomRegistry.RemoveRoom(room.RoomId);
-                    game.IsRunning = false;
-                    game.CloseLog();
-                }
+                log?.Information($"[{entryPoint}] connection for user <{userId}> was superseded (reconnected or switched session)");
             }
 
             allConnections.TryRemove(Context.ConnectionId, out _);
 
             _roomRegistry.RefreshObserver(room.RoomId, Clients);
 
-            log?.Information("[OnDisconnected] exit");
+            log?.Information($"[{entryPoint}] exit");
 
             await base.OnDisconnectedAsync(ex);
         }

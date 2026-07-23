@@ -9,8 +9,14 @@
             ConnectionId = connectionId;
         }
 
-        public string UserId { get; set; }
-        public string Username { get; set; }
-        public string ConnectionId { get; set; }
+        public string UserId { get; }
+        public string Username { get; private set; }
+        public string ConnectionId { get; private set; }
+
+        internal void Update(string username, string connectionId)
+        {
+            Username = username;
+            ConnectionId = connectionId;
+        }
     }
 }
