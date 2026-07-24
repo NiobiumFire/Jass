@@ -804,6 +804,58 @@ function getNewAngle(mySeat, currentAngle) {
     return newAngle;
 }
 
+// -------------------- Turn Timer --------------------
+
+const timers = [...document.querySelectorAll(".turn-timer")]
+    .sort((a, b) => a.dataset.seat - b.dataset.seat);
+
+function setTimerPath(pos) {
+
+
+    const w = timers[pos].clientWidth;
+    const h = timers[pos].clientHeight;
+
+    if (!w || !h) return;
+
+    timers[pos].setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+    const base = timers[pos].querySelector(".rope-base");
+
+    const inset = parseFloat(getComputedStyle(base).getPropertyValue("--inset"));
+    const r = parseFloat(getComputedStyle(base).getPropertyValue("--radius"));
+
+    const d = `M ${w / 2} ${inset} H ${inset + r} A ${r} ${r} 0 0 0 ${inset} ${inset + r} V ${h - inset - r} A ${r} ${r} 0 0 0 ${inset + r} ${h - inset} H ${w - inset - r} A ${r} ${r} 0 0 0 ${w - inset} ${h - inset - r} V ${inset + r} A ${r} ${r} 0 0 0 ${w - inset - r} ${inset} H ${w / 2} Z`;
+
+    base.setAttribute("d", d);
+    base.style.setProperty("--length", base.getTotalLength());
+}
+
+timers.forEach((timer, pos) => {
+
+    new ResizeObserver(() => {
+        setTimerPath(pos);
+    }).observe(timer);
+
+    setTimerPath(pos);
+
+});
+
+function showTimer(pos, duration, ellapsed = 0) {
+    const base = timers[pos].querySelector(".rope-base");
+
+    base.style.setProperty("--duration", duration + "s");
+
+    const animations = base.getAnimations();
+
+    void base.offsetWidth;
+
+    animations.forEach(animation => {
+        animation.currentTime = ellapsed * 1000;
+        animation.play();
+
+    })
+};
+
 // -------------------- Chat Log --------------------
 
 /*copyGameInvite = function () {*/

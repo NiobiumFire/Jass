@@ -632,3 +632,52 @@
         transform: scale(1);
     }
 }
+
+/* Timer */
+
+.rope-svg {
+    --extra: 4%;
+    position: absolute;
+    top: calc(-1 * var(--extra) / 2);
+    left: calc(-1 * var(--extra) / 2);
+    width: calc(100% + var(--extra));
+    height: calc(100% + var(--extra));
+    overflow: visible;
+    pointer-events: none;
+}
+
+.rope-base {
+    --border: 5;
+    --radius: 14;
+    --inset: 3;
+    fill: none;
+    stroke: #8b5a2b;
+    stroke-width: var(--border);
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: var(--length);
+    stroke-dashoffset: var(--length);
+    animation: glow 2s linear infinite, burn var(--duration) linear forwards;
+    animation-play-state: paused;
+}
+
+@keyframes glow {
+    50% {
+        stroke: #ff6a00;
+    }
+
+    100% {
+        stroke: #8B5A2B;
+    }
+}
+
+@keyframes burn {
+    0% {
+        stroke-dashoffset: var(--length);
+    }
+    0.1% {
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dashoffset: var(--length);
+    }
+}
