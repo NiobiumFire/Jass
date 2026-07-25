@@ -9,6 +9,9 @@ let currentRoundToken = null; // round summary modal closing
 let roundSummaryAutoCloseTimer = null;
 let roundSummaryCountdownInterval = null;
 
+let suitModalAutoCloseTimer = null;
+let suitModalCountdownInterval = null;
+
 const dialog = document.querySelector('#seatActionsDialogue'); // fingerprints and seat selection
 let outsideClickListener;
 let dialogActivator;
@@ -259,10 +262,10 @@ room.on("showRoundSummary", function (roundSummaryInfo) {
 
     document.getElementById("summary-continue-button").disabled = roundSummaryInfo.voteToContinueDisabled;
 
-    $('#summary-modal').modal('show');
-
     let remainingMs = roundSummaryInfo.roundSummaryDelay;
     roundSummaryTimerUpdate(remainingMs);
+
+    $('#summary-modal').modal('show');
 
     roundSummaryCountdownInterval = setInterval(() => {
         remainingMs -= 1000;
@@ -536,7 +539,7 @@ room.on("setExtrasEmote", function (extras, turn) {
 
 // -------------------- Suit Selection --------------------
 
-room.on("showSuitModal", function (validCalls, fiveUnderNine = false) {
+room.on("showSuitModal", function (validCalls, callTimeRemaining, fiveUnderNine = false) {
     for (let i = 0; i < 8; i++) {
         if (validCalls[i] == 1) {
             setSuitIconOn(i + 1);
@@ -553,8 +556,32 @@ room.on("showSuitModal", function (validCalls, fiveUnderNine = false) {
     }
     $('#lobby').offcanvas('hide');
     //window.scrollTo(0, 99999);
+
     $('#suit-modal').modal('show');
+
+    if (callTimeRemaining > 0) {
+        document.getElementById("call-countdown-container").hidden = false;
+        let remainingMs = callTimeRemaining;
+        suitModalTimerUpdate(remainingMs);
+
+        suitModalCountdownInterval = setInterval(() => {
+            remainingMs -= 1000;
+            suitModalTimerUpdate(remainingMs);
+            if (remainingMs <= 0) {
+                clearInterval(suitModalCountdownInterval);
+            }
+        }, 1000);
+
+        suitModalAutoCloseTimer = setTimeout(() => $('#suit-modal').modal('hide'), callTimeRemaining);
+    }
+    else {
+        document.getElementById("call-countdown-container").hidden = true;
+    }
 });
+
+function suitModalTimerUpdate(remainingMs) {
+    document.getElementById("call-countdown").innerHTML = `${Math.max(0, Math.ceil(remainingMs / 1000))}s`;
+}
 
 function minimiseSuitModal() {
     $('#suit-modal').modal('hide');
@@ -565,6 +592,14 @@ function minimiseSuitModal() {
         document.getElementById("make-call-btn").onclick = "";
     };
 };
+
+room.on("hideSuitModal", function () {
+    $('#suit-modal').modal('hide');
+    document.getElementById("make-call-btn").hidden = true;
+    document.getElementById("make-call-btn").onclick = "";
+    clearTimeout(suitModalAutoCloseTimer);
+    clearInterval(suitModalCountdownInterval);
+});
 
 room.on("emoteSuit", function (suit, turn) {
     let bubble = document.getElementById("bubble" + turn);
@@ -585,6 +620,8 @@ function setSuitIconOn(suit) {
 
 function nominateSuit(el) {
     $('#suit-modal').modal('hide');
+    clearTimeout(suitModalAutoCloseTimer);
+    clearInterval(suitModalCountdownInterval);
     room.invoke("HubNominateSuit", parseInt(el.id.charAt(el.id.length - 1)));
 };
 

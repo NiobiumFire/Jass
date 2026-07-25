@@ -67,15 +67,14 @@ namespace BelotWebApp.BelotClasses.Observers
             var player = _game.Players[_game.Turn];
             if (player != null)
             {
-                var clients = GetClients();
-
                 if (player.PlayerType == PlayerType.Human)
                 {
                     var user = _room.GetUserBySeat(_game.Turn);
                     if (user != null)
                     {
+                        var clients = GetClients();
                         await clients.Client(user.ConnectionId).SendAsync("EnableDealBtn").ConfigureAwait(false);
-                        if (_room.Options.TurnTime > 0)
+                        if (_room.Options.TurnTime > 0) // timeout auto action
                         {
                             TurnGate.BeginWait(_room.Options.TurnTime, async () =>
                             {
@@ -125,7 +124,24 @@ namespace BelotWebApp.BelotClasses.Observers
             if (user != null)
             {
                 var clients = GetClients();
-                await clients.Client(user.ConnectionId).SendAsync("ShowSuitModal", validCalls, fiveUnderNine).ConfigureAwait(false);
+                await clients.Client(user.ConnectionId).SendAsync("ShowSuitModal", validCalls, _room.Options.TurnTime * 1000, fiveUnderNine).ConfigureAwait(false);
+                if (_room.Options.TurnTime > 0) // timeout auto action
+                {
+                    TurnGate.BeginWait(_room.Options.TurnTime, async () =>
+                    {
+                        var currentUser = _room.GetUserBySeat(_game.Turn); // user object is new after full reconnect
+                        var currentPlayer = _game.Players[_game.Turn];
+                        if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
+                        {
+                            await clients.Client(currentUser.ConnectionId).SendAsync("hideSuitModal");
+                        }
+
+                        var call = AgentBasic.CallSuit(_game.Hand[_game.Turn], validCalls);
+
+                        BelotGameRunner.ContinueFromCall(_room, call);
+                    });
+                    await _group.SendAsync("startTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
+                }
             }
         }
 

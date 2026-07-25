@@ -146,7 +146,7 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
-            if (room.Observer is LiveBelotObserver live && live.TurnGate.Signal())
+            if (room.Options.TurnTime == 0 || (room.Observer is LiveBelotObserver live && live.TurnGate.Signal()))
             {
                 await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
 
@@ -168,30 +168,40 @@ namespace BelotWebApp.BelotClasses
             }
 
             using var logScope = BeginRoomLogScope(room);
-
             log?.Information($"[{entryPoint}] enter");
 
-            BelotGameEngine engine = new(room.Game, room.Observer);
+            var player = room.GetPlayerById(user.UserId);
 
-            room.Game.NominateSuit(call);
-            room.Game.WaitCall = false;
-            if (room.Observer is LiveBelotObserver live)
+            if (player == null)
             {
-                await live.AnnounceSuit();
+                log?.Warning($"[{entryPoint}] Call attempted by user {user.UserId} without being a player");
+                return;
             }
-            if (--room.Game.Turn == -1) room.Game.Turn = 3;
 
-            _ = Task.Run(async () =>
+            if (!room.Game.WaitCall)
             {
-                try
-                {
-                    await engine.GameController();
-                }
-                catch (Exception ex)
-                {
-                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
-                }
-            });
+                log?.Warning($"[{entryPoint}] Call attempted by player {user.UserId} without pending call action");
+                return;
+            }
+
+            if (room.Game.Turn != Array.IndexOf(room.Game.Players, player))
+            {
+                log?.Warning($"[{entryPoint}] Call attempted by player {user.UserId} out of turn");
+                return;
+            }
+
+            if (call > 0 && room.Game.ValidCalls()[(int)call] == 0)
+            {
+                log?.Warning($"[{entryPoint}] Illegal call attempted by player {user.UserId}");
+                return;
+            }
+
+            if (room.Options.TurnTime == 0 || (room.Observer is LiveBelotObserver live && live.TurnGate.Signal()))
+            {
+                await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
+
+                BelotGameRunner.ContinueFromCall(room, call);
+            }
 
             log?.Information($"[{entryPoint}] exit");
 
@@ -647,9 +657,12 @@ namespace BelotWebApp.BelotClasses
                 await clients.Caller.SendAsync("SetScoreTitles", "Us", "Them");
             }
 
+            double? elapsed;
+
             if (game?.IsNewGame == false)
             {
-                if (room.Observer is LiveBelotObserver live && live.TurnGate.ElapsedTime is double elapsed)
+                elapsed = (room.Observer as LiveBelotObserver)?.TurnGate.ElapsedTime;
+                if (elapsed is double) // timer is in progress (whatever the action is)
                 {
                     await clients.Caller.SendAsync("startTurnTimer", game.Turn, room.Options.TurnTime, elapsed);
                 }
@@ -709,7 +722,16 @@ namespace BelotWebApp.BelotClasses
                         {
                             int[] validCalls = game.ValidCalls();
                             bool fiveUnderNine = game.Calls.Count < 4 && BelotHelpers.FiveUnderNine(game.Hand[game.Turn]);
-                            await clients.Caller.SendAsync("ShowSuitModal", validCalls, fiveUnderNine);
+
+                            elapsed = (room.Observer as LiveBelotObserver)?.TurnGate.ElapsedTime;
+                            if (elapsed is double) // set timer on suit modal
+                            {
+                                await clients.Caller.SendAsync("ShowSuitModal", validCalls, (room.Options.TurnTime - elapsed) * 1000, fiveUnderNine);
+                            }
+                            else
+                            {
+                                await clients.Caller.SendAsync("ShowSuitModal", validCalls, 0, fiveUnderNine);
+                            }
                         }
                         // if the connecting user must declare extras
                         else if (!game.TableCards[game.Turn].IsNull())

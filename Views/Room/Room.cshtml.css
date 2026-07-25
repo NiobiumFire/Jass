@@ -159,6 +159,13 @@
     line-height: normal;
 }
 
+.suit-modal-header-right-container{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
 .suit-call-table {
     table-layout: fixed;
     margin: 0;
