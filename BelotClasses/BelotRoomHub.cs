@@ -139,16 +139,19 @@ namespace BelotWebApp.BelotClasses
                 log?.Warning($"[{entryPoint}] Deal attempted by player {user.UserId} without pending deal action");
                 return;
             }
-            
+
             if (room.Game.Turn != Array.IndexOf(room.Game.Players, player))
             {
                 log?.Warning($"[{entryPoint}] Deal attempted by player {user.UserId} without being the dealer");
                 return;
             }
 
-            await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
+            if (room.Observer is LiveBelotObserver live && live.TurnGate.Signal())
+            {
+                await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
 
-            BelotGameRunner.ContinueFromDeal(room);
+                BelotGameRunner.ContinueFromDeal(room);
+            }
 
             log?.Information($"[{entryPoint}] exit");
 
@@ -646,6 +649,11 @@ namespace BelotWebApp.BelotClasses
 
             if (game?.IsNewGame == false)
             {
+                if (room.Observer is LiveBelotObserver live && live.TurnGate.ElapsedTime is double elapsed)
+                {
+                    await clients.Caller.SendAsync("startTurnTimer", game.Turn, room.Options.TurnTime, elapsed);
+                }
+
                 await clients.Caller.SendAsync("HideDeck", true);
 
                 int dealer = game.FirstPlayer + 1;

@@ -846,7 +846,7 @@ timers.forEach((timer, pos) => {
 
 });
 
-function startTurnTimer(pos, duration, ellapsed) {
+function startTurnTimer(pos, duration, elapsed) {
     const base = timers[pos].querySelector(".rope-base");
 
     base.style.setProperty("--duration", duration + "s");
@@ -856,7 +856,7 @@ function startTurnTimer(pos, duration, ellapsed) {
     void base.offsetWidth;
 
     animations.forEach(animation => {
-        animation.currentTime = ellapsed * 1000;
+        animation.currentTime = elapsed * 1000;
         animation.play();
 
     })
@@ -876,8 +876,8 @@ function stopTurnTimer(pos) {
     })
 };
 
-room.on("startTurnTimer", function (pos, duration, ellapsed) {
-    startTurnTimer(pos, duration, ellapsed);
+room.on("startTurnTimer", function (pos, duration, elapsed) {
+    startTurnTimer(pos, duration, elapsed);
 });
 
 room.on("stopTurnTimer", function (pos) {
