@@ -79,7 +79,6 @@ namespace BelotWebApp.BelotClasses
             }
 
             using var logScope = BeginRoomLogScope(room);
-
             log?.Information($"[{entryPoint}] enter");
 
             var game = room.Game;
@@ -126,6 +125,26 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
             log?.Information($"[{entryPoint}] enter");
+
+            var player = room.GetPlayerById(user.UserId);
+
+            if (player == null)
+            {
+                log?.Warning($"[{entryPoint}] Deal attempted by user {user.UserId} without being a player");
+                return;
+            }
+
+            if (!room.Game.WaitDeal)
+            {
+                log?.Warning($"[{entryPoint}] Deal attempted by player {user.UserId} without pending deal action");
+                return;
+            }
+            
+            if (room.Game.Turn != Array.IndexOf(room.Game.Players, player))
+            {
+                log?.Warning($"[{entryPoint}] Deal attempted by player {user.UserId} without being the dealer");
+                return;
+            }
 
             await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
 
