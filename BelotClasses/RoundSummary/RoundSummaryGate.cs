@@ -3,7 +3,7 @@
     public class RoundSummaryGate
     {
         private readonly object _lock = new();
-        private TaskCompletionSource<bool> _taskCreationOptions = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private TaskCompletionSource<bool> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly HashSet<string> _continueVotes = [];
         private Guid _token;
         private int _requiredContinueVotes;
@@ -17,7 +17,7 @@
                 _token = Guid.NewGuid();
                 _continueVotes.Clear();
                 _requiredContinueVotes = expectedHumanCount;
-                _taskCreationOptions = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 return _token;
             }
         }
@@ -54,10 +54,10 @@
         {
             if (_continueVotes.Count >= _requiredContinueVotes)
             {
-                _taskCreationOptions.TrySetResult(true);
+                _taskCompletionSource.TrySetResult(true);
             }
         }
 
-        public Task WaitAsync() => Task.WhenAny(_taskCreationOptions.Task, Task.Delay(RoundSummaryDelay));
+        public Task WaitAsync() => Task.WhenAny(_taskCompletionSource.Task, Task.Delay(RoundSummaryDelay));
     }
 }

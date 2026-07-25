@@ -21,7 +21,7 @@ namespace BelotWebApp.BelotClasses.Observers
         public Task OnTurnChanged(TurnActionType turnState) => Task.CompletedTask;
         public Task OnNewGame() => Task.CompletedTask;
         public Task OnNewRound() => Task.CompletedTask;
-        public Task OnDeal() => Task.CompletedTask;
+        public Task OnDealEnd() => Task.CompletedTask;
         public Task OnPendingSuitNomination(int[] validCalls) => Task.CompletedTask;
         public Task OnSuitNomination() => Task.CompletedTask;
         public Task OnNoCallDecided() => Task.CompletedTask;

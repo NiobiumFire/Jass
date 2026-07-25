@@ -421,7 +421,10 @@ room.on("disableDealBtn", function () {
 });
 
 room.on("enableDealBtn", function () {
-    document.getElementById("deck").onclick = beginDeal;
+    document.getElementById("deck").onclick = () => {
+        prepareDeal();
+        room.invoke("HubShuffle");
+    }
     hideDeck(false);
     document.getElementById("deck-shimmer").hidden = false;
 });
@@ -435,12 +438,15 @@ room.on("newRound", function () {
 
 // -------------------- Deal Cards --------------------
 
-function beginDeal() {
+function prepareDeal() {
     document.getElementById("deck").onclick = "";
     hideDeck(true);
     document.getElementById("deck-shimmer").hidden = true;
-    room.invoke("HubShuffle");
 };
+
+room.on("prepareDeal", function () {
+    prepareDeal();
+});
 
 room.on("setDealerMarker", function (dealer) {
     for (let i = 0; i < 4; i++) {
@@ -840,7 +846,7 @@ timers.forEach((timer, pos) => {
 
 });
 
-function showTimer(pos, duration, ellapsed = 0) {
+function startTurnTimer(pos, duration, ellapsed) {
     const base = timers[pos].querySelector(".rope-base");
 
     base.style.setProperty("--duration", duration + "s");
@@ -855,6 +861,28 @@ function showTimer(pos, duration, ellapsed = 0) {
 
     })
 };
+
+function stopTurnTimer(pos) {
+    const base = timers[pos].querySelector(".rope-base");
+
+    const animations = base.getAnimations();
+
+    void base.offsetWidth;
+
+    animations.forEach(animation => {
+        animation.pause();
+        animation.currentTime = 0;
+
+    })
+};
+
+room.on("startTurnTimer", function (pos, duration, ellapsed) {
+    startTurnTimer(pos, duration, ellapsed);
+});
+
+room.on("stopTurnTimer", function (pos) {
+    stopTurnTimer(pos);
+});
 
 // -------------------- Chat Log --------------------
 

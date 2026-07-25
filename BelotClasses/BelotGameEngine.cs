@@ -65,7 +65,7 @@ namespace BelotWebApp.BelotClasses
                 _game.Shuffle();
                 _game.Deal(5);
 
-                await _observer.OnDeal().ConfigureAwait(false);
+                await _observer.OnDealEnd().ConfigureAwait(false);
             }
 
             if (_game.NumCardsPlayed == 0)
@@ -98,7 +98,7 @@ namespace BelotWebApp.BelotClasses
 
                     _game.Deal(3);
 
-                    await _observer.OnDeal().ConfigureAwait(false);
+                    await _observer.OnDealEnd().ConfigureAwait(false);
 
                     if (_game.RoundCall != Call.NoTrumps)
                     {

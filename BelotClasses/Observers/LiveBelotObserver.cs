@@ -16,6 +16,7 @@ namespace BelotWebApp.BelotClasses.Observers
         private IClientProxy _group;
         private readonly object _lock = new();
         public RoundSummaryGate RoundSummaryGate = new();
+        public BelotTurnGate TurnGate = new();
 
         public LiveBelotObserver(BelotRoom room, IHubCallerClients clients)
         {
@@ -74,6 +75,21 @@ namespace BelotWebApp.BelotClasses.Observers
                     if (user != null)
                     {
                         await clients.Client(user.ConnectionId).SendAsync("EnableDealBtn").ConfigureAwait(false);
+                        if (_room.Options.TurnTime > 0)
+                        {
+                            TurnGate.BeginWait(_room.Options.TurnTime, async () =>
+                            {
+                                var currentUser = _room.GetUserBySeat(_game.Turn); // user object is new after full reconnect
+                                var currentPlayer = _game.Players[_game.Turn];
+                                if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
+                                {
+                                    await clients.Client(currentUser.ConnectionId).SendAsync("prepareDeal");
+                                }
+
+                                BelotGameRunner.ContinueFromDeal(_room);
+                            });
+                            await _group.SendAsync("startTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
+                        }
                     }
                 }
                 else
@@ -83,7 +99,7 @@ namespace BelotWebApp.BelotClasses.Observers
             }
         }
 
-        public async Task OnDeal()
+        public async Task OnDealEnd()
         {
             var clients = GetClients();
 

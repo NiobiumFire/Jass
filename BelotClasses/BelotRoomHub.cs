@@ -115,38 +115,25 @@ namespace BelotWebApp.BelotClasses
             return Task.CompletedTask;
         }
 
-        public Task HubShuffle() // called by client
+        public async Task HubShuffle() // called by client
         {
             string entryPoint = "HubShuffle";
             var (room, user) = ValidateEntry(entryPoint);
             if (room == null || user == null || room.Game == null || room.Observer == null)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             using var logScope = BeginRoomLogScope(room);
-
             log?.Information($"[{entryPoint}] enter");
 
-            BelotGameEngine engine = new(room.Game, room.Observer);
+            await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
 
-            room.Game.WaitDeal = false;
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await engine.GameController();
-                }
-                catch (Exception ex)
-                {
-                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
-                }
-            });
+            BelotGameRunner.ContinueFromDeal(room);
 
             log?.Information($"[{entryPoint}] exit");
 
-            return Task.CompletedTask;
+            return;
         }
 
         public async Task HubNominateSuit(Call call) // called by client

@@ -9,7 +9,7 @@ namespace BelotWebApp.BelotClasses.Observers
         Task OnTurnChanged(TurnActionType turnState);
         Task OnNewGame();
         Task OnNewRound();
-        Task OnDeal();
+        Task OnDealEnd();
         Task OnPendingSuitNomination(int[] validCalls);
         Task OnSuitNomination();
         Task OnNoCallDecided();
