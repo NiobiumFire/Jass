@@ -171,7 +171,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
                 if (_game.TableCards.All(c => c.IsNull()))
                 {
-                    if (_game.GetWinners(_game.Turn).Count(w => w == 2) == _game.Hand[_game.Turn].Count(c => !c.Played) && _game.NumCardsPlayed > 3)
+                    if (_game.CanThrow())
                     {
                         await clients.Client(user.ConnectionId).SendAsync("ShowThrowBtn").ConfigureAwait(false);
                     }

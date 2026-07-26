@@ -489,7 +489,7 @@ namespace BelotWebApp.BelotClasses
             return validcards;
         }
 
-        public bool PlayerHasHigherTrump()
+        private bool PlayerHasHigherTrump()
         {
             foreach (var card in Hand[Turn])
             {
@@ -501,7 +501,7 @@ namespace BelotWebApp.BelotClasses
             return false;
         }
 
-        public int[] InvalidateLowerTrumps(int[] validcards)
+        private int[] InvalidateLowerTrumps(int[] validcards)
         {
             for (int i = 0; i < 8; i++)
             {
@@ -516,7 +516,7 @@ namespace BelotWebApp.BelotClasses
             return validcards;
         }
 
-        public int TrumpStrength(Card card)
+        private int TrumpStrength(Card card)
         {
             int trumpstrength = 0;
 
@@ -533,27 +533,27 @@ namespace BelotWebApp.BelotClasses
             return trumpstrength;
         }
 
-        public void DeclareCurrentDeclarables(List<Belot>? belots = null, List<Run>? runs = null, List<Carre>? carres = null)
-        {
-            belots ??= Declarations.Where(b => b is Belot).Cast<Belot>().ToList();
-            runs ??= Declarations.Where(b => b is Run).Cast<Run>().ToList();
-            carres ??= Declarations.Where(b => b is Carre).Cast<Carre>().ToList();
+        //public void DeclareCurrentDeclarables(List<Belot>? belots = null, List<Run>? runs = null, List<Carre>? carres = null)
+        //{
+        //    belots ??= Declarations.Where(b => b is Belot).Cast<Belot>().ToList();
+        //    runs ??= Declarations.Where(b => b is Run).Cast<Run>().ToList();
+        //    carres ??= Declarations.Where(b => b is Carre).Cast<Carre>().ToList();
 
-            foreach (var belot in belots)
-            {
-                belot.Declared = true;
-            }
+        //    foreach (var belot in belots)
+        //    {
+        //        belot.Declared = true;
+        //    }
 
-            foreach (var run in runs)
-            {
-                run.Declared = true;
-            }
+        //    foreach (var run in runs)
+        //    {
+        //        run.Declared = true;
+        //    }
 
-            foreach (var carre in carres)
-            {
-                carre.Declared = true;
-            }
-        }
+        //    foreach (var carre in carres)
+        //    {
+        //        carre.Declared = true;
+        //    }
+        //}
 
         public void PlayCard(Card card)
         {
@@ -579,6 +579,11 @@ namespace BelotWebApp.BelotClasses
             CardsPlayedThisRound.Add(BelotHelpers.GetCardIndex(card));
 
             card.Played = true;
+        }
+
+        public bool CanThrow()
+        {
+            return GetWinners(Turn).Count(w => w == 2) == Hand[Turn].Count(c => !c.Played) && NumCardsPlayed > 3;
         }
 
         #region Declarations
