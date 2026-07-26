@@ -17,30 +17,52 @@
                             <label asp-for="RoomName" class="form-label"></label>
                         </div>
 
-                        <div class="score-target-container form-control">
-                            <label class="score-target-label form-label">Score target</label>
+                        <div class="setting-container form-control">
+                            <label class="setting-label form-label">Score target<i class="bi bi-caret-right-fill ms-2"></i><i class="bi bi-caret-left-fill"></i></label>
 
-                            <div class="d-flex justify-content-between">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" asp-for="ScoreTarget" id="score501" value="501" />
-                                    <label class="form-check-label" for="score501">501</label>
-                                </div>
+                            <div class="btn-group w-100 d-flex justify-content-center" role="group">
+                                <input class="btn-check" type="radio" asp-for="ScoreTarget" id="score501" value="501" />
+                                <label class="btn2" for="score501">501</label>
 
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" asp-for="ScoreTarget" id="score1001" value="1001" />
-                                    <label class="form-check-label" for="score1001">1001</label>
-                                </div>
+                                <input class="btn-check" type="radio" asp-for="ScoreTarget" id="score1001" value="1001" />
+                                <label class="btn2" for="score1001">1001</label>
 
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" asp-for="ScoreTarget" id="score1501" value="1501" />
-                                    <label class="form-check-label" for="score1501">1501</label>
-                                </div>
+                                <input class="btn-check" type="radio" asp-for="ScoreTarget" id="score1501" value="1501" />
+                                <label class="btn2" for="score1501">1501</label>
                             </div>
                         </div>
 
-                        <div class="form-check">
-                            <input asp-for="AllowChat" class="form-check-input" />
-                            <label asp-for="AllowChat" class="form-check-label"></label>
+                        <div class="setting-container form-control">
+                            <label class="setting-label form-label">Turn time<i class="bi bi-alarm ms-2"></i></label>
+
+                            <div class="btn-group w-100 d-flex justify-content-center" role="group">
+                                <input class="btn-check" type="radio" asp-for="TurnTime" id="time10" value="10" />
+                                <label class="btn2" for="time10">10s</label>
+
+                                <input class="btn-check" type="radio" asp-for="TurnTime" id="time30" value="30" />
+                                <label class="btn2" for="time30">30s</label>
+
+                                <input class="btn-check" type="radio" asp-for="TurnTime" id="time60" value="60" />
+                                <label class="btn2" for="time60">60s</label>
+
+                                <input class="btn-check" type="radio" asp-for="TurnTime" id="time120" value="120" />
+                                <label class="btn2" for="time120">120s</label>
+
+                                <input class="btn-check" type="radio" asp-for="TurnTime" id="time0" value="0" />
+                                <label class="btn2" for="time0">∞</label>
+                            </div>
+                        </div>
+
+                        <div class="setting-container form-control mb-0">
+                            <label class="setting-label form-label">Allow chat<i class="bi bi-envelope-fill ms-2"></i></label>
+
+                            <div class="btn-group w-100 d-flex justify-content-center" role="group">
+                                <input class="btn-check" type="radio" asp-for="AllowChat" id="chat-enabled" value="true" />
+                                <label class="btn2" for="chat-enabled">Yes</label>
+
+                                <input class="btn-check" type="radio" asp-for="AllowChat" id="chat-disabled" value="false" />
+                                <label class="btn2" for="chat-disabled">No</label>
+                            </div>
                         </div>
                     </div>
 

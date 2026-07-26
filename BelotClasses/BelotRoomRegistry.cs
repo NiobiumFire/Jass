@@ -44,6 +44,7 @@ namespace BelotWebApp.BelotClasses
                 r.Game.Players.Select(p => p == null ? "<empty>" : p.PlayerName).ToArray(),
                 !r.Game.IsNewGame,
                 r.Options.ScoreTarget,
+                r.Options.TurnTime,
                 r.Options.AllowChat));
 
         public IEnumerable<string> GetAllConnectedUsers() => _rooms.Values.SelectMany(r => r.ConnectedUsers).Select(u => u.Username);

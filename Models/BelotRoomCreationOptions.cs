@@ -7,7 +7,7 @@ namespace BelotWebApp.Models
         [Required]
         [DataType(DataType.Text)]
         [Display(Name = "Room name")]
-        [StringLength(25, ErrorMessage = "The {0} must be at most {1} characters long.")]
+        [StringLength(22, ErrorMessage = "The {0} must be at most {1} characters long.")]
         public string RoomName { get; set; } = "";
 
         [Required]
@@ -19,8 +19,8 @@ namespace BelotWebApp.Models
         public bool AllowChat { get; set; } = true;
 
         [Required]
-        [AllowedValues(0, 10, 15, 30, 45, 60, 120)]
-        public int TurnTime { get; set; } = 10;
+        [AllowedValues(0, 10, 30, 60, 120)]
+        public int TurnTime { get; set; } = 30;
 
         //public bool AllowSpectators { get; set; }
     }
