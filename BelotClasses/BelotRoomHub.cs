@@ -146,12 +146,16 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
-            if (room.Options.TurnTime == 0 || (room.Observer is LiveBelotObserver live && live.TurnGate.Signal()))
+            if (room.Options.TurnTime > 0)
             {
+                if (room.Observer is not LiveBelotObserver live || !live.TurnGate.Signal())
+                {
+                    return;
+                }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
-
-                BelotGameRunner.ContinueFromDeal(room);
             }
+
+            BelotGameRunner.ContinueFromDeal(room);
 
             log?.Information($"[{entryPoint}] exit");
 
@@ -196,12 +200,16 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
-            if (room.Options.TurnTime == 0 || (room.Observer is LiveBelotObserver live && live.TurnGate.Signal()))
+            if (room.Options.TurnTime > 0)
             {
+                if (room.Observer is not LiveBelotObserver live || !live.TurnGate.Signal())
+                {
+                    return;
+                }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
-
-                BelotGameRunner.ContinueFromCall(room, call);
             }
+
+            BelotGameRunner.ContinueFromCall(room, call);
 
             log?.Information($"[{entryPoint}] exit");
 
@@ -220,6 +228,11 @@ namespace BelotWebApp.BelotClasses
             using var logScope = BeginRoomLogScope(room);
 
             log?.Information($"[{entryPoint}] enter");
+
+            if (room.Options.TurnTime > 0 && (room.Observer is not LiveBelotObserver live || !live.TurnGate.Waiting)) // prevent execution if the TurnGate already resolved
+            {
+                return;
+            }
 
             var game = room.Game;
             var clients = Clients;
@@ -244,15 +257,21 @@ namespace BelotWebApp.BelotClasses
 
             log?.Information($"[{entryPoint}] enter");
 
-            var live = room.Observer as LiveBelotObserver;
-            if (live == null)
+            if (room.Observer is not LiveBelotObserver live)
             {
-                log?.Warning($"[{entryPoint}] Observer was not LiveBelotObserver");
                 return;
             }
 
-            var game = room.Game;
+            if (room.Options.TurnTime > 0)
+            {
+                if (!live.TurnGate.Signal())
+                {
+                    return;
+                }
+                await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
+            }
 
+            var game = room.Game;
 
             List<string> emotes = [];
 
@@ -261,17 +280,12 @@ namespace BelotWebApp.BelotClasses
                 var validDeclarations = declarations?.Where(d => d != null) ?? [];
                 var declaredDeclarations = game.DeclareDeclarations(validDeclarations);
 
-                await live.OnDeclaration(declaredDeclarations);
+                emotes = await live.OnDeclaration(declaredDeclarations);
             }
 
             game.RecordCardPlayed(emotes);
 
-            if (room.Options.TurnTime == 0 || live.TurnGate.Signal())
-            {
-                await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
-
-                BelotGameRunner.ContinueFromCard(room);
-            }
+            BelotGameRunner.ContinueFromCard(room);
 
             log?.Information($"[{entryPoint}] exit");
         }
@@ -290,9 +304,23 @@ namespace BelotWebApp.BelotClasses
             log?.Information($"[{entryPoint}] enter");
 
             var game = room.Game;
+
+            if (!game.CanThrow())
+            {
+                log?.Warning($"[{entryPoint}] Invalid throw attempted by player {user.UserId}");
+                return;
+            }
+
             var group = Clients.Group(room.RoomId);
 
-            BelotGameEngine engine = new(game, room.Observer);
+            if (room.Options.TurnTime > 0)
+            {
+                if (room.Observer is not LiveBelotObserver live || !live.TurnGate.Signal())
+                {
+                    return;
+                }
+                await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
+            }
 
             int points = 10; // stoch
 
@@ -325,17 +353,7 @@ namespace BelotWebApp.BelotClasses
             await Task.Delay(5000);
             await group.SendAsync("CloseThrowModal");
 
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await engine.GameController();
-                }
-                catch (Exception ex)
-                {
-                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
-                }
-            });
+            BelotGameRunner.Continue(room);
 
             log?.Information($"[{entryPoint}] exit");
         }

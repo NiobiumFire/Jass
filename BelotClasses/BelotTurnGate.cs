@@ -5,6 +5,7 @@
         private TaskCompletionSource<bool>? _taskCompletionSource;
         private CancellationTokenSource? _cancellationTokenSource;
         private DateTimeOffset? _startedAt;
+        public bool Waiting => _taskCompletionSource?.Task.IsCompleted == false;
         public double? ElapsedTime => _startedAt == null ? null : (DateTimeOffset.UtcNow - _startedAt.Value).TotalSeconds;
 
         public bool Signal()

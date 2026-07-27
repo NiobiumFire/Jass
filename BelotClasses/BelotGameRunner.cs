@@ -43,7 +43,7 @@ namespace BelotWebApp.BelotClasses
             });
         }
 
-        private static void Continue(BelotRoom room)
+        public static void Continue(BelotRoom room)
         {
             if (room?.Game == null || room?.Observer == null)
             {
