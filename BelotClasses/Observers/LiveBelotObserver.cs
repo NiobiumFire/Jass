@@ -1,10 +1,10 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Cards;
-using BelotWebApp.BelotClasses.Users;
-using BelotWebApp.BelotClasses.Turn;
-using Microsoft.AspNetCore.SignalR;
 using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.RoundSummary;
+using BelotWebApp.BelotClasses.Turn;
+using BelotWebApp.BelotClasses.Users;
+using Microsoft.AspNetCore.SignalR;
 
 namespace BelotWebApp.BelotClasses.Observers
 {
@@ -70,25 +70,31 @@ namespace BelotWebApp.BelotClasses.Observers
                 if (player.PlayerType == PlayerType.Human)
                 {
                     var user = _room.GetUserBySeat(_game.Turn);
-                    if (user != null)
+                    var clients = GetClients();
+                    if (user != null) // user can be null if they leave the room -> execution should still continue
                     {
-                        var clients = GetClients();
                         await clients.Client(user.ConnectionId).SendAsync("EnableDealBtn").ConfigureAwait(false);
-                        if (_room.Options.TurnTime > 0) // timeout auto action
+                    }
+                    if (_room.Options.TurnTime > 0) // timeout auto action
+                    {
+                        TurnGate.BeginWait(_room.Options.TurnTime, async () =>
                         {
-                            TurnGate.BeginWait(_room.Options.TurnTime, async () =>
+                            var room = _room; // if all users have left the room, _room can be null
+                            var game = _game;
+                            if (room == null || game == null)
                             {
-                                var currentUser = _room.GetUserBySeat(_game.Turn); // user object is new after full reconnect
-                                var currentPlayer = _game.Players[_game.Turn];
-                                if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
-                                {
-                                    await clients.Client(currentUser.ConnectionId).SendAsync("prepareDeal");
-                                }
+                                return;
+                            }
+                            var currentUser = room.GetUserBySeat(game.Turn); // user object is new after full reconnect
+                            var currentPlayer = game.Players[game.Turn];
+                            if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
+                            {
+                                await clients.Client(currentUser.ConnectionId).SendAsync("PrepareDeal");
+                            }
 
-                                BelotGameRunner.ContinueFromDeal(_room);
-                            });
-                            await _group.SendAsync("startTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
-                        }
+                            BelotGameRunner.ContinueFromDeal(room);
+                        });
+                        await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
                     }
                 }
                 else
@@ -121,27 +127,34 @@ namespace BelotWebApp.BelotClasses.Observers
             bool fiveUnderNine = _game.Calls.Count < 4 && BelotHelpers.FiveUnderNine(_game.Hand[_game.Turn]);
 
             var user = _room.GetUserBySeat(_game.Turn);
+            var clients = GetClients();
             if (user != null)
             {
-                var clients = GetClients();
                 await clients.Client(user.ConnectionId).SendAsync("ShowSuitModal", validCalls, _room.Options.TurnTime * 1000, fiveUnderNine).ConfigureAwait(false);
-                if (_room.Options.TurnTime > 0) // timeout auto action
+            }
+            if (_room.Options.TurnTime > 0) // timeout auto action
+            {
+                TurnGate.BeginWait(_room.Options.TurnTime, async () =>
                 {
-                    TurnGate.BeginWait(_room.Options.TurnTime, async () =>
+                    var room = _room;
+                    var game = _game;
+                    if (room == null || game == null)
                     {
-                        var currentUser = _room.GetUserBySeat(_game.Turn); // user object is new after full reconnect
-                        var currentPlayer = _game.Players[_game.Turn];
-                        if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
-                        {
-                            await clients.Client(currentUser.ConnectionId).SendAsync("hideSuitModal");
-                        }
+                        return;
+                    }
 
-                        var call = AgentBasic.CallSuit(_game.Hand[_game.Turn], validCalls);
+                    var currentUser = room.GetUserBySeat(game.Turn); // user object is new after full reconnect
+                    var currentPlayer = game.Players[game.Turn];
+                    if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
+                    {
+                        await clients.Client(currentUser.ConnectionId).SendAsync("HideSuitModal");
+                    }
 
-                        BelotGameRunner.ContinueFromCall(_room, call);
-                    });
-                    await _group.SendAsync("startTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
-                }
+                    var call = AgentBasic.CallSuit(game.Hand[game.Turn], validCalls);
+
+                    BelotGameRunner.ContinueFromCall(room, call);
+                });
+                await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
             }
         }
 
@@ -164,11 +177,10 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnPendingCardPlay(int[] validCards)
         {
+            var clients = GetClients();
             var user = _room.GetUserBySeat(_game.Turn);
             if (user != null)
             {
-                var clients = GetClients();
-
                 if (_game.TableCards.All(c => c.IsNull()))
                 {
                     if (_game.CanThrow())
@@ -177,7 +189,73 @@ namespace BelotWebApp.BelotClasses.Observers
                     }
                 }
                 await clients.Client(user.ConnectionId).SendAsync("EnableCards", validCards).ConfigureAwait(false);
-                // once a card is clicked, declarable extras are calculated in hub method, human selects and declares extras, then the card is played and game loop reinitiates
+            }
+            // once a card is clicked, declarable extras are calculated in hub method, human selects and declares extras, then the card is played and game loop reinitiates
+
+            if (_room.Options.TurnTime > 0) // timeout auto action
+            {
+                TurnGate.BeginWait(_room.Options.TurnTime, async () =>
+                {
+                    var room = _room;
+                    var game = _game;
+                    if (room == null || game == null)
+                    {
+                        return;
+                    }
+
+                    Card card;
+                    if (!game.TableCards[game.Turn].Played) // Player may timeout after playing a card and before declaring extras
+                    {
+                        card = AgentBasic.SelectCard(
+                            game.Hand[game.Turn],
+                            validCards,
+                            game.GetWinners(game.Turn),
+                            game.TableCards,
+                            game.Turn,
+                            game.DetermineWinner(),
+                            game.RoundCall,
+                            game.TrickSuit,
+                            game.EWCalled,
+                            game.Caller);
+
+                        game.PlayCard(card);
+                    }
+                    else
+                    {
+                        card = game.TableCards[game.Turn];
+                    }
+
+                    var currentUser = room.GetUserBySeat(game.Turn); // user object is new after full reconnect
+                    var currentPlayer = game.Players[game.Turn];
+                    if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
+                    {
+                        await clients.Client(currentUser.ConnectionId).SendAsync("DisableCards");
+                        await clients.Client(currentUser.ConnectionId).SendAsync("HideCard", "card" + game.Hand[game.Turn].IndexOf(card));
+                        await clients.Client(currentUser.ConnectionId).SendAsync("RotateCards");
+                        await clients.Client(currentUser.ConnectionId).SendAsync("HideThrowBtn");
+                        await clients.Client(currentUser.ConnectionId).SendAsync("CloseExtrasModal");
+                        await clients.Client(currentUser.ConnectionId).SendAsync("SetTableCard", game.Turn, card);
+                    }
+
+                    List<string> emotes = [];
+
+                    if (game.RoundCall != Call.NoTrumps)
+                    {
+                        List<Declaration> declaredDeclarations = [];
+                        foreach (var declaration in game.Declarations.Where(d => d.Player == game.Turn && (d is not Run run || run.IsValid) && d.IsDeclarable))
+                        {
+                            declaration.Declared = true;
+                            declaredDeclarations.Add(declaration);
+                        }
+
+                        emotes = await OnDeclaration(declaredDeclarations);
+                    }
+
+                    game.RecordCardPlayed(emotes);
+
+                    BelotGameRunner.ContinueFromCard(room);
+                });
+                await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
             }
         }
 

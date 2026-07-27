@@ -24,6 +24,25 @@ namespace BelotWebApp.BelotClasses
             Continue(room);
         }
 
+        public static async void ContinueFromCard(BelotRoom room)
+        {
+            if (room?.Game == null || room?.Observer == null)
+            {
+                return;
+            }
+
+            var game = room.Game;
+
+            BelotGameEngine engine = new(game, room.Observer);
+            await engine.CardPlayEnd();
+            game.WaitCard = false;
+
+            _ = Task.Run(async () =>
+            {
+                await engine.GameController();
+            });
+        }
+
         private static void Continue(BelotRoom room)
         {
             if (room?.Game == null || room?.Observer == null)

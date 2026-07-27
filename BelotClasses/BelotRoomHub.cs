@@ -148,7 +148,7 @@ namespace BelotWebApp.BelotClasses
 
             if (room.Options.TurnTime == 0 || (room.Observer is LiveBelotObserver live && live.TurnGate.Signal()))
             {
-                await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
+                await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
 
                 BelotGameRunner.ContinueFromDeal(room);
             }
@@ -198,7 +198,7 @@ namespace BelotWebApp.BelotClasses
 
             if (room.Options.TurnTime == 0 || (room.Observer is LiveBelotObserver live && live.TurnGate.Signal()))
             {
-                await Clients.Group(room.RoomId).SendAsync("stopTurnTimer", room.Game.Turn);
+                await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
 
                 BelotGameRunner.ContinueFromCall(room, call);
             }
@@ -244,42 +244,34 @@ namespace BelotWebApp.BelotClasses
 
             log?.Information($"[{entryPoint}] enter");
 
+            var live = room.Observer as LiveBelotObserver;
+            if (live == null)
+            {
+                log?.Warning($"[{entryPoint}] Observer was not LiveBelotObserver");
+                return;
+            }
+
             var game = room.Game;
 
-            BelotGameEngine engine = new(game, room.Observer);
 
-            var validDeclarations = declarations?.Where(d => d != null) ?? [];
-
-            List<string> messages = [];
             List<string> emotes = [];
 
             if (game.RoundCall != Call.NoTrumps)
             {
+                var validDeclarations = declarations?.Where(d => d != null) ?? [];
                 var declaredDeclarations = game.DeclareDeclarations(validDeclarations);
 
-
-                if (room.Observer is LiveBelotObserver live)
-                {
-                    //await live.OnDeclaration(messages, emotes);
-                    await live.OnDeclaration(declaredDeclarations);
-                }
+                await live.OnDeclaration(declaredDeclarations);
             }
 
             game.RecordCardPlayed(emotes);
-            await engine.CardPlayEnd();
-            game.WaitCard = false;
 
-            _ = Task.Run(async () =>
+            if (room.Options.TurnTime == 0 || live.TurnGate.Signal())
             {
-                try
-                {
-                    await engine.GameController();
-                }
-                catch (Exception ex)
-                {
-                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
-                }
-            });
+                await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
+
+                BelotGameRunner.ContinueFromCard(room);
+            }
 
             log?.Information($"[{entryPoint}] exit");
         }
@@ -664,7 +656,7 @@ namespace BelotWebApp.BelotClasses
                 elapsed = (room.Observer as LiveBelotObserver)?.TurnGate.ElapsedTime;
                 if (elapsed is double) // timer is in progress (whatever the action is)
                 {
-                    await clients.Caller.SendAsync("startTurnTimer", game.Turn, room.Options.TurnTime, elapsed);
+                    await clients.Caller.SendAsync("StartTurnTimer", game.Turn, room.Options.TurnTime, elapsed);
                 }
 
                 await clients.Caller.SendAsync("HideDeck", true);

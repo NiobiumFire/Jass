@@ -72,6 +72,10 @@ room.on("playFinalCard", function () {
     }
 });
 
+room.on("hideThrowBtn", function () {
+    hideThrowBtn();
+});
+
 function hideThrowBtn() {
     document.getElementById("throw-cards-btn").hidden = true;
     document.getElementById("throw-cards-btn").onclick = "";
@@ -519,6 +523,11 @@ function toggleDeclared(declaration) {
     declaration.declared = !declaration.declared;
 }
 
+room.on("closeExtrasModal", function () {
+    $('#extras-modal').modal('hide');
+    document.getElementById("extras").innerHTML = "";
+});
+
 function closeExtrasModal() {
     $('#extras-modal').modal('hide');
     document.getElementById("extras").innerHTML = "";
@@ -870,14 +879,11 @@ function setTimerPath(pos) {
     const d = `M ${w / 2} ${inset} H ${inset + r} A ${r} ${r} 0 0 0 ${inset} ${inset + r} V ${h - inset - r} A ${r} ${r} 0 0 0 ${inset + r} ${h - inset} H ${w - inset - r} A ${r} ${r} 0 0 0 ${w - inset} ${h - inset - r} V ${inset + r} A ${r} ${r} 0 0 0 ${w - inset - r} ${inset} H ${w / 2} Z`;
 
     base.setAttribute("d", d);
-    base.style.setProperty("--length", base.getTotalLength());
 }
 
 timers.forEach((timer, pos) => {
 
-    new ResizeObserver(() => {
-        setTimerPath(pos);
-    }).observe(timer);
+    new ResizeObserver(() => setTimerPath(pos)).observe(timer);
 
     setTimerPath(pos);
 
@@ -886,31 +892,43 @@ timers.forEach((timer, pos) => {
 function startTurnTimer(pos, duration, elapsed) {
     const base = timers[pos].querySelector(".rope-base");
 
-    base.style.setProperty("--duration", duration + "s");
+    const length = base.getTotalLength();
+    base.style.strokeDasharray = length;
 
-    const animations = base.getAnimations();
+    if (base.timerAnimation) {
+        base.timerAnimation.cancel();
+    }
 
-    void base.offsetWidth;
+    base.timerAnimation = base.animate(
+        [
+            { strokeDashoffset: 0 },
+            { strokeDashoffset: length }
+        ],
+        {
+            duration: duration * 1000,
+            easing: "linear",
+            fill: "forwards"
+        }
+    );
 
-    animations.forEach(animation => {
-        animation.currentTime = elapsed * 1000;
-        animation.play();
-
-    })
+    base.timerAnimation.pause();
+    base.timerAnimation.currentTime = elapsed * 1000;
+    base.classList.add("glowing");
+    base.style.visibility = "visible";
+    base.timerAnimation.play();
 };
 
 function stopTurnTimer(pos) {
     const base = timers[pos].querySelector(".rope-base");
 
-    const animations = base.getAnimations();
+    base.classList.remove("glowing");
 
-    void base.offsetWidth;
+    if (base.timerAnimation) {
+        base.timerAnimation.cancel();
+        base.timerAnimation = null;
+    }
 
-    animations.forEach(animation => {
-        animation.pause();
-        animation.currentTime = 0;
-
-    })
+    base.style.visibility = "hidden";
 };
 
 room.on("startTurnTimer", function (pos, duration, elapsed) {
