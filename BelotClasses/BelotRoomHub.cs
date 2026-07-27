@@ -67,6 +67,29 @@ namespace BelotWebApp.BelotClasses
             return (room, user);
         }
 
+        private bool ValidatePlayerAndTurn(BelotRoom room, string entryPoint)
+        {
+            using var logScope = BeginRoomLogScope(room);
+
+            var userId = GetCallerUserId();
+
+            var player = room.GetPlayerById(userId);
+
+            if (player == null)
+            {
+                log?.Warning($"[{entryPoint}] Action attempted by user {userId} without being a player");
+                return false;
+            }
+
+            if (room.Game.Turn != Array.IndexOf(room.Game.Players, player))
+            {
+                log?.Warning($"[{entryPoint}] Action attempted by player {userId} out of turn");
+                return false;
+            }
+
+            return true;
+        }
+
         #region Game Loop Continuation
 
         public Task HubGameController() // called by client
@@ -126,23 +149,14 @@ namespace BelotWebApp.BelotClasses
             using var logScope = BeginRoomLogScope(room);
             log?.Information($"[{entryPoint}] enter");
 
-            var player = room.GetPlayerById(user.UserId);
-
-            if (player == null)
+            if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
             {
-                log?.Warning($"[{entryPoint}] Deal attempted by user {user.UserId} without being a player");
                 return;
             }
 
             if (!room.Game.WaitDeal)
             {
                 log?.Warning($"[{entryPoint}] Deal attempted by player {user.UserId} without pending deal action");
-                return;
-            }
-
-            if (room.Game.Turn != Array.IndexOf(room.Game.Players, player))
-            {
-                log?.Warning($"[{entryPoint}] Deal attempted by player {user.UserId} without being the dealer");
                 return;
             }
 
@@ -174,23 +188,14 @@ namespace BelotWebApp.BelotClasses
             using var logScope = BeginRoomLogScope(room);
             log?.Information($"[{entryPoint}] enter");
 
-            var player = room.GetPlayerById(user.UserId);
-
-            if (player == null)
+            if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
             {
-                log?.Warning($"[{entryPoint}] Call attempted by user {user.UserId} without being a player");
                 return;
             }
 
             if (!room.Game.WaitCall)
             {
                 log?.Warning($"[{entryPoint}] Call attempted by player {user.UserId} without pending call action");
-                return;
-            }
-
-            if (room.Game.Turn != Array.IndexOf(room.Game.Players, player))
-            {
-                log?.Warning($"[{entryPoint}] Call attempted by player {user.UserId} out of turn");
                 return;
             }
 
@@ -218,9 +223,11 @@ namespace BelotWebApp.BelotClasses
 
         public async Task HubPlayCard(Card card) // called by client
         {
+            // this does not continue engine execution, it is a bridge to declaring extras, which is what finalises a turn
+
             string entryPoint = "HubPlayCard";
             var (room, user) = ValidateEntry(entryPoint);
-            if (room == null || user == null || room.Game == null || room.Observer == null)
+            if (room == null || user == null || room.Game is not BelotGame game || room.Observer == null)
             {
                 return;
             }
@@ -229,12 +236,29 @@ namespace BelotWebApp.BelotClasses
 
             log?.Information($"[{entryPoint}] enter");
 
+            if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
+            {
+                return;
+            }
+
+            if (!game.WaitCard)
+            {
+                log?.Warning($"[{entryPoint}] Play card attempted by player {user.UserId} without pending play card action");
+                return;
+            }
+
+            var cardIndex = game.Hand[game.Turn].FindIndex(c => c.Suit == card.Suit && c.Rank == card.Rank && !c.Played);
+            if (cardIndex == -1 || game.ValidCards()[cardIndex] == 0)
+            {
+                log?.Warning($"[{entryPoint}] Play of illegal card attempted by player {user.UserId}");
+                return;
+            }
+
             if (room.Options.TurnTime > 0 && (room.Observer is not LiveBelotObserver live || !live.TurnGate.Waiting)) // prevent execution if the TurnGate already resolved
             {
                 return;
             }
 
-            var game = room.Game;
             var clients = Clients;
 
             room.Game.PlayCard(card);
@@ -258,6 +282,11 @@ namespace BelotWebApp.BelotClasses
             log?.Information($"[{entryPoint}] enter");
 
             if (room.Observer is not LiveBelotObserver live)
+            {
+                return;
+            }
+
+            if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
             {
                 return;
             }
@@ -302,6 +331,17 @@ namespace BelotWebApp.BelotClasses
             using var logScope = BeginRoomLogScope(room);
 
             log?.Information($"[{entryPoint}] enter");
+
+            if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
+            {
+                return;
+            }
+
+            if (!room.Game.WaitCard)
+            {
+                log?.Warning($"[{entryPoint}] Throw attempted by player {user.UserId} without pending play card action");
+                return;
+            }
 
             var game = room.Game;
 
