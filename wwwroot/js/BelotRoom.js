@@ -93,16 +93,19 @@ room.on("throwCards", function (player, hand) {
     const pos = ["w", "n", "e", "s"];
     document.getElementById("throw-modal-title").innerHTML = player.concat(" throws the cards!");
     for (let i = 0; i < 8; i++) {
+        hideCard(`card${i}`);
         for (let j = 0; j < 4; j++) {
+            const throwCard = document.getElementById(`${pos[j]}throwcard${i}`);
             if (hand[j][i].played) {
-                document.getElementById(pos[j].concat("throwcard").concat(i)).hidden = true;
+                throwCard.hidden = true;
             }
             else {
-                document.getElementById(pos[j].concat("throwcard").concat(i)).src = GetResourceFromCard(hand[j][i]);
-                document.getElementById(pos[j].concat("throwcard").concat(i)).hidden = false;
+                throwCard.src = GetResourceFromCard(hand[j][i]);
+                throwCard.hidden = false;
             };
         };
     };
+    disableCards();
     $('#throw-modal').modal('show');
 });
 

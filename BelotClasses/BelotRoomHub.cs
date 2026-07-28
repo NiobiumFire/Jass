@@ -199,7 +199,7 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
-            if (call > 0 && room.Game.ValidCalls()[(int)call] == 0)
+            if (call > 0 && room.Game.ValidCalls()[(int)(call - 1)] == 0) // for Call enum: clubs = 1, for ValidCalls: clubs = 0
             {
                 log?.Warning($"[{entryPoint}] Illegal call attempted by player {user.UserId}");
                 return;
