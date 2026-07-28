@@ -4,6 +4,7 @@ using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace BelotWebApp.Controllers
@@ -31,11 +32,9 @@ namespace BelotWebApp.Controllers
             BelotReplay replay = new();
 
             string path = Path.Combine($"{_appPaths.LogFolder}", $"{replayId}.zip");
-
-            string? log;
             try
             {
-                log = await _zipService.ReadTextAsync(path);
+                var log = await _zipService.ReadTextAsync(path);
 
                 if (log == null)
                 {
@@ -56,12 +55,22 @@ namespace BelotWebApp.Controllers
                     replay.StateChanges.Add(diff);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return NoContent();
             }
 
-            return Json(new { Replay = replay, ViewerName = User.Identity.Name });
+            if (replay.StateChanges[0].Before.Players is string[] ids && replay.StateChanges[0].After.Players is string[] names)
+            {
+                var myPosition = Array.IndexOf(ids, User.FindFirstValue(ClaimTypes.NameIdentifier));
+                if (myPosition > -1)
+                {
+                    var viewerName = names[myPosition];
+                    return Json(new { Replay = replay, ViewerName = viewerName });
+                }
+            }
+
+            return Json(new { Replay = replay, ViewerName = "" });
         }
 
         public IActionResult PopulateReplaysPartial()
@@ -83,7 +92,7 @@ namespace BelotWebApp.Controllers
                     }
 
                     var diff = JsonSerializer.Deserialize<BelotReplayDiff>(line);
-                    if (diff != null && diff.After.Players.Contains(User.Identity.Name))
+                    if (diff != null && diff.Before.Players.Contains(User.FindFirstValue(ClaimTypes.NameIdentifier)))
                     {
                         string[] names = diff.After.Players;
                         string creation = System.IO.File.GetCreationTime(log).ToString("yyyy-MM-dd HH:mm");
@@ -91,12 +100,12 @@ namespace BelotWebApp.Controllers
                         replays.Add(new ReplayTableRow(id, creation, names[0], names[1], names[2], names[3]));
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 
                 }
             }
-            
+
             return PartialView("_ReplaysTableRows", replays);
         }
     }

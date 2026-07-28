@@ -977,7 +977,10 @@ namespace BelotWebApp.BelotClasses
 
             File.AppendAllText(logPath, JsonSerializer.Serialize(new BelotReplayDiff
             {
-                Before = null,
+                Before = new()
+                {
+                    Players = Players.Select(p => p!.PlayerId).ToArray(), // for lookup of replays by user id
+                },
                 After = ReplayState
             }, JsonSettings.Compact) + "\n");
 
