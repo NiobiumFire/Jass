@@ -790,8 +790,16 @@ room.on("seatUnbooked", function (position, resetSeatOrientations) {
     }
 });
 
-room.on("setBotBadge", function (pos, isBot) {
-    document.getElementById("BotBadge".concat(pos)).hidden = !isBot;
+room.on("setStatusBadge", function (pos, active, type = null) {
+    const badge = document.getElementById(`status-badge${pos}`);
+    badge.classList.remove("bi-robot", "bi-cloud-slash");
+    if (type == "bot") {
+        badge.classList.add("bi-robot");
+    }
+    else if (type == "disconnected") {
+        badge.classList.add("bi-cloud-slash");
+    }
+    badge.hidden = !active;
 });
 
 // -------------------- Seat Rotation --------------------

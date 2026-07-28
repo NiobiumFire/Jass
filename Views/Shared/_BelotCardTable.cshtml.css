@@ -112,7 +112,7 @@
     transform: translate(0, calc(var(--card-width) * 0.79)) rotate(180deg);
 }
 
-.bot-badge {
+.status-badge {
     padding: 0;
     position: absolute;
     font-size: 18px;
@@ -120,7 +120,7 @@
     transform: translate(0,-65%);
 }
 
-.inNorth .bot-badge {
+.inNorth .status-badge {
     transform: translate(0,65%) rotate(180deg);
 }
 

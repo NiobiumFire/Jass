@@ -487,7 +487,7 @@ namespace BelotWebApp.BelotClasses
                     await clients.Caller.SendAsync("seatBooked", position, requestorUsername, true);
                     await clients.Caller.SendAsync("SetScoreTitles", "Us", "Them");
 
-                    await group.SendAsync("SetBotBadge", position, false);
+                    await group.SendAsync("SetStatusBadge", position, false);
                 }
                 else if (isEmpty && position > 3) // empty seat requested for bot
                 {
@@ -495,7 +495,7 @@ namespace BelotWebApp.BelotClasses
                     game.Players[position] = new Player(position);
                     await UpdateConnectedUsers(room, clients);
                     await group.SendAsync("SeatBooked", position, game.Players[position]!.PlayerName, false);
-                    await group.SendAsync("SetBotBadge", position, true);
+                    await group.SendAsync("SetStatusBadge", position, true, "bot");
                 }
                 // if bot-occupied seat requested for bot -> do nothing
                 else if (isSelf && position > 3) // human assigns bot to his own occupied seat
@@ -505,7 +505,7 @@ namespace BelotWebApp.BelotClasses
                     game.Players[position] = new Player(position);
                     await UpdateConnectedUsers(room, clients);
                     await group.SendAsync("SeatBooked", position, game.Players[position]!.PlayerName, false);
-                    await group.SendAsync("SetBotBadge", position, true);
+                    await group.SendAsync("SetStatusBadge", position, true, "bot");
                 }
                 // if human tries to occupy his own seat, do nothing
                 // human-occupied seat is requested by another human or by a bot on behalf of another human
@@ -538,14 +538,15 @@ namespace BelotWebApp.BelotClasses
                 {
                     await group.SendAsync("DisableNewGame");
                     room.Game.Players[position] = null;
+                    await clients.Caller.SendAsync("SetScoreTitles", "N/S", "E/W");
+                    await clients.Caller.SendAsync("SeatUnbooked", position, resetSeatOrientations);
+                    await clients.OthersInGroup(room.RoomId).SendAsync("SeatUnbooked", position, false);
                 }
                 else
                 {
                     player.IsDisconnected = true;
+                    await group.SendAsync("SetStatusBadge", position, true, "disconnected");
                 }
-                await clients.Caller.SendAsync("SetScoreTitles", "N/S", "E/W");
-                await clients.Caller.SendAsync("SeatUnbooked", position, resetSeatOrientations);
-                await clients.OthersInGroup(room.RoomId).SendAsync("SeatUnbooked", position, false);
                 await UpdateConnectedUsers(room, clients);
             }
 
@@ -667,6 +668,7 @@ namespace BelotWebApp.BelotClasses
             }
 
             await clients.Caller.SendAsync("SetGameId", game.GameId);
+            var username = GetCallerUsername();
 
             for (int i = 0; i < 4; i++)
             {
@@ -677,18 +679,16 @@ namespace BelotWebApp.BelotClasses
                     if (player_i.PlayerType != PlayerType.Human)
                     {
                         await clients.Caller.SendAsync("SeatBooked", i, player_i.PlayerName, false);
-                        await clients.Caller.SendAsync("SetBotBadge", i, true);
+                        await clients.Caller.SendAsync("SetStatusBadge", i, true, "bot");
                     }
-                    else if (!player_i.IsDisconnected)
+                    else
                     {
-                        if (player_i.PlayerName == GetCallerUsername())
+                        if (player_i.IsDisconnected)
                         {
-                            await clients.Caller.SendAsync("SeatBooked", i, player_i.PlayerName, true);
+                            await clients.Caller.SendAsync("SetStatusBadge", i, true, "disconnected");
                         }
-                        else
-                        {
-                            await clients.Caller.SendAsync("SeatBooked", i, player_i.PlayerName, false);
-                        }
+
+                        await clients.Caller.SendAsync("SeatBooked", i, player_i.PlayerName, player_i.PlayerName == username);
                     }
                 }
 
@@ -886,6 +886,7 @@ namespace BelotWebApp.BelotClasses
                     var pos = Array.IndexOf(game.Players, player);
                     player.PlayerName = username;
                     player.IsDisconnected = false;
+                    await clients.OthersInGroup(room.RoomId).SendAsync("SetStatusBadge", pos, false);
                     await clients.OthersInGroup(room.RoomId).SendAsync("SeatBooked", pos, username, false);
                 }
             }
