@@ -255,7 +255,7 @@ namespace BelotWebApp.BelotClasses
             var clients = Clients;
 
             room.Game.PlayCard(card);
-            await clients.Caller.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
+            await clients.Caller.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn], game.RoundCall);
             await clients.Caller.SendAsync("DeclareExtras", game.Declarations.Where(d => d.Player == game.Turn && d.IsDeclarable));
 
             _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
@@ -382,7 +382,7 @@ namespace BelotWebApp.BelotClasses
             game.NumCardsPlayed = 32;
             game.WaitCard = false;
 
-            await group.SendAsync("ThrowCards", room.GetDisplayName(game.Turn), game.Hand);
+            await group.SendAsync("ThrowCards", room.GetDisplayName(game.Turn), game.Hand, game.RoundCall);
             await Task.Delay(5000);
             await group.SendAsync("CloseThrowModal");
 
@@ -688,7 +688,7 @@ namespace BelotWebApp.BelotClasses
                 // Update table cards
                 if (!game.IsNewGame)
                 {
-                    await clients.Caller.SendAsync("SetTableCard", i, game.TableCards[i]);
+                    await clients.Caller.SendAsync("SetTableCard", i, game.TableCards[i], game.RoundCall);
                 }
             }
 
@@ -742,7 +742,7 @@ namespace BelotWebApp.BelotClasses
                 // if the connecting user is a player
                 if (pos >= 0)
                 {
-                    await clients.Caller.SendAsync("Deal", game.Hand[pos]);
+                    await clients.Caller.SendAsync("Deal", game.Hand[pos], game.RoundCall);
 
                     for (int i = 0; i < 8; i++)
                     {

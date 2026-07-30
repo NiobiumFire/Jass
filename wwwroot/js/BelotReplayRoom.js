@@ -175,7 +175,7 @@ function setState(diff, after) {
 
     for (let i = 0; i < 4; i++) {
         setEmote(state.emotes[i], i);
-        setTableCard(i, state.tableCards[i]);
+        setTableCard(i, state.tableCards[i], state.roundCall);
         for (let j = 0; j < 8; j++) {
             setHandCard(state.handCards[i][j], i, j);
         }
@@ -262,7 +262,7 @@ function setHandCard(card, i, j) {
         document.getElementById(pos[i] + "card" + j).hidden = true;
     }
     else {
-        document.getElementById(pos[i] + "card" + j).src = GetResourceFromCard(card)
+        document.getElementById(pos[i] + "card" + j).src = GetResourceFromCard(card, state.roundCall)
         document.getElementById(pos[i] + "card" + j).hidden = false;
     };
 }

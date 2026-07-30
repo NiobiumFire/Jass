@@ -89,9 +89,9 @@ room.on("showThrowBtn", function () {
     };
 });
 
-room.on("throwCards", function (player, hand) {
+room.on("throwCards", function (playerName, hand, roundCall) {
     const pos = ["w", "n", "e", "s"];
-    document.getElementById("throw-modal-title").innerHTML = player.concat(" throws the cards!");
+    document.getElementById("throw-modal-title").innerHTML = playerName + " throws the cards!";
     for (let i = 0; i < 8; i++) {
         hideCard(`card${i}`);
         for (let j = 0; j < 4; j++) {
@@ -100,7 +100,7 @@ room.on("throwCards", function (player, hand) {
                 throwCard.hidden = true;
             }
             else {
-                throwCard.src = GetResourceFromCard(hand[j][i]);
+                throwCard.src = GetResourceFromCard(hand[j][i], roundCall);
                 throwCard.hidden = false;
             };
         };
@@ -214,8 +214,8 @@ room.on("enableCards", function (validcards) {
     document.getElementById("cardboard").classList.add("cardboard-pulse");
 });
 
-room.on("setTableCard", function (pos, tableCard) {
-    setTableCard(pos, tableCard);
+room.on("setTableCard", function (pos, tableCard, roundCall) {
+    setTableCard(pos, tableCard, roundCall);
 });
 
 // -------------------- Turn Indicator --------------------
@@ -461,10 +461,10 @@ room.on("setDealerMarker", function (dealer) {
     };
 });
 
-room.on("deal", function (cards) {
+room.on("deal", function (cards, roundCall) {
     // show hand card images
     for (let i = 0; i < cards.length; i++) {
-        document.getElementById("card".concat(i)).src = GetResourceFromCard(cards[i])
+        document.getElementById("card".concat(i)).src = GetResourceFromCard(cards[i], roundCall)
         showCard("card" + i);
     };
 });

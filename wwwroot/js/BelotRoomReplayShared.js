@@ -60,8 +60,8 @@ function setTableCardSlotUserNameAndLabelColour(position, username, occupied, is
     usernameLabel.innerHTML = username;
 }
 
-function setTableCard(pos, tableCard) {
-    document.getElementById("tablecard" + pos).src = GetResourceFromCard(tableCard);
+function setTableCard(pos, tableCard, roundCall) {
+    document.getElementById("tablecard" + pos).src = GetResourceFromCard(tableCard, roundCall);
 };
 
 function setRoundSuit(suit) {
@@ -149,18 +149,22 @@ function setCallTooltip() {
     }
 }
 
-function GetResourceFromCard(card) {
+function GetResourceFromCard(card, roundCall) {
     //let path = document.URL.substring(0, document.URL.indexOf("Room"));
 
     if (card == null || card.suit == null || card.rank == null) {
         return "/images/Cards/c0-00.png";
     }
 
-    let rank = card.rank + 6;
-    if (rank < 10) {
-        rank = "0" + rank;
+    const nRank = card.rank + 6;
+    let sRank;
+    if (nRank == 8 && (roundCall == card.suit || roundCall == 6)) { // rank is 9 / manille
+        sRank = 14;
     }
-    let resource = "c" + card.suit + "-" + rank + ".png";
+    else {
+        sRank = nRank < 10 ? `0${nRank}` : nRank;
+    }
+    const resource = "c" + card.suit + "-" + sRank + ".png";
 
     return "/images/Cards/" + resource;
 };
@@ -169,7 +173,13 @@ function GetCardFromResource(resource) {
     let cardText = resource.substr(resource.length - 9, 5);
 
     let suit = parseInt(cardText.substr(1, 1));
-    let rank = parseInt((cardText.substr(3, 2) - 6));
+    let rank = parseInt(cardText.substr(3, 2));
+    if (rank == 14) { // manille
+        rank = 2
+    }
+    else {
+        rank -= 6;
+    }
 
     let card = {};
 

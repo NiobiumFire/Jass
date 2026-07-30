@@ -115,7 +115,7 @@ namespace BelotWebApp.BelotClasses.Observers
                     var user = _room.GetUserBySeat(i);
                     if (user != null)
                     {
-                        await clients.Client(user.ConnectionId).SendAsync("Deal", _game.Hand[i]).ConfigureAwait(false);
+                        await clients.Client(user.ConnectionId).SendAsync("Deal", _game.Hand[i], _game.RoundCall).ConfigureAwait(false);
                         await clients.Client(user.ConnectionId).SendAsync("RotateCards").ConfigureAwait(false);
                     }
                 }
@@ -234,7 +234,7 @@ namespace BelotWebApp.BelotClasses.Observers
                         await clients.Client(currentUser.ConnectionId).SendAsync("RotateCards");
                         await clients.Client(currentUser.ConnectionId).SendAsync("HideThrowBtn");
                         await clients.Client(currentUser.ConnectionId).SendAsync("CloseExtrasModal");
-                        await clients.Client(currentUser.ConnectionId).SendAsync("SetTableCard", game.Turn, card);
+                        await clients.Client(currentUser.ConnectionId).SendAsync("SetTableCard", game.Turn, card, game.RoundCall);
                     }
 
                     List<string> emotes = [];
@@ -288,7 +288,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnCardPlayEnd()
         {
-            await _group.SendAsync("SetTableCard", _game.Turn, _game.TableCards[_game.Turn]).ConfigureAwait(false);
+            await _group.SendAsync("SetTableCard", _game.Turn, _game.TableCards[_game.Turn], _game.RoundCall).ConfigureAwait(false);
             await Task.Delay(_game.BotDelay).ConfigureAwait(false);
         }
 
