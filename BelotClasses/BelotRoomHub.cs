@@ -17,19 +17,12 @@ namespace BelotWebApp.BelotClasses
 
         private static ConcurrentDictionary<string, string> allConnections = []; // connectionId, roomId
 
-        private static Serilog.Core.Logger log;
+        private static ILogger<BelotRoomHub> _logger;
 
-        public BelotRoomHub(IAppPaths appPaths, BelotRoomRegistry gameRegistry)
+        public BelotRoomHub(ILogger<BelotRoomHub> logger, IAppPaths appPaths, BelotRoomRegistry roomRegistry)
         {
-            _roomRegistry = gameRegistry;
-
-            log ??= new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .WriteTo.File(
-                    Path.Combine(appPaths.LogFolder, "BelotServerLog-.txt"),
-                    rollingInterval: RollingInterval.Day,
-                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message} RoomId={RoomId}{NewLine}{Exception}")
-                .CreateLogger();
+            _roomRegistry = roomRegistry;
+            _logger = logger;
         }
 
         private static IDisposable BeginRoomLogScope(BelotRoom? room)
@@ -43,7 +36,7 @@ namespace BelotWebApp.BelotClasses
 
             if (room?.Game == null || room.Observer == null)
             {
-                log?.Warning($"[{entryPoint}] Room/Game/Observer was null");
+                _logger.LogWarning("[{EntryPoint}] Room/Game/Observer was null", entryPoint);
                 return (null, null);
             }
 
@@ -52,14 +45,14 @@ namespace BelotWebApp.BelotClasses
             var user = room.GetUserById(GetCallerUserId());
             if (user == null)
             {
-                log?.Warning($"[{entryPoint}] user was null");
+                _logger.LogWarning("[{EntryPoint}] user was null", entryPoint);
                 return (null, null);
             }
 
             var connectionId = Context.ConnectionId;
             if (user.ConnectionId != connectionId)
             {
-                log?.Warning($"[{entryPoint}] connection {connectionId} has been superseded by {user.ConnectionId}");
+                _logger.LogWarning("[{EntryPoint}] connection {OldConnectionId} has been superseded by {NewConnectionId}", entryPoint, connectionId, user.ConnectionId);
                 Context.Abort();
                 return (null, null);
             }
@@ -77,13 +70,13 @@ namespace BelotWebApp.BelotClasses
 
             if (player == null)
             {
-                log?.Warning($"[{entryPoint}] Action attempted by user {userId} without being a player");
+                _logger.LogWarning("[{EntryPoint}] Action attempted by user {UserId} without being a player", entryPoint, userId);
                 return false;
             }
 
             if (room.Game.Turn != Array.IndexOf(room.Game.Players, player))
             {
-                log?.Warning($"[{entryPoint}] Action attempted by player {userId} out of turn");
+                _logger.LogWarning("[{EntryPoint}] Action attempted by player {UserId} out of turn", entryPoint, userId);
                 return false;
             }
 
@@ -102,19 +95,19 @@ namespace BelotWebApp.BelotClasses
             }
 
             using var logScope = BeginRoomLogScope(room);
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation($"[{entryPoint}] enter");
 
             var game = room.Game;
 
             if (game.Players.Any(p => p == null))
             {
-                log?.Warning($"[{entryPoint}] Game does not have 4 players");
+                _logger.LogWarning("[{EntryPoint}] Game does not have 4 players", entryPoint);
                 return Task.CompletedTask;
             }
 
             if (game.Players.Any(p => p != null && p.PlayerType == PlayerType.Human) && room.GetPlayerById(GetCallerUserId()) == null)
             {
-                log?.Warning($"[{entryPoint}] Game start not called by valid player");
+                _logger.LogWarning("[{EntryPoint}] Game start not called by valid player", entryPoint);
                 return Task.CompletedTask;
             }
 
@@ -128,11 +121,11 @@ namespace BelotWebApp.BelotClasses
                 }
                 catch (Exception ex)
                 {
-                    log?.Error(ex, $"[{entryPoint}] Unhandled exception");
+                    _logger.LogError(ex, "[{EntryPoint}] Unhandled exception", entryPoint);
                 }
             });
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
 
             return Task.CompletedTask;
         }
@@ -147,7 +140,7 @@ namespace BelotWebApp.BelotClasses
             }
 
             using var logScope = BeginRoomLogScope(room);
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
             {
@@ -156,7 +149,7 @@ namespace BelotWebApp.BelotClasses
 
             if (!room.Game.WaitDeal)
             {
-                log?.Warning($"[{entryPoint}] Deal attempted by player {user.UserId} without pending deal action");
+                _logger.LogWarning("[{EntryPoint}] Deal attempted by player {UserId} without pending deal action", entryPoint, user.UserId);
                 return;
             }
 
@@ -171,7 +164,7 @@ namespace BelotWebApp.BelotClasses
 
             BelotGameRunner.ContinueFromDeal(room);
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
 
             return;
         }
@@ -186,7 +179,7 @@ namespace BelotWebApp.BelotClasses
             }
 
             using var logScope = BeginRoomLogScope(room);
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
             {
@@ -195,13 +188,13 @@ namespace BelotWebApp.BelotClasses
 
             if (!room.Game.WaitCall)
             {
-                log?.Warning($"[{entryPoint}] Call attempted by player {user.UserId} without pending call action");
+                _logger.LogWarning("[{EntryPoint}] Call attempted by player {UserId} without pending call action", entryPoint, user.UserId);
                 return;
             }
 
             if (call > 0 && room.Game.ValidCalls()[(int)(call - 1)] == 0) // for Call enum: clubs = 1, for ValidCalls: clubs = 0
             {
-                log?.Warning($"[{entryPoint}] Illegal call attempted by player {user.UserId}");
+                _logger.LogWarning("[{EntryPoint}] Illegal call attempted by player {UserId}", entryPoint, user.UserId);
                 return;
             }
 
@@ -216,7 +209,7 @@ namespace BelotWebApp.BelotClasses
 
             BelotGameRunner.ContinueFromCall(room, call);
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
 
             return;
         }
@@ -234,7 +227,7 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
             {
@@ -243,14 +236,14 @@ namespace BelotWebApp.BelotClasses
 
             if (!game.WaitCard)
             {
-                log?.Warning($"[{entryPoint}] Play card attempted by player {user.UserId} without pending play card action");
+                _logger.LogWarning("[{EntryPoint}] Play card attempted by player {UserId} without pending play card action", entryPoint, user.UserId);
                 return;
             }
 
             var cardIndex = game.Hand[game.Turn].FindIndex(c => c.Suit == card.Suit && c.Rank == card.Rank && !c.Played);
             if (cardIndex == -1 || game.ValidCards()[cardIndex] == 0)
             {
-                log?.Warning($"[{entryPoint}] Play of illegal card attempted by player {user.UserId}");
+                _logger.LogWarning("[{EntryPoint}] Play of illegal card attempted by player {UserId}", entryPoint, user.UserId);
                 return;
             }
 
@@ -265,7 +258,7 @@ namespace BelotWebApp.BelotClasses
             await clients.Caller.SendAsync("SetTableCard", game.Turn, game.TableCards[game.Turn]);
             await clients.Caller.SendAsync("DeclareExtras", game.Declarations.Where(d => d.Player == game.Turn && d.IsDeclarable));
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
 
         public async Task HubExtrasDeclared(List<Declaration> declarations) // called by client
@@ -279,7 +272,7 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (room.Observer is not LiveBelotObserver live)
             {
@@ -316,7 +309,7 @@ namespace BelotWebApp.BelotClasses
 
             BelotGameRunner.ContinueFromCard(room);
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
 
         public async Task HubThrowCards() // called by client
@@ -330,7 +323,7 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (!ValidatePlayerAndTurn(room, entryPoint)) // logging included
             {
@@ -339,7 +332,7 @@ namespace BelotWebApp.BelotClasses
 
             if (!room.Game.WaitCard)
             {
-                log?.Warning($"[{entryPoint}] Throw attempted by player {user.UserId} without pending play card action");
+                _logger.LogWarning("[{EntryPoint}] Throw attempted by player {UserId} without pending play card action", entryPoint, user.UserId);
                 return;
             }
 
@@ -347,7 +340,7 @@ namespace BelotWebApp.BelotClasses
 
             if (!game.CanThrow())
             {
-                log?.Warning($"[{entryPoint}] Invalid throw attempted by player {user.UserId}");
+                _logger.LogWarning("[{EntryPoint}] Invalid throw attempted by player {UserId}", entryPoint, user.UserId);
                 return;
             }
 
@@ -395,7 +388,7 @@ namespace BelotWebApp.BelotClasses
 
             BelotGameRunner.Continue(room);
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
 
         #endregion
@@ -413,7 +406,7 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             var game = room.Game;
             var clients = Clients;
@@ -435,7 +428,7 @@ namespace BelotWebApp.BelotClasses
 
             await clients.Caller.SendAsync("SetSeatActions", actions, position);
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
 
         public async Task HubBookSeat(int position) // called by client // 0 = W, 1 = N, 2 = E, 3 = S, 4-7 = Robot, 8 = vacate
@@ -449,17 +442,17 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (position is < 0 or > 8)
             {
-                log?.Warning($"[{entryPoint}] invalid position {position}", position);
+                _logger.LogWarning("[{EntryPoint}] invalid position {Position}", entryPoint, position);
                 return;
             }
 
             if (!room.Game.IsNewGame)
             {
-                log?.Warning($"[{entryPoint}] booking requested after game start");
+                _logger.LogWarning("[{EntryPoint}] booking requested after game start", entryPoint);
                 return;
             }
 
@@ -517,7 +510,7 @@ namespace BelotWebApp.BelotClasses
                 await UnbookSeat(room, clients, true);
             }
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
 
         private async Task UnbookSeat(BelotRoom room, IHubCallerClients clients, bool resetSeatOrientations) // only for players: we cannot unbook a bot directly but we can take their seat
@@ -525,7 +518,7 @@ namespace BelotWebApp.BelotClasses
             string entryPoint = "UnbookSeat";
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             string userId = GetCallerUserId();
             var player = room.GetPlayerById(userId);
@@ -550,7 +543,7 @@ namespace BelotWebApp.BelotClasses
                 await UpdateConnectedUsers(room, clients);
             }
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
 
         #endregion
@@ -568,17 +561,17 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (string.IsNullOrEmpty(message))
             {
-                log?.Warning($"[{entryPoint}] empty chat message");
+                _logger.LogWarning("[{EntryPoint}] empty chat message", entryPoint);
                 return;
             }
 
             if (!room.Options.AllowChat)
             {
-                log?.Warning($"[{entryPoint}] chat when chat is disabled");
+                _logger.LogWarning("[{EntryPoint}] chat from user {UserId} when chat is disabled", entryPoint, user.UserId);
                 return;
             }
 
@@ -586,7 +579,7 @@ namespace BelotWebApp.BelotClasses
             await group.SendAsync("AppendChatLog", $"[{GetServerDateTime()} • {GetCallerUsername()}] {message}");
             await group.SendAsync("showChatNotification");
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
 
         #endregion
@@ -604,7 +597,7 @@ namespace BelotWebApp.BelotClasses
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             var userId = GetCallerUserId();
 
@@ -613,7 +606,7 @@ namespace BelotWebApp.BelotClasses
                 live.RoundSummaryGate.RegisterContinueVote(GetCallerUsername(), roundToken);
             }
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
 
             return Task.CompletedTask;
         }
@@ -832,7 +825,7 @@ namespace BelotWebApp.BelotClasses
             string entryPoint = "OnConnected";
             if (Context?.GetHttpContext()?.GetRouteValue("roomId") is not string roomId)
             {
-                log?.Warning($"[{entryPoint}] roomId was null");
+                _logger.LogWarning("[{EntryPoint}] roomId was null", entryPoint);
                 return;
             }
 
@@ -846,13 +839,13 @@ namespace BelotWebApp.BelotClasses
             {
                 allConnections.TryRemove(Context.ConnectionId, out _);
                 Context.Abort();
-                log?.Warning($"[{entryPoint}] Room/Game was null");
+                _logger.LogWarning("[{EntryPoint}] Room/Game was null", entryPoint);
                 return;
             }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             if (room.Observer == null)
             {
@@ -897,11 +890,11 @@ namespace BelotWebApp.BelotClasses
                 await liveObserver.SysAnnounce($"{username} {connectionType}.");
             }
 
-            log?.Information($"[{entryPoint}] {username} {connectionType}");
+            _logger.LogInformation("[{EntryPoint}] {Username} {ConnectionType}", entryPoint, username, connectionType);
 
             await LoadContext(room, user, clients);
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
             await base.OnConnectedAsync();
         }
 
@@ -913,13 +906,13 @@ namespace BelotWebApp.BelotClasses
 
             if (room?.Game == null || room.Observer == null)
             {
-                log?.Warning($"[{entryPoint}] Room/Game/Observer was null");
+                _logger.LogWarning("[{EntryPoint}] Room/Game/Observer was null", entryPoint);
                 return;
             }
 
             using var logScope = BeginRoomLogScope(room);
 
-            log?.Information($"[{entryPoint}] enter");
+            _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
             BelotGame game = room.Game;
             var clients = Clients;
@@ -929,7 +922,7 @@ namespace BelotWebApp.BelotClasses
 
             if (user == null)
             {
-                log?.Warning($"[{entryPoint}] User was null");
+                _logger.LogWarning("[{EntryPoint}] User was null", entryPoint);
                 return;
             }
 
@@ -940,7 +933,7 @@ namespace BelotWebApp.BelotClasses
                 await UnbookSeat(room, clients, true); // this will mark them as disconnected
                 room.RemoveUser(user);
                 await UpdateConnectedUsers(room, clients);
-                log?.Information($"[{entryPoint}] {userId} disconnected after delay.");
+                _logger.LogInformation("[{EntryPoint}] user {UserId} disconnected after delay.", entryPoint, userId);
                 if (room.Observer is LiveBelotObserver live)
                 {
                     await live.SysAnnounce(user.Username + " disconnected.");
@@ -970,14 +963,14 @@ namespace BelotWebApp.BelotClasses
             }
             else // player reconnected, don't proceed with disconnection
             {
-                log?.Information($"[{entryPoint}] connection for user <{userId}> was superseded (reconnected or switched session)");
+                _logger.LogInformation("[{EntryPoint}] connection for user {UserId} was superseded (reconnected or switched session)", entryPoint, userId);
             }
 
             allConnections.TryRemove(Context.ConnectionId, out _);
 
             _roomRegistry.RefreshObserver(room.RoomId, Clients);
 
-            log?.Information($"[{entryPoint}] exit");
+            _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
 
             await base.OnDisconnectedAsync(ex);
         }

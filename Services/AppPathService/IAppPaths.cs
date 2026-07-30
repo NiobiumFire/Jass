@@ -3,8 +3,12 @@
     public interface IAppPaths
     {
         string DataFolder { get; }
-        string LogFolder { get; }
-        string IncompleteGames { get; }
         string DatabaseFile { get; }
+        string LogFolder { get; }
+        string HubLogFolder { get; }
+        string CleanupLogFolder { get; }
+        string ReplayFolder { get; }
+        string IncompleteGameFolder { get; }
+
     }
 }

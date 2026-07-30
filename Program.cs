@@ -3,12 +3,14 @@ using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.Configuration;
 using BelotWebApp.Data;
 using BelotWebApp.Middleware;
+using BelotWebApp.Services;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
 using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 internal class Program
 {
@@ -18,7 +20,35 @@ internal class Program
 
         // Add services to the container.
 
-        builder.Services.AddSingleton<IAppPaths, AppPaths>();
+        var appPaths = new AppPaths(builder.Configuration); // manual instantiation, not DI-resolved
+
+        Log.Logger = new LoggerConfiguration()
+        .Enrich.FromLogContext()
+        .MinimumLevel.Information()
+        .WriteTo.Console()
+        // Hub logs
+        .WriteTo.Logger(config => config
+            .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext")
+                && e.Properties["SourceContext"].ToString().Contains("BelotRoomHub"))
+            .WriteTo.File(
+                Path.Combine(appPaths.HubLogFolder, "BelotRoomHubLog-.txt"),
+                rollingInterval: RollingInterval.Day,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message} RoomId={RoomId}{NewLine}{Exception}"))
+        // FileCleanupService logs
+        .WriteTo.Logger(config => config
+            .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext")
+                && e.Properties["SourceContext"].ToString().Contains("FileCleanupService"))
+            .WriteTo.File(
+                Path.Combine(appPaths.CleanupLogFolder, "CleanupLog-.txt"),
+                rollingInterval: RollingInterval.Day,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message}{NewLine}{Exception}"))
+        .CreateLogger();
+
+        builder.Host.UseSerilog();
+
+        builder.Services.AddSingleton<IAppPaths>(appPaths);
+
+        builder.Services.AddHostedService<FileCleanupService>();
 
         builder.Services.AddDbContext<AuthDbContext>((serviceProvider, options) =>
         {
@@ -74,7 +104,7 @@ internal class Program
                 var context = services.GetRequiredService<AuthDbContext>();
                 context.Database.Migrate();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //Console.WriteLine($"Error applying migrations: {ex.Message}");
             }
@@ -112,7 +142,14 @@ internal class Program
         // Grant primary admin
         await EnsurePrimaryAdminAsync(app);
 
-        app.Run();
+        try
+        {
+            app.Run();
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 
     private static async Task EnsureRolesAsync(WebApplication app)

@@ -59,7 +59,7 @@ namespace BelotWebApp.Pages.Account
                     };
                     return Page();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return BadRequest("Invalid password reset code.");
                 }

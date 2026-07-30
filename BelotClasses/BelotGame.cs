@@ -957,13 +957,13 @@ namespace BelotWebApp.BelotClasses
 
         public void SetLogger()
         {
-            var logPath = Path.Combine(_appPaths.LogFolder, GameId + ".txt");
+            var logPath = Path.Combine(_appPaths.ReplayFolder, GameId + ".txt");
             File.Create(logPath).Close();
         }
 
         public void AddInitialState(string[] usernames)
         {
-            var logPath = Path.Combine(_appPaths.LogFolder, GameId + ".txt");
+            var logPath = Path.Combine(_appPaths.ReplayFolder, GameId + ".txt");
 
             ReplayState = new()
             {
@@ -991,7 +991,7 @@ namespace BelotWebApp.BelotClasses
         {
             if (IsRunning)
             {
-                var logPath = Path.Combine(_appPaths.LogFolder, GameId + ".txt");
+                var logPath = Path.Combine(_appPaths.ReplayFolder, GameId + ".txt");
 
                 File.AppendAllText(logPath, JsonSerializer.Serialize(diff, JsonSettings.Compact) + "\n");
 
@@ -1083,10 +1083,10 @@ namespace BelotWebApp.BelotClasses
 
         public void CloseLog() // called when a game ends as well as when the last human leaves the room -> will try to move/zip the replay log twice hence if(exists)
         {
-            var source = Path.Combine(_appPaths.LogFolder, $"{GameId}.txt");
+            var source = Path.Combine(_appPaths.ReplayFolder, $"{GameId}.txt");
             if (!IsNewGame)
             {
-                var destination = Path.Combine(_appPaths.IncompleteGames, $"{GameId}.txt");
+                var destination = Path.Combine(_appPaths.IncompleteGameFolder, $"{GameId}.txt");
 
                 if (File.Exists(source) && !File.Exists(destination))
                 {
@@ -1094,7 +1094,7 @@ namespace BelotWebApp.BelotClasses
                     {
                         File.Move(source, destination);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
 
                     }
@@ -1102,14 +1102,14 @@ namespace BelotWebApp.BelotClasses
             }
             else
             {
-                string zip = Path.Combine(_appPaths.LogFolder, $"{GameId}.zip");
+                string zip = Path.Combine(_appPaths.ReplayFolder, $"{GameId}.zip");
                 if (File.Exists(source) && !File.Exists(zip))
                 {
                     try
                     {
                         _zipService.Zip(source, zip, true);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
 
                     }

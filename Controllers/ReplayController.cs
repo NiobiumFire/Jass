@@ -31,7 +31,7 @@ namespace BelotWebApp.Controllers
         {
             BelotReplay replay = new();
 
-            string path = Path.Combine($"{_appPaths.LogFolder}", $"{replayId}.zip");
+            string path = Path.Combine($"{_appPaths.ReplayFolder}", $"{replayId}.zip");
             try
             {
                 var log = await _zipService.ReadTextAsync(path);
@@ -77,7 +77,7 @@ namespace BelotWebApp.Controllers
         {
             List<ReplayTableRow> replays = [];
 
-            string[] allLogs = new DirectoryInfo(_appPaths.LogFolder).GetFiles("*.zip")
+            string[] allLogs = new DirectoryInfo(_appPaths.ReplayFolder).GetFiles("*.zip")
                 .OrderByDescending(f => f.LastWriteTime)
                 .Select(f => f.FullName)
                 .ToArray();
