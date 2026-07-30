@@ -214,13 +214,9 @@ room.on("enableCards", function (validcards) {
     document.getElementById("cardboard").classList.add("cardboard-pulse");
 });
 
-room.on("setTableCard", function (tableCardPosition, tableCard) {
-    setTableCard(tableCardPosition, tableCard);
+room.on("setTableCard", function (pos, tableCard) {
+    setTableCard(pos, tableCard);
 });
-
-function setTableCard(tableCardPosition, tableCard) {
-    document.getElementById("tablecard".concat(tableCardPosition)).src = GetResourceFromCard(tableCard);
-};
 
 // -------------------- Turn Indicator --------------------
 

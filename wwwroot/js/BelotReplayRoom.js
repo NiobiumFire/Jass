@@ -175,7 +175,7 @@ function setState(diff, after) {
 
     for (let i = 0; i < 4; i++) {
         setEmote(state.emotes[i], i);
-        setTableCard(state.tableCards[i], i);
+        setTableCard(i, state.tableCards[i]);
         for (let j = 0; j < 8; j++) {
             setHandCard(state.handCards[i][j], i, j);
         }
@@ -254,10 +254,6 @@ function setEmote(emote, i) {
         icon.innerHTML = emote;
         bubble.style.visibility = "visible";
     }
-}
-
-function setTableCard(card, i) {
-    document.getElementById("tablecard" + i).src = GetResourceFromCard(card)
 }
 
 function setHandCard(card, i, j) {

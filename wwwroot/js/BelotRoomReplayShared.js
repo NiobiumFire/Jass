@@ -60,6 +60,10 @@ function setTableCardSlotUserNameAndLabelColour(position, username, occupied, is
     usernameLabel.innerHTML = username;
 }
 
+function setTableCard(pos, tableCard) {
+    document.getElementById("tablecard" + pos).src = GetResourceFromCard(tableCard);
+};
+
 function setRoundSuit(suit) {
     const text = ["", "", "", "", "", "A", "J", "×2", "×4"];
     const suits = [NO_SUIT_CALL, "bi-suit-club-fill", "bi-suit-diamond-fill", "bi-suit-heart-fill", "bi-suit-spade-fill", "allNoTrumps", "allNoTrumps"];
