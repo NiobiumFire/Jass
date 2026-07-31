@@ -27,15 +27,14 @@
         <nav class="navbar navbar-expand navbar-dark box-shadow">
             <div class="container">
                 <div class="d-flex justify-content-start align-items-center">
-                    <img src="~/images/NiobiumCrystal.png" height="30" />
                     <ul class="navbar-nav d-flex align-items-center">
-                        <li class="nav-item me-3">
-                            <a class="navbar-brand mx-0 px-1" asp-controller="Home" asp-action="Index">Main Menu</a>
+                        <li class="nav-item ms-1 me-3">
+                            <a class="nav-link mx-0 px-1" href="@Url.Action("Index", "Home")">Main Menu</a>
                         </li>
                         @if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link mx-0 px-1" asp-controller="Admin" asp-action="Index">Admin</a>
+                                <a class="nav-link mx-0 px-1" href="@Url.Action("Index", "Admin")">Admin</a>
                             </li>
                         }
                     </ul>
@@ -43,6 +42,7 @@
                 <partial name="_LoginPartial.cshtml" />
             </div>
         </nav>
+        <div class="notification">Server maintenance will begin in 15 min</div>
     </header>
     <canvas class="nebula" id="nebula"></canvas>
     @RenderBody()

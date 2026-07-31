@@ -21,6 +21,7 @@ namespace BelotWebApp.Controllers
         }
 
         [HttpGet]
+        [Route("Admin/UserAdmin")]
         public async Task<IActionResult> Index()
         {
             return View("UserAdmin", await GetModel());

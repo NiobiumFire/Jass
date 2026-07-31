@@ -1,15 +1,9 @@
 ﻿@using BelotWebApp.Models.Administration;
-@using Microsoft.AspNetCore.Identity;
-@using BelotWebApp.Data;
 @model AdminUserModel
 @inject RoleManager<IdentityRole> roleManager
 
 @{
     Layout = "/Views/Admin/_AdminLayout.cshtml";
-}
-
-@{
-    ViewBag.Title = "Admin";
 }
 
 <form id="adminDelete" asp-controller="Admin" asp-action="Delete" method="post" hidden></form>
