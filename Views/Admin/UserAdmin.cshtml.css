@@ -1,5 +1,11 @@
-﻿h2 {
-    margin: 0;
+﻿.table-container {
+    flex: 1; /* Occupy all available vertical space */
+    min-height: 0; /* Force overflow-y when rows exceed available space */
+    overflow-y: auto;
+}
+
+hr{
+    margin: 10px 0;
 }
 
 table.table {

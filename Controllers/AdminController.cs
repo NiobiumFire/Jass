@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace BelotWebApp.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class AdministrationController : Controller
+    public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public AdministrationController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager)
+        public AdminController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -23,12 +23,17 @@ namespace BelotWebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return View("Admin", await GetModel());
+            return View("UserAdmin", await GetModel());
         }
 
-        private async Task<AdministrateUserModel> GetModel()
+        public IActionResult Maintenance()
         {
-            var model = new AdministrateUserModel();
+            return View("Maintenance");
+        }
+
+        private async Task<AdminUserModel> GetModel()
+        {
+            var model = new AdminUserModel();
             foreach (ApplicationUser user in _userManager.Users)
             {
                 var administrateUserModel = new InputModel()
@@ -47,9 +52,8 @@ namespace BelotWebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Index(AdministrateUserModel model)
+        public async Task<IActionResult> Index(AdminUserModel model)
         {
-            List<string> errors = new();
             foreach (InputModel updatedUser in model.Users)
             {
                 var user = await _userManager.FindByNameAsync(updatedUser.Username);
@@ -62,7 +66,7 @@ namespace BelotWebApp.Controllers
                 var roles = _roleManager.Roles.ToArray();
                 for (int i = 0; i < roles.Length; i++)
                 {
-                    IdentityResult result = null;
+                    IdentityResult? result = null;
                     if (updatedUser.IsInRole[i] && !await _userManager.IsInRoleAsync(user, roles[i].Name))
                     {
                         result = await _userManager.AddToRoleAsync(user, roles[i].Name);
@@ -78,7 +82,7 @@ namespace BelotWebApp.Controllers
                 }
             }
             await _signInManager.RefreshSignInAsync(await _userManager.GetUserAsync(User));
-            return View("Admin", await GetModel());
+            return View("UserAdmin", await GetModel());
         }
 
         [HttpPost]
@@ -102,7 +106,7 @@ namespace BelotWebApp.Controllers
             {
                 ModelState.AddModelError("", @"User with id='" + id + @"' could not be found.");
             }
-            return View("Admin", await GetModel());
+            return View("UserAdmin", await GetModel());
         }
     }
 }

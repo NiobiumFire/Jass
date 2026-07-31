@@ -2,9 +2,9 @@
 
 namespace BelotWebApp.Models.Administration
 {
-    public class AdministrateUserModel
+    public class AdminUserModel
     {
-        public AdministrateUserModel()
+        public AdminUserModel()
         {
             Users = new List<InputModel>();
         }
