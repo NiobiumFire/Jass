@@ -215,6 +215,9 @@ main {
 
 .form-label {
     color: white !important;
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari */
+    user-select: none; /* Standard syntax */
 }
 
 .email-confirmed-tick {
@@ -352,6 +355,7 @@ main {
 
 .form-check-input {
     border-color: var(--col-2);
+    cursor: pointer;
 }
 
     .form-check-input:checked {
