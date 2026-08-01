@@ -95,7 +95,7 @@ namespace BelotWebApp.BelotClasses
             }
 
             using var logScope = BeginRoomLogScope(room);
-            _logger.LogInformation($"[{entryPoint}] enter");
+            _logger.LogInformation("[{entryPoint}] enter", entryPoint);
 
             var game = room.Game;
 
@@ -111,19 +111,9 @@ namespace BelotWebApp.BelotClasses
                 return Task.CompletedTask;
             }
 
-            BelotGameEngine engine = new(game, room.Observer);
+            room.UpdateLastActivityTime();
 
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await engine.GameController();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "[{EntryPoint}] Unhandled exception", entryPoint);
-                }
-            });
+            BelotGameRunner.Continue(room);
 
             _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
 
@@ -161,6 +151,8 @@ namespace BelotWebApp.BelotClasses
                 }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
             }
+
+            room.UpdateLastActivityTime();
 
             BelotGameRunner.ContinueFromDeal(room);
 
@@ -207,6 +199,8 @@ namespace BelotWebApp.BelotClasses
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
             }
 
+            room.UpdateLastActivityTime();
+
             BelotGameRunner.ContinueFromCall(room, call);
 
             _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
@@ -252,6 +246,8 @@ namespace BelotWebApp.BelotClasses
                 return;
             }
 
+            room.UpdateLastActivityTime();
+
             var clients = Clients;
 
             room.Game.PlayCard(card);
@@ -292,6 +288,8 @@ namespace BelotWebApp.BelotClasses
                 }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
             }
+
+            room.UpdateLastActivityTime();
 
             var game = room.Game;
 
@@ -354,6 +352,8 @@ namespace BelotWebApp.BelotClasses
                 }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
             }
+
+            room.UpdateLastActivityTime();
 
             int points = 10; // stoch
 
@@ -904,6 +904,8 @@ namespace BelotWebApp.BelotClasses
 
             var room = GetRoom();
 
+            allConnections.TryRemove(Context.ConnectionId, out _);
+
             if (room?.Game == null || room.Observer == null)
             {
                 _logger.LogWarning("[{EntryPoint}] Room/Game/Observer was null", entryPoint);
@@ -965,8 +967,6 @@ namespace BelotWebApp.BelotClasses
             {
                 _logger.LogInformation("[{EntryPoint}] connection for user {UserId} was superseded (reconnected or switched session)", entryPoint, userId);
             }
-
-            allConnections.TryRemove(Context.ConnectionId, out _);
 
             _roomRegistry.RefreshObserver(room.RoomId, Clients);
 

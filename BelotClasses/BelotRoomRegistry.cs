@@ -36,6 +36,11 @@ namespace BelotWebApp.BelotClasses
             }
         }
 
+        public List<BelotRoom> GetRooms()
+        {
+            return _rooms.Values.ToList(); // ToList for snapshot of rooms
+        }
+
         // Players are always stored in seating order: West, North, East, South
         // GetDisplayName expects the player index, so preserve this ordering
         public IEnumerable<BelotRoomRecord> GetRoomRecords() => _rooms.Values
@@ -48,7 +53,5 @@ namespace BelotWebApp.BelotClasses
                 r.Options.AllowChat));
 
         public IEnumerable<string> GetAllConnectedUsers() => _rooms.Values.SelectMany(r => r.ConnectedUsers).Select(u => u.Username);
-
-        public bool GamesOngoing() => !_rooms.IsEmpty;
     }
 }

@@ -1,7 +1,6 @@
 ﻿"use strict";
 
-let isUnloading = false; // the user is not deliberately leaving the room
-let isConnectionSuperseded = false; // the user has not connected in another session
+let preventConnectionStoppedAlert = false;
 
 var declarations;
 
@@ -17,7 +16,7 @@ let outsideClickListener;
 let dialogActivator;
 
 window.addEventListener("pagehide", () => {
-    isUnloading = true;
+    preventConnectionStoppedAlert = true;  // the user is deliberately leaving the room
 });
 
 $('.modal').on('hide.bs.modal', function () { // remove focus from modals before they are hidden to prevent aria warnings
@@ -37,7 +36,7 @@ room.serverTimeoutInMilliseconds = 10000;
 
 room.onclose(() => {
     setTimeout(() => { // delay as fallback for pagehide not executing/executing after socket is closed (e.g. transport is SSE). js context will be removed and alert will not show if user refreshed/intentionally browsed away
-        if (!isUnloading && !isConnectionSuperseded) {
+        if (!preventConnectionStoppedAlert) {
             alert("Disconnected. Try refresh the page to reconnect.");
         }
     }, 300);
@@ -48,9 +47,20 @@ room.start().catch(() => {
 });
 
 room.on("connectionSuperseded", async function () {
-    isConnectionSuperseded = true;
+    preventConnectionStoppedAlert = true; // the user has connected in another session
     await room.stop();
     alert("You have connected in another session. This connection has been closed.");
+    window.location.replace("/");
+});
+
+room.on("roomClosureImminent", async function (cutoff) {
+    alert(`Room closing in ${cutoff}s due to inactivity. Take a turn to keep it open.`);
+});
+
+room.on("idleRoomClosing", async function () {
+    preventConnectionStoppedAlert = true; // room closed due to inactivity
+    await room.stop();
+    alert("Room has closed due to inactivity.");
     window.location.replace("/");
 });
 

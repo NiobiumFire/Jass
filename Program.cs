@@ -1,4 +1,5 @@
 using BelotWebApp.BelotClasses;
+using BelotWebApp.BelotClasses.IdleRoomHandling;
 using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.Configuration;
 using BelotWebApp.Data;
@@ -91,6 +92,9 @@ internal class Program
         builder.Services.AddSingleton<IZipService, ZipService>();
 
         builder.Services.AddSingleton<BelotRoomRegistry>();
+
+        builder.Services.Configure<IdleRoomClosureOptions>(builder.Configuration.GetSection("IdleRoomClosure"));
+        builder.Services.AddHostedService<IdleRoomClosureService>();
 
         builder.Services.AddSingleton<BelotGameSimulator>();
 

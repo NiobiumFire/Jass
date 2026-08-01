@@ -13,6 +13,8 @@ namespace BelotWebApp.BelotClasses
             Game = game;
             Observer = observer;
             Options = options;
+            LastActivityTime = DateTime.UtcNow;
+            RoomCloseWarningIssued = null;
         }
 
         public string RoomId { get; private set; }
@@ -24,6 +26,10 @@ namespace BelotWebApp.BelotClasses
         private readonly List<ConnectedUser> _connectedUsers = [];
         public IReadOnlyList<ConnectedUser> ConnectedUsers => _connectedUsers;
 
+        public DateTime LastActivityTime { get; private set; }
+        public DateTime? RoomCloseWarningIssued { get; private set; }
+
+        #region Users
 
         public ConnectedUser AddUser(string userId, string username, string connectionId)
         {
@@ -80,6 +86,35 @@ namespace BelotWebApp.BelotClasses
 
             return (spectators, players);
         }
+
+        #endregion
+
+        #region Idle Room
+
+        public void UpdateLastActivityTime()
+        {
+            LastActivityTime = DateTime.UtcNow;
+            RoomCloseWarningIssued = null;
+        }
+
+        public async Task IssueImminentClosureWarningAsync(TimeSpan cutoff)
+        {
+            RoomCloseWarningIssued = DateTime.UtcNow;
+            if (Observer is LiveBelotObserver live)
+            {
+                await live.IssueImminentClosureWarning(cutoff);
+            }
+        }
+
+        public async Task CloseIdleRoomAsync()
+        {
+            if (Observer is LiveBelotObserver live)
+            {
+                await live.CloseIdleRoomAsync();
+            }
+        }
+
+        #endregion
     }
 
 }

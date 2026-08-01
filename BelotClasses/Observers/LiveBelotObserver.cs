@@ -464,6 +464,16 @@ namespace BelotWebApp.BelotClasses.Observers
             await Emote(_game.Turn, _game.BotDelay).ConfigureAwait(false);
         }
 
+        public async Task IssueImminentClosureWarning(TimeSpan cutoff)
+        {
+            await _group.SendAsync("RoomClosureImminent", Math.Floor(cutoff.TotalSeconds)).ConfigureAwait(false);
+        }
+
+        public async Task CloseIdleRoomAsync()
+        {
+            await _group.SendAsync("IdleRoomClosing").ConfigureAwait(false);
+        }
+
         private async Task Emote(int seat, int duration)
         {
             await _group.SendAsync("ShowEmote", seat).ConfigureAwait(false);
