@@ -1,5 +1,6 @@
 ﻿using BelotWebApp.Data;
 using BelotWebApp.Models.Administration;
+using BelotWebApp.Notification;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,27 +13,25 @@ namespace BelotWebApp.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ServerNotificationManager _notificationManager;
 
-        public AdminController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager)
+        public AdminController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager, ServerNotificationManager notificationManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
+            _notificationManager = notificationManager;
+
         }
 
         [HttpGet]
         [Route("Admin/UserAdmin")]
         public async Task<IActionResult> Index()
         {
-            return View("UserAdmin", await GetModel());
+            return View("UserAdmin", await GetUserAdminModel());
         }
 
-        public IActionResult Maintenance()
-        {
-            return View("Maintenance");
-        }
-
-        private async Task<AdminUserModel> GetModel()
+        private async Task<AdminUserModel> GetUserAdminModel()
         {
             var model = new AdminUserModel();
             foreach (ApplicationUser user in _userManager.Users)
@@ -83,13 +82,13 @@ namespace BelotWebApp.Controllers
                 }
             }
             await _signInManager.RefreshSignInAsync(await _userManager.GetUserAsync(User));
-            return View("UserAdmin", await GetModel());
+            return View("UserAdmin", await GetUserAdminModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string username)
         {
-            var user = await _userManager.FindByNameAsync(id);
+            var user = await _userManager.FindByNameAsync(username);
             if (user != null)
             {
                 var result = await _userManager.DeleteAsync(user);
@@ -97,7 +96,7 @@ namespace BelotWebApp.Controllers
                 {
                     ModelState.AddModelError("", @"Failed to delete user '" + user.UserName + @"'.");
                 }
-                else if (id == _userManager.GetUserId(User))
+                else if (user.Id == _userManager.GetUserId(User))
                 {
                     await _signInManager.SignOutAsync();
                     return RedirectToAction("Index", "Home");
@@ -105,9 +104,33 @@ namespace BelotWebApp.Controllers
             }
             else
             {
-                ModelState.AddModelError("", @"User with id='" + id + @"' could not be found.");
+                ModelState.AddModelError("", @"User with username='" + username + @"' could not be found.");
             }
-            return View("UserAdmin", await GetModel());
+            return View("UserAdmin", await GetUserAdminModel());
+        }
+
+        public IActionResult Notification()
+        {
+            var model = _notificationManager.Current.Clone();
+            if (model.ScheduledUtc == default)
+            {
+                model.ScheduledUtc = DateTime.UtcNow;
+            }
+            return View("Notification", model);
+        }
+
+        [HttpPost]
+        public IActionResult Notification(ServerNotification model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Notification", model);
+            }
+
+            model.ScheduledUtc = DateTime.SpecifyKind(model.ScheduledUtc, DateTimeKind.Utc);
+
+            _notificationManager.Update(model);
+            return RedirectToAction(nameof(Notification));
         }
     }
 }

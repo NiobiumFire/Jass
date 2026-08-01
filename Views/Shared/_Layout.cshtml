@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity;
 @using BelotWebApp.Data;
+@using BelotWebApp.Notification;
+@inject ServerNotificationManager NotificationManager
 
 <!DOCTYPE html>
 <html lang="en">
@@ -42,7 +44,49 @@
                 <partial name="_LoginPartial.cshtml" />
             </div>
         </nav>
-        <div class="notification">Server maintenance will begin in 15 min</div>
+        @if (NotificationManager.NotificationIsActive)
+        {
+            <div id="maintenance-banner" class="notification"
+                 data-scheduled-utc="@NotificationManager.Current.ScheduledUtc.ToString("o")"
+                 data-message="@NotificationManager.Current.Message">
+                @NotificationManager.Current.Message
+            </div>
+            @if (NotificationManager.Current.IsMaintenance)
+            {
+                <script>
+                    (function () {
+                        const banner = document.getElementById('maintenance-banner');
+                        const scheduledUtc = new Date(banner.dataset.scheduledUtc); // "o" format parses as UTC
+                        const baseMessage = banner.dataset.message;
+
+                        function render() {
+                            const now = new Date();
+                            const diffMs = scheduledUtc - now;
+
+                            if (diffMs <= 0) {
+                                banner.textContent = baseMessage; // maintenance started or simple message
+                                return;
+                            }
+
+                            const totalMinutes = Math.ceil(diffMs / 60000);
+                            let timeText;
+                            if (totalMinutes >= 60) {
+                                const hours = Math.floor(totalMinutes / 60);
+                                const mins = totalMinutes % 60;
+                                timeText = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+                            } else {
+                                timeText = `${totalMinutes} min`;
+                            }
+
+                            banner.textContent = `Server maintenance begins in ${timeText}`;
+                        }
+
+                        render();
+                        setInterval(render, 30000);
+                    })();
+                </script>
+            }
+        }
     </header>
     <canvas class="nebula" id="nebula"></canvas>
     @RenderBody()

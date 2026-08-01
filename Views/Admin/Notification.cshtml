@@ -1,0 +1,40 @@
+﻿@using BelotWebApp.Notification
+@model ServerNotification
+@{
+    Layout = "/Views/Admin/_AdminLayout.cshtml";
+}
+
+@{
+    var now = DateTime.UtcNow;
+    var minDate = new DateTime(now.Year, 1, 1);
+    var maxDate = new DateTime(now.Year + 1, 12, 31, 23, 59, 0);
+}
+
+<form asp-controller="Admin" asp-action="Notification" method="post">
+    <div class="mb-3">
+        <label>
+            <input type="checkbox" asp-for="Enabled" />
+            Enabled
+        </label>
+    </div>
+
+    <div class="mb-3">
+        <label>
+            <input type="checkbox" asp-for="IsMaintenance" />
+            Maintenance
+        </label>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ScheduledUtc"></label>
+        <input type="datetime-local" asp-for="ScheduledUtc" class="form-control" min="@minDate.ToString("yyyy-MM-ddTHH:mm")"
+               max="@maxDate.ToString("yyyy-MM-ddTHH:mm")" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Message"></label>
+        <textarea asp-for="Message" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

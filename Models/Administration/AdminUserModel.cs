@@ -6,7 +6,7 @@ namespace BelotWebApp.Models.Administration
     {
         public AdminUserModel()
         {
-            Users = new List<InputModel>();
+            Users = [];
         }
         [BindProperty]
         public List<InputModel> Users { get; set; }
@@ -16,6 +16,6 @@ namespace BelotWebApp.Models.Administration
     {
         public string Username { get; set; }
         public string Email { get; set; }
-        public List<bool> IsInRole { get; set; } = new List<bool>();
+        public List<bool> IsInRole { get; set; } = [];
     }
 }

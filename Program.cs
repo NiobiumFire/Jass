@@ -3,6 +3,7 @@ using BelotWebApp.BelotClasses.Training;
 using BelotWebApp.Configuration;
 using BelotWebApp.Data;
 using BelotWebApp.Middleware;
+using BelotWebApp.Notification;
 using BelotWebApp.Services;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
@@ -82,6 +83,8 @@ internal class Program
         {
             options.PayloadSerializerOptions.Converters.Add(new DeclarationConverter());
         });
+
+        builder.Services.AddSingleton<ServerNotificationManager>();
 
         builder.Services.AddScoped<IEmailSender, EmailService>();
 
