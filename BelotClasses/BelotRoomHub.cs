@@ -693,7 +693,7 @@ namespace BelotWebApp.BelotClasses
             }
 
             var player = room.GetPlayerById(user.UserId);
-            int pos = Array.IndexOf(room.Game.Players, player);
+            int pos = player == null ? -1 : Array.IndexOf(room.Game.Players, player);
 
             if (pos >= 0) // user is player
             {
