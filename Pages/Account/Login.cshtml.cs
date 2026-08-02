@@ -101,9 +101,6 @@ namespace BelotWebApp.Pages.Account
                 return Page();
             }
 
-            // Update sessionId to enforce single active session
-            var sessionId = Guid.NewGuid().ToString();
-            user.CurrentSessionId = sessionId;
             await _userManager.UpdateAsync(user);
 
             var result = await _signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: false);

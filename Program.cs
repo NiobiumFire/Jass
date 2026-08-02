@@ -106,15 +106,15 @@ internal class Program
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
-            try
-            {
-                var context = services.GetRequiredService<AuthDbContext>();
-                context.Database.Migrate();
-            }
-            catch (Exception)
-            {
-                //Console.WriteLine($"Error applying migrations: {ex.Message}");
-            }
+            //try
+            //{
+            var context = services.GetRequiredService<AuthDbContext>();
+            context.Database.Migrate(); // throw on exception for now
+            //}
+            //catch (Exception)
+            //{
+            //Console.WriteLine($"Error applying migrations: {ex.Message}");
+            //}
         }
 
         // Configure the HTTP request pipeline.
