@@ -19,7 +19,7 @@ namespace BelotWebApp.BelotClasses
 
         private static ILogger<BelotRoomHub> _logger;
 
-        public BelotRoomHub(ILogger<BelotRoomHub> logger, IAppPaths appPaths, BelotRoomRegistry roomRegistry)
+        public BelotRoomHub(ILogger<BelotRoomHub> logger, BelotRoomRegistry roomRegistry)
         {
             _roomRegistry = roomRegistry;
             _logger = logger;
@@ -474,7 +474,7 @@ namespace BelotWebApp.BelotClasses
                 if ((isEmpty || isBot) && position < 4) // empty seat or bot-occupied requested by human
                 {
                     await UnbookSeat(room, clients, false);
-                    game.Players[position] = new(requestorId, requestorUsername, PlayerType.Human);
+                    game.Players[position] = new(requestorId, requestorUsername, PlayerType.Human, !Context.User?.Identity?.IsAuthenticated ?? true);
                     await UpdateConnectedUsers(room, clients);
                     await clients.OthersInGroup(room.RoomId).SendAsync("seatBooked", position, requestorUsername, false);
                     await clients.Caller.SendAsync("seatBooked", position, requestorUsername, true);

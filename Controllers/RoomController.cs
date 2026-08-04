@@ -1,5 +1,6 @@
 ﻿using BelotWebApp.BelotClasses;
 using BelotWebApp.Models;
+using BelotWebApp.Services;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Mvc;
@@ -12,19 +13,22 @@ namespace BelotWebApp.Controllers
     {
         private readonly IAppPaths _appPaths;
         private readonly IZipService _zipService;
+        private readonly GameResultRecorder _gameResultRecorder;
         private readonly BelotRoomRegistry _roomRegistry;
 
-        public RoomController(IAppPaths appPaths, IZipService zipService, BelotRoomRegistry gameRegistry)
+        public RoomController(IAppPaths appPaths, IZipService zipService, GameResultRecorder gameResultRecorder, BelotRoomRegistry roomRegistry)
         {
             _appPaths = appPaths;
             _zipService = zipService;
-            _roomRegistry = gameRegistry;
+            _gameResultRecorder = gameResultRecorder;
+            _roomRegistry = roomRegistry;
         }
 
         // Create casual game then join it
         [HttpPost]
         public ActionResult Create(BelotRoomCreationOptions options)
         {
+            options.MatchType = Data.MatchType.Casual;
             if (!ModelState.IsValid)
             {
                 return RedirectToAction("Index", "Home");
@@ -32,7 +36,7 @@ namespace BelotWebApp.Controllers
 
             string roomId = Guid.NewGuid().ToString();
             var game = new BelotGame(_appPaths, _zipService, true, options.ScoreTarget);
-            _roomRegistry.AddRoom(roomId, new(roomId, game, null, options));
+            _roomRegistry.AddRoom(roomId, new(roomId, game, null, options, _gameResultRecorder));
             return RedirectToAction("Index", new { roomId });
         }
 

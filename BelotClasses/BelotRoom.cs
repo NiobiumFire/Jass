@@ -1,18 +1,23 @@
 ﻿using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.Models;
+using BelotWebApp.Services;
 
 namespace BelotWebApp.BelotClasses
 {
     public class BelotRoom
     {
-        public BelotRoom(string roomId, BelotGame game, IBelotObserver? observer, BelotRoomCreationOptions options)
+        private readonly GameResultRecorder _gameResultRecorder;
+        private readonly List<ConnectedUser> _connectedUsers = [];
+
+        public BelotRoom(string roomId, BelotGame game, IBelotObserver? observer, BelotRoomCreationOptions options, GameResultRecorder gameResultRecorder)
         {
             RoomId = roomId;
             RoomName = options.RoomName;
             Game = game;
             Observer = observer;
             Options = options;
+            _gameResultRecorder = gameResultRecorder;
             LastActivityTime = DateTime.UtcNow;
             RoomCloseWarningIssued = null;
         }
@@ -23,7 +28,6 @@ namespace BelotWebApp.BelotClasses
         public IBelotObserver? Observer { get; set; }
         public BelotRoomCreationOptions Options { get; private set; }
 
-        private readonly List<ConnectedUser> _connectedUsers = [];
         public IReadOnlyList<ConnectedUser> ConnectedUsers => _connectedUsers;
 
         public DateTime LastActivityTime { get; private set; }
@@ -115,6 +119,11 @@ namespace BelotWebApp.BelotClasses
         }
 
         #endregion
+
+        public async Task RecordGameResult(List<(string PlayerId, bool Won)> result)
+        {
+            await _gameResultRecorder.RecordGameResult(result, Options.MatchType);
+        }
     }
 
 }

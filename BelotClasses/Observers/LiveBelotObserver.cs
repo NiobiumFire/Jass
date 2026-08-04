@@ -4,6 +4,7 @@ using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.RoundSummary;
 using BelotWebApp.BelotClasses.Turn;
 using BelotWebApp.BelotClasses.Users;
+using BelotWebApp.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BelotWebApp.BelotClasses.Observers
@@ -317,6 +318,21 @@ namespace BelotWebApp.BelotClasses.Observers
         public async Task OnGameComplete()
         {
             string winner = _game.EWTotal > _game.NSTotal ? "E/W" : "N/S";
+
+            try
+            {
+                var outcomes = _game.Players
+                    .Select((p, i) => (Player: p, Index: i))
+                    .Where(x => x.Player != null && x.Player.PlayerType == PlayerType.Human && !x.Player.IsGuest)
+                    .Select(x => (x.Player!.PlayerId, (x.Index % 2 == 0 && _game.EWTotal > _game.NSTotal) || (x.Index % 2 == 1 && _game.EWTotal < _game.NSTotal)))
+                    .ToList();
+
+                await _room.RecordGameResult(outcomes);
+            }
+            catch (Exception)
+            {
+
+            }
 
             await SysAnnounce(winner + " win the game: " + _game.EWTotal + " to " + _game.NSTotal + ".").ConfigureAwait(false);
 

@@ -8,6 +8,7 @@ using BelotWebApp.Notification;
 using BelotWebApp.Services;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
+using BelotWebApp.Services.UserStatsService;
 using BelotWebApp.Services.ZipService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -52,9 +53,8 @@ internal class Program
 
         builder.Services.AddHostedService<FileCleanupService>();
 
-        builder.Services.AddDbContext<AuthDbContext>((serviceProvider, options) =>
+        builder.Services.AddDbContext<AuthDbContext>(options =>
         {
-            var appPaths = serviceProvider.GetRequiredService<IAppPaths>();
             options.UseSqlite($"Data Source={appPaths.DatabaseFile}");
         });
 
@@ -95,6 +95,9 @@ internal class Program
 
         builder.Services.Configure<IdleRoomClosureOptions>(builder.Configuration.GetSection("IdleRoomClosure"));
         builder.Services.AddHostedService<IdleRoomClosureService>();
+
+        builder.Services.AddScoped<IUserStatsService, UserStatsService>();
+        builder.Services.AddSingleton<GameResultRecorder>();
 
         builder.Services.AddSingleton<BelotGameSimulator>();
 

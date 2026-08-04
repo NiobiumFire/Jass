@@ -22,6 +22,9 @@ namespace BelotWebApp.Models
         [AllowedValues(0, 10, 30, 60, 120)]
         public int TurnTime { get; set; } = 30;
 
+        [Required]
+        public Data.MatchType MatchType { get; set; }
+
         //public bool AllowSpectators { get; set; }
     }
 }
