@@ -12,8 +12,7 @@
 
             Directory.CreateDirectory(DataFolder);
             Directory.CreateDirectory(HubLogFolder); // creates LogFolder
-            Directory.CreateDirectory(CleanupLogFolder);
-            Directory.CreateDirectory(IncompleteGameFolder); // creates Replays
+            Directory.CreateDirectory(IncompleteGameFolder); // creates ReplayFolder
         }
 
         public string DataFolder => Path.Combine(_workingData, "data");
@@ -23,8 +22,6 @@
         public string LogFolder => Path.Combine(_workingData, "logs");
 
         public string HubLogFolder => Path.Combine(LogFolder, "hub");
-
-        public string CleanupLogFolder => Path.Combine(LogFolder, "cleanup");
 
         public string ReplayFolder => Path.Combine(_workingData, "replays");
 

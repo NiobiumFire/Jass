@@ -118,8 +118,8 @@ namespace BelotWebApp.Services
                 return job.PathKey switch
                 {
                     "Data" => _paths.DataFolder,
+                    "Log" => _paths.LogFolder,
                     "HubLog" => _paths.HubLogFolder,
-                    "CleanupLog" => _paths.CleanupLogFolder,
                     "Replay" => _paths.ReplayFolder,
                     "IncompleteGame" => _paths.IncompleteGameFolder,
                     _ => null

@@ -17,6 +17,8 @@ using Serilog;
 
 internal class Program
 {
+    private const string DefaultLoggerOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message}{NewLine}{Exception}";
+
     private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -25,27 +27,7 @@ internal class Program
 
         var appPaths = new AppPaths(builder.Configuration); // manual instantiation, not DI-resolved
 
-        Log.Logger = new LoggerConfiguration()
-        .Enrich.FromLogContext()
-        .MinimumLevel.Information()
-        .WriteTo.Console()
-        // Hub logs
-        .WriteTo.Logger(config => config
-            .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext")
-                && e.Properties["SourceContext"].ToString().Contains("BelotRoomHub"))
-            .WriteTo.File(
-                Path.Combine(appPaths.HubLogFolder, "BelotRoomHubLog-.txt"),
-                rollingInterval: RollingInterval.Day,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message} RoomId={RoomId}{NewLine}{Exception}"))
-        // FileCleanupService logs
-        .WriteTo.Logger(config => config
-            .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext")
-                && e.Properties["SourceContext"].ToString().Contains("FileCleanupService"))
-            .WriteTo.File(
-                Path.Combine(appPaths.CleanupLogFolder, "CleanupLog-.txt"),
-                rollingInterval: RollingInterval.Day,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message}{NewLine}{Exception}"))
-        .CreateLogger();
+        Log.Logger = ConstructLoggerConfiguration(appPaths).CreateLogger();
 
         builder.Host.UseSerilog();
 
@@ -124,8 +106,7 @@ internal class Program
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
+            app.UseHsts(); // default HSTS value is 30 days
             app.UseHttpsRedirection();
         }
 
@@ -224,5 +205,35 @@ internal class Program
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
+    }
+
+    private static LoggerConfiguration ConstructLoggerConfiguration(IAppPaths appPaths)
+    {
+        var config = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .MinimumLevel.Information()
+            .WriteTo.Console();
+
+        config = AddLoggerSink(config, "BelotRoomHub", appPaths.HubLogFolder, "BelotRoomHubLog-.txt",
+            "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message} RoomId={RoomId}{NewLine}{Exception}");
+
+        config = AddLoggerSink(config, "FileCleanupService", appPaths.LogFolder, "CleanupLog-.txt");
+
+        config = AddLoggerSink(config, "ReplayRecorderService", appPaths.LogFolder, "ReplayLog-.txt");
+
+        config = AddLoggerSink(config, "UserStatsService", appPaths.LogFolder, "StatsLog-.txt");
+
+        return config;
+    }
+
+    private static LoggerConfiguration AddLoggerSink(LoggerConfiguration config, string sourceContext, string folder, string fileName, string? outputTemplate = null)
+    {
+        return config.WriteTo.Logger(l => l
+            .Filter.ByIncludingOnly(e => e.Properties.TryGetValue("SourceContext", out var sc) && sc.ToString().Trim('"').EndsWith(sourceContext))
+            .WriteTo.File(
+                Path.Combine(folder, fileName),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 40,
+                outputTemplate: outputTemplate ?? DefaultLoggerOutputTemplate));
     }
 }
