@@ -224,6 +224,8 @@ internal class Program
         config = AddLoggerSink(config, "ReplayRecorderService", appPaths.LogFolder, "ReplayLog-.txt");
 
         config = AddLoggerSink(config, "UserStatsService", appPaths.LogFolder, "StatsLog-.txt");
+        
+        config = AddLoggerSink(config, "IdleRoomClosureService", appPaths.LogFolder, "IdleRoomMonitorLog-.txt");
 
         return config;
     }
