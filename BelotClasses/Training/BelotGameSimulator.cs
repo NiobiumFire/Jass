@@ -1,6 +1,7 @@
 ﻿using BelotWebApp.BelotClasses.Agents;
 using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Users;
+using BelotWebApp.Services;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using System.Collections.Concurrent;
@@ -12,13 +13,13 @@ namespace BelotWebApp.BelotClasses.Training
     {
         private readonly IAppPaths _appPaths;
         private readonly IZipService _zipService;
+        private readonly ReplayRecorderService _replayRecorderService;
         private readonly SimulationResult _result;
 
-        public BelotGameSimulator(IAppPaths appPaths, IZipService zipService, SimulationResult result)
+        public BelotGameSimulator(ReplayRecorderService replayRecorderService, SimulationResult result)
         {
             _result = result;
-            _appPaths = appPaths;
-            _zipService = zipService;
+            _replayRecorderService = replayRecorderService;
         }
 
         public void SimulateGames(int populationSize, int numGenerations)
@@ -90,14 +91,14 @@ namespace BelotWebApp.BelotClasses.Training
 
         private (int, int, int) GetNNSize()
         {
-            var game = new BelotGame([new(0), new(1), new(2), new(3)], _appPaths, _zipService, false);
+            var game = new BelotGame([new(0), new(1), new(2), new(3)], _replayRecorderService, false);
             int inputs = AgentAdvanced.BuildNNInputVector(game).Length;
             return (inputs, 128, 8);
         }
 
         private BelotGame CreateGame(AgentAdvanced agent)
         {
-            var game = new BelotGame([new(0), new(1), new(2), new(3)], _appPaths, _zipService, false);
+            var game = new BelotGame([new(0), new(1), new(2), new(3)], _replayRecorderService, false);
 
             Player agentPlayer = new(0) { PlayerType = PlayerType.Advanced, Agent = agent };
             Player[] players = [agentPlayer, new(1), new(2), new(3)];

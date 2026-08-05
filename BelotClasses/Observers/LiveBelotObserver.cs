@@ -50,7 +50,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
         public async Task OnNewGame()
         {
-            _game.AddInitialState(Enumerable.Range(0, 4).Select(_room.GetDisplayName).ToArray());
+            _game.RecordInitialReplayFrame();
             await _group.SendAsync("HideDeck", true).ConfigureAwait(false);
             await _group.SendAsync("DisableNewGame").ConfigureAwait(false);
             await _group.SendAsync("CloseModalsAndButtons").ConfigureAwait(false);

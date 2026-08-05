@@ -13,11 +13,13 @@ namespace BelotWebApp.Controllers
     {
         private readonly IAppPaths _appPaths;
         private readonly IZipService _zipService;
+        private readonly ReplayRecorderService _replayRecorderService;
         private readonly GameResultRecorder _gameResultRecorder;
         private readonly BelotRoomRegistry _roomRegistry;
 
-        public RoomController(IAppPaths appPaths, IZipService zipService, GameResultRecorder gameResultRecorder, BelotRoomRegistry roomRegistry)
+        public RoomController(IAppPaths appPaths, IZipService zipService, ReplayRecorderService replayRecorderService, GameResultRecorder gameResultRecorder, BelotRoomRegistry roomRegistry)
         {
+            _replayRecorderService = replayRecorderService;
             _appPaths = appPaths;
             _zipService = zipService;
             _gameResultRecorder = gameResultRecorder;
@@ -35,7 +37,7 @@ namespace BelotWebApp.Controllers
             }
 
             string roomId = Guid.NewGuid().ToString();
-            var game = new BelotGame(_appPaths, _zipService, true, options.ScoreTarget);
+            var game = new BelotGame(_replayRecorderService, true, options.ScoreTarget);
             _roomRegistry.AddRoom(roomId, new(roomId, game, null, options, _gameResultRecorder));
             return RedirectToAction("Index", new { roomId });
         }

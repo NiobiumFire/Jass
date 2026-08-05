@@ -4,6 +4,7 @@ using BelotWebApp.BelotClasses.Replays;
 using BelotWebApp.BelotClasses.Turn;
 using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.Configuration;
+using BelotWebApp.Services;
 using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.ZipService;
 using System.Text.Json;
@@ -12,29 +13,22 @@ namespace BelotWebApp.BelotClasses
 {
     public class BelotGame
     {
-        public BelotGame(Player[] players, IAppPaths appPaths, IZipService zipService, bool recordReplay, int scoreTarget = 1501)
+        public readonly int _scoreTarget = 1501;
+        private readonly ReplayRecorderService _replayRecorderService;
+
+        public BelotGame(Player?[] players, ReplayRecorderService replayRecorderService, bool recordReplay, int scoreTarget = 1501)
         {
             IsRunning = true;
             Players = players;
             RecordReplay = recordReplay;
-            _appPaths = appPaths;
-            _zipService = zipService;
+            _replayRecorderService = replayRecorderService;
             _scoreTarget = scoreTarget;
         }
 
-        public BelotGame(IAppPaths appPaths, IZipService zipService, bool recordReplay, int scoreTarget = 1501)
+        public BelotGame(ReplayRecorderService replayRecorderService, bool recordReplay, int scoreTarget = 1501) : this([null, null, null, null], replayRecorderService, recordReplay, scoreTarget)
         {
-            IsRunning = true;
-            Players = [null, null, null, null];
-            RecordReplay = recordReplay;
-            _appPaths = appPaths;
-            _zipService = zipService;
-            _scoreTarget = scoreTarget;
-        }
 
-        public readonly int _scoreTarget = 1501;
-        private readonly IAppPaths _appPaths;
-        private readonly IZipService _zipService;
+        }
 
         public string GameId { get; set; } = "";
         public Player?[] Players { get; set; } = [null, null, null, null];
@@ -100,7 +94,7 @@ namespace BelotWebApp.BelotClasses
 
             if (RecordReplay)
             {
-                SetLogger();
+                _replayRecorderService.CreateReplay(GameId);
             }
         }
 
@@ -258,7 +252,7 @@ namespace BelotWebApp.BelotClasses
 
                 diff.SetDealer(ReplayState, turn);
 
-                AddState(diff);
+                RecordReplayFrame(diff);
             }
         }
 
@@ -308,7 +302,7 @@ namespace BelotWebApp.BelotClasses
                     }
                 }
 
-                AddState(diff);
+                RecordReplayFrame(diff);
             }
 
             Calls.Add(call);
@@ -532,28 +526,6 @@ namespace BelotWebApp.BelotClasses
             }
             return trumpstrength;
         }
-
-        //public void DeclareCurrentDeclarables(List<Belot>? belots = null, List<Run>? runs = null, List<Carre>? carres = null)
-        //{
-        //    belots ??= Declarations.Where(b => b is Belot).Cast<Belot>().ToList();
-        //    runs ??= Declarations.Where(b => b is Run).Cast<Run>().ToList();
-        //    carres ??= Declarations.Where(b => b is Carre).Cast<Carre>().ToList();
-
-        //    foreach (var belot in belots)
-        //    {
-        //        belot.Declared = true;
-        //    }
-
-        //    foreach (var run in runs)
-        //    {
-        //        run.Declared = true;
-        //    }
-
-        //    foreach (var carre in carres)
-        //    {
-        //        carre.Declared = true;
-        //    }
-        //}
 
         public void PlayCard(Card card)
         {
@@ -955,46 +927,31 @@ namespace BelotWebApp.BelotClasses
 
         #region Replay
 
-        public void SetLogger()
+        public void RecordInitialReplayFrame()
         {
-            var logPath = Path.Combine(_appPaths.ReplayFolder, GameId + ".txt");
-            File.Create(logPath).Close();
-        }
-
-        public void AddInitialState(string[] usernames)
-        {
-            var logPath = Path.Combine(_appPaths.ReplayFolder, GameId + ".txt");
-
-            ReplayState = new()
+            if (RecordReplay)
             {
-                Players = usernames,
-                Scores = [EWTotal, NSTotal],
-                Dealer = FirstPlayer,
-                RoundCall = Call.NoCall,
-                Caller = 4, // no caller
-                Turn = FirstPlayer
-            };
-
-            File.AppendAllText(logPath, JsonSerializer.Serialize(new BelotReplayDiff
-            {
-                Before = new()
+                ReplayState = new()
                 {
-                    Players = Players.Select(p => p!.PlayerId).ToArray(), // for lookup of replays by user id
-                },
-                After = ReplayState
-            }, JsonSettings.Compact) + "\n");
+                    Players = Players.Select(p => p?.PlayerName ?? "Unknown Entity").ToArray(),
+                    Scores = [EWTotal, NSTotal],
+                    Dealer = FirstPlayer,
+                    RoundCall = Call.NoCall,
+                    Caller = 4, // no caller
+                    Turn = FirstPlayer
+                };
 
-            ReplayState.Emotes = [];
+                _replayRecorderService.RecordInitialReplayFrame(GameId, Players, ReplayState);
+
+                ReplayState.Emotes = [];
+            }
         }
 
-        public void AddState(BelotReplayDiff diff)
+        public void RecordReplayFrame(BelotReplayDiff diff)
         {
-            if (IsRunning)
+            if (RecordReplay)
             {
-                var logPath = Path.Combine(_appPaths.ReplayFolder, GameId + ".txt");
-
-                File.AppendAllText(logPath, JsonSerializer.Serialize(diff, JsonSettings.Compact) + "\n");
-
+                _replayRecorderService.RecordReplayFrame(GameId, IsRunning, diff);
                 ApplyDiff(diff.After);
             }
         }
@@ -1032,7 +989,7 @@ namespace BelotWebApp.BelotClasses
 
                 diff.SetTurn(ReplayState, Turn);
 
-                AddState(diff);
+                RecordReplayFrame(diff);
             }
         }
 
@@ -1056,7 +1013,7 @@ namespace BelotWebApp.BelotClasses
 
                 diff.SetTurn(ReplayState, Turn);
 
-                AddState(diff);
+                RecordReplayFrame(diff);
             }
         }
 
@@ -1077,43 +1034,15 @@ namespace BelotWebApp.BelotClasses
                 diff.Before.Scores = ReplayState.Scores;
                 diff.After.Scores = [NSTotal, EWTotal];
 
-                AddState(diff);
+                RecordReplayFrame(diff);
             }
         }
 
-        public void CloseLog() // called when a game ends as well as when the last human leaves the room -> will try to move/zip the replay log twice hence if(exists)
+        public void FinaliseReplay() // called when a game ends or when the last human leaves the room
         {
-            var source = Path.Combine(_appPaths.ReplayFolder, $"{GameId}.txt");
-            if (!IsNewGame)
+            if (RecordReplay)
             {
-                var destination = Path.Combine(_appPaths.IncompleteGameFolder, $"{GameId}.txt");
-
-                if (File.Exists(source) && !File.Exists(destination))
-                {
-                    try
-                    {
-                        File.Move(source, destination);
-                    }
-                    catch (Exception)
-                    {
-
-                    }
-                }
-            }
-            else
-            {
-                string zip = Path.Combine(_appPaths.ReplayFolder, $"{GameId}.zip");
-                if (File.Exists(source) && !File.Exists(zip))
-                {
-                    try
-                    {
-                        _zipService.Zip(source, zip, true);
-                    }
-                    catch (Exception)
-                    {
-
-                    }
-                }
+                _replayRecorderService.FinaliseReplay(GameId, IsNewGame);
             }
         }
 

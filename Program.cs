@@ -78,6 +78,8 @@ internal class Program
         builder.Services.Configure<IdleRoomClosureOptions>(builder.Configuration.GetSection("IdleRoomClosure"));
         builder.Services.AddHostedService<IdleRoomClosureService>();
 
+        builder.Services.AddSingleton<ReplayRecorderService>();
+
         builder.Services.AddScoped<IUserStatsService, UserStatsService>();
         builder.Services.AddSingleton<GameResultRecorder>();
 

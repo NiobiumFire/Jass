@@ -957,8 +957,13 @@ namespace BelotWebApp.BelotClasses
                         if (room.ConnectedUsers.Count == 0)
                         {
                             _roomRegistry.RemoveRoom(room.RoomId);
-                            game.IsRunning = false;
-                            game.CloseLog();
+                            // if mid game, close off replay file here, otherwise there is no replay to close
+                            // Engine closes file when game completes if the game hasn't been abandoned, in which case IsNewGame will be true
+                            if (!game.IsNewGame)
+                            {
+                                game.IsRunning = false;
+                                game.FinaliseReplay();
+                            }
                         }
                     }
                 }

@@ -33,7 +33,7 @@ namespace BelotWebApp.BelotClasses
                 await RoundController().ConfigureAwait(false);
             }
 
-            if (!_game.WaitDeal && !_game.WaitCall && !_game.WaitCard)
+            if (_game.IsRunning && !_game.WaitDeal && !_game.WaitCall && !_game.WaitCard)
             {
                 _game.RecordGameEnd();
                 await EndGame().ConfigureAwait(false);
@@ -241,7 +241,7 @@ namespace BelotWebApp.BelotClasses
             await _observer.OnGameComplete().ConfigureAwait(false);
 
             _game.IsNewGame = true;
-            _game.CloseLog();
+            _game.FinaliseReplay();
         }
 
         public async Task CardPlayEnd()
