@@ -7,6 +7,7 @@
     --bg-gradient-pt-2: 70%;
     --col-3: rgb(127, 96, 0); /*gold*/
     --col-4: rgb(159, 226, 252); /*pale blue*/
+    --col-red: #b5273a;
     --cream-text: #fffbe6;
     /*--cream-text: #bdb9a9;*/
 
@@ -147,18 +148,18 @@ main {
     }
 }
 
-    .card .card-header .nav-link {
-        background-color: rgba(0, 0, 0, 0.25);
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-        font-size: 15px;
-        color: white;
-    }
+.card .card-header .nav-link {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    font-size: 15px;
+    color: white;
+}
 
-    .card .nav-link.active {
-        background-color: transparent;
-        border: none;
-    }
+.card .nav-link.active {
+    background-color: transparent;
+    border: none;
+}
 
 .card-header {
     border-bottom: none;
@@ -445,7 +446,7 @@ th, td {
 /* Suit icons */
 
 .call-icon-red {
-    color: #b5273a !important;
+    color: var(--col-red) !important;
 }
 
 .call-icon-black {

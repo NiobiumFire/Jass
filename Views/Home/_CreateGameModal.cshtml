@@ -3,7 +3,7 @@
 <div class="modal create-game-modal" tabindex="-1" id="create-game-modal">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content parchment2">
-            <form asp-controller="Room" asp-action="Create" method="post">
+            <form asp-controller="Room" asp-action="Create" method="post" id="create-room-form">
                 <div class="modal-header">
                     <h5 class="modal-title">Create casual room</h5>
                     <i class="bi bi-x-lg form-btn" data-bs-dismiss="modal"></i>
@@ -53,7 +53,7 @@
                             </div>
                         </div>
 
-                        <div class="setting-container form-control mb-0">
+                        <div class="setting-container form-control">
                             <label class="setting-label form-label">Allow chat<i class="bi bi-envelope-fill ms-2"></i></label>
 
                             <div class="btn-group w-100 d-flex justify-content-center" role="group">
@@ -64,7 +64,10 @@
                                 <label class="btn2" for="chat-disabled">No</label>
                             </div>
                         </div>
+
                     </div>
+
+                    <div class="room-creation-error" id="room-creation-error"></div>
 
                 </div>
                 <div class="modal-footer">

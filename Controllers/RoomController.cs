@@ -8,7 +8,6 @@ using System.Security.Claims;
 
 namespace BelotWebApp.Controllers
 {
-    //[Authorize(Roles = "Player")]
     public class RoomController : Controller
     {
         private readonly IAppPaths _appPaths;
@@ -26,23 +25,45 @@ namespace BelotWebApp.Controllers
             _roomRegistry = roomRegistry;
         }
 
-        // Create casual game then join it
+        // Create casual room
         [HttpPost]
-        public ActionResult Create(BelotRoomCreationOptions options)
+        public IActionResult Create(BelotRoomCreationOptions options)
         {
-            options.MatchType = Data.MatchType.Casual;
             if (!ModelState.IsValid)
             {
-                return RedirectToAction("Index", "Home");
+                return BadRequest(new { error = "Invalid options selected." });
+            }
+
+            if (User.FindFirstValue(ClaimTypes.NameIdentifier) is not string userId)
+            {
+                return BadRequest(new { error = "Unknown entity." });
+            }
+
+            options.RoomName = options.RoomName.Trim();
+            options.MatchType = Data.MatchType.Casual;
+
+            if (string.IsNullOrWhiteSpace(options.RoomName))
+            {
+                return BadRequest(new { error = "Please enter a room name." });
+            }
+
+            if (_roomRegistry.RoomNameExists(options.RoomName))
+            {
+                return Conflict(new { error = "A room with that name already exists." });
+            }
+
+            if (_roomRegistry.UserIsInAnyRoom(userId) || _roomRegistry.UserIsPlayerInRoom(userId))
+            {
+                return Conflict(new { error = "You are already in another room." });
             }
 
             string roomId = Guid.NewGuid().ToString();
             var game = new BelotGame(_replayRecorderService, true, options.ScoreTarget);
             _roomRegistry.AddRoom(roomId, new(roomId, game, null, options, _gameResultRecorder));
-            return RedirectToAction("Index", new { roomId });
+            return Ok(new { roomId });
         }
 
-        // GET: Room - Join casual game
+        // GET: Room - Join casual room from browser or redirect
         [HttpGet("/Room/{roomId:guid}")]
         public ActionResult Index(string roomId)
         {

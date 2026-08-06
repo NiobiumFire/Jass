@@ -28,6 +28,21 @@ namespace BelotWebApp.BelotClasses
             _rooms.TryRemove(roomId, out _);
         }
 
+        public bool RoomNameExists(string roomName)
+        {
+            return _rooms.Values.Any(r => string.Equals(r.Options.RoomName, roomName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool UserIsInAnyRoom(string userId)
+        {
+            return _rooms.Values.SelectMany(r => r.ConnectedUsers).Any(p => p?.UserId == userId);
+        }
+
+        public bool UserIsPlayerInRoom(string userId)
+        {
+            return _rooms.Values.SelectMany(r => r.Game.Players).Any(p => p?.PlayerId == userId);
+        }
+
         public void RefreshObserver(string roomId, IHubCallerClients newClients)
         {
             if (_rooms.TryGetValue(roomId, out var room) && room.Observer is LiveBelotObserver liveObserver)

@@ -5,6 +5,8 @@ let lobbyTable = null;
 
 document.addEventListener("DOMContentLoaded", function () {
 
+    /* Casual Games Modal */
+
     refreshButton = document.getElementById("refreshBtn");
 
     refreshButton.addEventListener("animationend", () => {
@@ -12,7 +14,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     lobbyTable = document.getElementById("lobby-table");
+
+    /* Create Game Modal */
+
+    document.getElementById("create-room-form").addEventListener("submit", async e => {
+        e.preventDefault();
+
+        const response = await fetch(e.target.action, {
+            method: "POST",
+            body: new FormData(e.target)
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+            window.location.href = `/room/${result.roomId}`;
+            return;
+        }
+
+        document.getElementById("room-creation-error").textContent = result.error;
+    });
 });
+
+/* Casual Games Modal */
 
 let lobbyActive = false;
 let lobbyTimer = null; // schedule an automated refresh for 5 seconds after the current refresh (manual or automated) finishes
