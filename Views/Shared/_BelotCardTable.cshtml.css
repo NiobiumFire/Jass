@@ -449,13 +449,23 @@
     }
 }
 
-.score-target {
+.room-options {
     position: absolute;
-    top: -18px;
+    top: -17px;
     margin: 0;
     font-size: 0.75em;
     color: var(--cream-text);
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-content: center;
 }
+
+    .room-options i {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+    }
 
 .score-summary table {
     table-layout: fixed;

@@ -77,9 +77,7 @@ namespace BelotWebApp.Controllers
             var room = validation.Room!;
 
             ViewData["RoomId"] = roomId;
-            ViewData["AllowChat"] = room.Options.AllowChat;
-            ViewData["ScoreTarget"] = room.Options.ScoreTarget;
-            return View("Room");
+            return View("Room", room.Options);
         }
 
         // GET: Room - Join casual room from lobby modal

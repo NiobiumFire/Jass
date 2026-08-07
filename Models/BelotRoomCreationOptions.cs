@@ -23,7 +23,7 @@ namespace BelotWebApp.Models
         public int TurnTime { get; set; } = 30;
 
         [Required]
-        public Data.MatchType MatchType { get; set; }
+        public Data.MatchType MatchType { get; set; } = Data.MatchType.Casual;
 
         //public bool AllowSpectators { get; set; }
     }

@@ -1,19 +1,20 @@
-﻿@{
-    bool isReplayRoom = true;
-    string rounded = "";
-    if (ViewData["Title"]?.ToString() == "Jass")
-    {
-        isReplayRoom = false;
-        rounded = "";
-    }
+﻿@model BelotRoomCreationOptions
+
+@functions {
+    public string GetTurnTime(int turnTime) => turnTime == 0 ? "∞" : turnTime.ToString();
 }
-<div class="card-table @rounded" id="card-table">
+
+@{
+    bool isReplayRoom = ViewData["Title"]?.ToString() != "Jass";
+}
+
+<div class="card-table" id="card-table">
     <!-- Score Totals -->
     <div class="score-summary-container">
         <div class="score-summary">
             @if (!isReplayRoom)
             {
-                <small class="score-target"><i class="bi bi-caret-right-fill"></i>@ViewData["ScoreTarget"]<i class="bi bi-caret-left-fill"></i></small>
+                <small class="room-options"><i class="bi bi-caret-right-fill"></i>@Model.ScoreTarget<i class="bi bi-caret-left-fill"></i></small>
             }
             <table class="table" id="scoreTotals">
                 <thead>
@@ -207,6 +208,10 @@
     <!-- Call Indicator -->
     <div class="call-summary-container">
         <div class="call-summary">
+            @if (!isReplayRoom)
+            {
+                <small class="room-options"><i class="bi bi-alarm mx-1"></i>@GetTurnTime(Model.TurnTime)</small>
+            }
             <i class="bi bi-arrows-move seat-transition call-icon caller-indicator" id="wnescallindicator"></i>
             <i class="bi bi-ban call-icon" id="selectedsuit"></i>
             <i class="allNoTrumps cream-text" id="selectedmultiplier"></i>
