@@ -60,23 +60,68 @@ namespace BelotWebApp.Controllers
             string roomId = Guid.NewGuid().ToString();
             var game = new BelotGame(_replayRecorderService, true, options.ScoreTarget);
             _roomRegistry.AddRoom(roomId, new(roomId, game, null, options, _gameResultRecorder));
-            return Ok(new { roomId });
+            return Ok(new { redirectUrl = Url.Action("Index", "Room", new { roomId }) });
         }
 
         // GET: Room - Join casual room from browser or redirect
-        [HttpGet("/Room/{roomId:guid}")]
+        [HttpGet("/room/{roomId:guid}")]
         public ActionResult Index(string roomId)
         {
-            var room = _roomRegistry.GetRoom(roomId);
-            if (room == null)
+            var validation = ValidateRoomEntry(roomId);
+
+            if (!validation.Success)
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            var room = validation.Room!;
 
             ViewData["RoomId"] = roomId;
             ViewData["AllowChat"] = room.Options.AllowChat;
             ViewData["ScoreTarget"] = room.Options.ScoreTarget;
             return View("Room");
+        }
+
+        // GET: Room - Join casual room from lobby modal
+        // Ajax request from client lobby join button runs this validation and then redirects to Index action
+        // Validation runs a second time, but advantage is any errors can be shown immediately in the lobby modal
+        [HttpGet("/room/ValidateJoin/{roomId:guid}")]
+        public IActionResult ValidateJoin(string roomId)
+        {
+            var validation = ValidateRoomEntry(roomId);
+
+            if (!validation.Success)
+            {
+                return validation.Error!;
+            }
+
+            return Ok(new { redirectUrl = Url.Action("Index", "Room", new { roomId }) });
+        }
+
+        private RoomEntryValidation ValidateRoomEntry(string roomId)
+        {
+            if (User.FindFirstValue(ClaimTypes.NameIdentifier) is not string userId)
+            {
+                return new(BadRequest(new { error = "Unknown entity." }), null);
+            }
+
+            var room = _roomRegistry.GetRoom(roomId);
+            if (room == null)
+            {
+                return new(NotFound(new { error = "The room no longer exists." }), null);
+            }
+
+            if (!room.ConnectedUsers.Any(u => u.UserId == userId) && !room.Game.Players.Any(u => u?.PlayerId == userId) && (_roomRegistry.UserIsInAnyRoom(userId) || _roomRegistry.UserIsPlayerInRoom(userId)))
+            {
+                return new(Conflict(new { error = "You are already in another room." }), null);
+            }
+
+            return new(null, room);
+        }
+
+        private record RoomEntryValidation(IActionResult? Error, BelotRoom? Room)
+        {
+            public bool Success => Error == null;
         }
 
         [HttpGet("/Room/PopulateScoreHistoryPartial")]

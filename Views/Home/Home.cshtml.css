@@ -168,7 +168,9 @@ p {
 
 .modal-body {
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    padding-top: 0;
     max-height: 60vh !important;
     overflow-x: auto;
 }
@@ -198,6 +200,17 @@ p {
 .join-game-modal .modal-header {
     border-bottom: none;
 }
+
+.room-join-error {
+    display: flex;
+    justify-content: center;
+    color: var(--col-red);
+    font-weight: 500;
+}
+
+    .room-join-error:empty {
+        display: none;
+    }
 
 .join-game-modal table {
     table-layout: fixed;

@@ -13,7 +13,7 @@
     <tr>
         <td colspan="2">
             <div class="room-name">
-                <button class="btn2" onclick="window.location.href='@Url.Action("Index", "Room", new { roomId = room.RoomId })'">@(room.RoomName)</button>
+                <button class="btn2" onclick="validateJoinRoom('@room.RoomId')">@(room.RoomName)</button>
                 <i class="@HasStarted(room.Started)" title="@(room.Started ? "Started" : "Not started")"></i>
             </div>
         </td>

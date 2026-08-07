@@ -24,14 +24,15 @@ document.addEventListener("DOMContentLoaded", function () {
             method: "POST",
             body: new FormData(e.target)
         });
+
         const result = await response.json();
 
-        if (response.ok) {
-            window.location.href = `/room/${result.roomId}`;
+        if (!response.ok) {
+            document.getElementById("room-creation-error").textContent = result.error;
             return;
         }
 
-        document.getElementById("room-creation-error").textContent = result.error;
+        window.location.href = result.redirectUrl;
     });
 });
 
@@ -102,4 +103,20 @@ function refreshLobby() { // manual refresh clicked
     refreshButton.classList.remove("spinning");
     void refreshButton.offsetWidth;
     refreshButton.classList.add("spinning");
+
+    document.getElementById("room-join-error").textContent = "";
 };
+
+async function validateJoinRoom(roomId) {
+    const response = await fetch(`/Room/ValidateJoin/${roomId}`);
+
+    const result = await response.json();
+
+    if (!response.ok) {
+
+        document.getElementById("room-join-error").textContent = result.error;
+        return;
+    }
+
+    window.location.href = result.redirectUrl;
+}

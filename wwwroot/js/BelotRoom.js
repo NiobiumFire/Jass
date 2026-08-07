@@ -325,7 +325,8 @@ room.on("closeModalsAndButtons", function () {
 });
 
 function resetTable() {
-    let path = document.URL.substring(0, document.URL.indexOf("Room")).concat("Images/Cards/c0-00.png");
+    //let path = document.URL.substring(0, document.URL.indexOf("Room")).concat("Images/Cards/c0-00.png");
+    let path = "/images/Cards/c0-00.png";
     for (let i = 0; i < 4; i++) {
         document.getElementById(`tablecard${i}`).src = path;
     }
