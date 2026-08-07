@@ -5,7 +5,7 @@
     @if (signInManager.IsSignedIn(User))
     {
         <li class="nav-item dropdown">
-            <a id="manage" class="nav-link d-flex align-items-center gap-2 btn" title="Manage" data-bs-toggle="dropdown">
+            <a id="manage" class="nav-link account-nav-link btn" title="Manage" data-bs-toggle="dropdown">
                 @userManager.GetUserName(User)
                 <i class="bi-person-fill" style="font-size: 1.5em;"></i>
             </a>
@@ -27,7 +27,7 @@
     else if (ViewData["IsLoginPage"] == null)
     {
         <li class="nav-item dropdown">
-            <a id="manage" class="nav-link d-flex align-items-center gap-2 btn" title="Login" data-bs-toggle="dropdown">
+            <a id="manage" class="nav-link account-nav-link btn" title="Login" data-bs-toggle="dropdown">
                 Account
                 <i class="bi-person-fill" style="font-size: 1.5em;"></i>
             </a>

@@ -1,4 +1,12 @@
-﻿.nav-link.show { /* when dropdown is active */
+﻿.account-nav-link {
+    min-width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-link.show { /* when dropdown is active */
     background: var(--medium-grey);
     border-radius: 5px 5px 0 0 !important;
 }
@@ -25,12 +33,13 @@ li {
     height: 100% !important;
 }
 
+@media (hover: hover) and (pointer: fine) {
     .account-action-link:hover {
         color: white;
         line-height: normal;
         background: linear-gradient(var(--col-4), var(--medium-grey));
-        /*box-shadow: black 0 1px 6px, black 0 0 0 0.5px inset, 0px 0px 12px 4px var(--col-4);*/
     }
+}
 
 .nav-item.dropdown > .dropdown-menu {
     min-width: 0;
@@ -50,10 +59,12 @@ li {
     border: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
     .nav-link:hover {
         color: white !important;
         background: linear-gradient(var(--col-4), var(--medium-grey));
     }
+}
 
 form {
     all: unset;

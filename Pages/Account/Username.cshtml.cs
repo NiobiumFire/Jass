@@ -28,9 +28,6 @@ namespace BelotWebApp.Pages.Account.Manage
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
 
-        //[Required]
-        //public string UserName { get; set; }
-
         [TempData]
         public string StatusMessage { get; set; }
 
@@ -42,7 +39,7 @@ namespace BelotWebApp.Pages.Account.Manage
             [Required]
             [DataType(DataType.Text)]
             [Display(Name = "Username")]
-            [StringLength(15, ErrorMessage = "The {0} must be at most {1} characters long.")]
+            [StringLength(15, MinimumLength = 3, ErrorMessage = "{0} must be {2} to {1} characters long.")]
             public string UserName { get; set; }
         }
 

@@ -54,7 +54,7 @@ namespace BelotWebApp.Pages.Account
         public class InputModel
         {
             [Required]
-            [StringLength(15, ErrorMessage = "The {0} must be at most {1} characters long.")]
+            [StringLength(15, MinimumLength = 3, ErrorMessage = "{0} must be {2} to {1} characters long.")]
             [DataType(DataType.Text)]
             [Display(Name = "Username")]
             public string UserName { get; set; }
@@ -65,7 +65,8 @@ namespace BelotWebApp.Pages.Account
             public string Email { get; set; }
 
             [Required]
-            [StringLength(30, ErrorMessage = "The {0} must be {2} to {1} characters long.", MinimumLength = 6)]
+            [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$", ErrorMessage = "Password must contain uppercase, lowercase, number, and symbol.")]
+            [StringLength(30, MinimumLength = 6, ErrorMessage = "The {0} must be {2} to {1} characters long.")]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }

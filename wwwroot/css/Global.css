@@ -262,7 +262,6 @@ main {
     top: 0;
     outline: 3px black;
     text-shadow: black 0 -2px .5px;
-    /*line-height: 100%;*/
     padding: 10px 10px;
     align-items: center;
     transition: none;
