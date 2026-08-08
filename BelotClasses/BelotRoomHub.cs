@@ -599,9 +599,19 @@ namespace BelotWebApp.BelotClasses
 
             _logger.LogInformation("[{EntryPoint}] enter", entryPoint);
 
+            message = message.Trim();
+
             if (string.IsNullOrEmpty(message))
             {
                 _logger.LogWarning("[{EntryPoint}] empty chat message", entryPoint);
+                return;
+            }
+
+            int maxLength = 500;
+            if (message.Length > maxLength)
+            {
+                await Clients.Caller.SendAsync("AppendChatLog", $"[{GetServerDateTime()}] message exceeded {maxLength} characters");
+                _logger.LogWarning("[{EntryPoint}] chat message from user {UserId} too long", entryPoint, GetCallerUserId());
                 return;
             }
 
