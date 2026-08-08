@@ -82,7 +82,7 @@ namespace BelotWebApp.BelotClasses.Observers
                         {
                             var room = _room; // if all users have left the room, _room can be null
                             var game = _game;
-                            if (room == null || game == null)
+                            if (room == null || game == null || !game.IsRunning)
                             {
                                 return;
                             }
@@ -139,7 +139,7 @@ namespace BelotWebApp.BelotClasses.Observers
                 {
                     var room = _room;
                     var game = _game;
-                    if (room == null || game == null)
+                    if (room == null || game == null || !game.IsRunning)
                     {
                         return;
                     }
@@ -153,7 +153,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
                     var call = AgentBasic.CallSuit(game.Hand[game.Turn], validCalls);
 
-                    BelotGameRunner.ContinueFromCall(room, call);
+                    _ = BelotGameRunner.ContinueFromCall(room, call);
                 });
                 await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
             }
@@ -199,7 +199,7 @@ namespace BelotWebApp.BelotClasses.Observers
                 {
                     var room = _room;
                     var game = _game;
-                    if (room == null || game == null)
+                    if (room == null || game == null || !game.IsRunning)
                     {
                         return;
                     }
@@ -254,7 +254,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
                     game.RecordCardPlayed(emotes);
 
-                    BelotGameRunner.ContinueFromCard(room);
+                    _ = BelotGameRunner.ContinueFromCard(room);
                 });
                 await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
             }
