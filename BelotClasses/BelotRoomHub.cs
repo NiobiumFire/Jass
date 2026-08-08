@@ -99,6 +99,12 @@ namespace BelotWebApp.BelotClasses
 
             var game = room.Game;
 
+            if (!game.IsNewGame)
+            {
+                _logger.LogWarning("[{EntryPoint}] Game start called while game already in progress", entryPoint);
+                return Task.CompletedTask;
+            }
+
             if (game.Players.Any(p => p == null))
             {
                 _logger.LogWarning("[{EntryPoint}] Game does not have 4 players", entryPoint);
