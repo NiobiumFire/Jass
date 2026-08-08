@@ -2,8 +2,6 @@
 using BelotWebApp.BelotClasses.Observers;
 using BelotWebApp.BelotClasses.Users;
 using BelotWebApp.Services;
-using BelotWebApp.Services.AppPathService;
-using BelotWebApp.Services.ZipService;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -11,8 +9,6 @@ namespace BelotWebApp.BelotClasses.Training
 {
     public class BelotGameSimulator
     {
-        private readonly IAppPaths _appPaths;
-        private readonly IZipService _zipService;
         private readonly ReplayRecorderService _replayRecorderService;
         private readonly SimulationResult _result;
 

@@ -11,7 +11,7 @@ namespace BelotWebApp.BelotClasses
             Continue(room);
         }
 
-        public static async void ContinueFromCall(BelotRoom room, Call call)
+        public static async Task ContinueFromCall(BelotRoom room, Call call)
         {
             room.Game.NominateSuit(call);
             room.Game.WaitCall = false;
@@ -24,7 +24,7 @@ namespace BelotWebApp.BelotClasses
             Continue(room);
         }
 
-        public static async void ContinueFromCard(BelotRoom room)
+        public static async Task ContinueFromCard(BelotRoom room)
         {
             if (room?.Game == null || room?.Observer == null)
             {

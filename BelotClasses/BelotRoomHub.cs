@@ -201,7 +201,7 @@ namespace BelotWebApp.BelotClasses
 
             room.UpdateLastActivityTime();
 
-            BelotGameRunner.ContinueFromCall(room, call);
+            _ = BelotGameRunner.ContinueFromCall(room, call);
 
             _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
 
@@ -305,7 +305,7 @@ namespace BelotWebApp.BelotClasses
 
             game.RecordCardPlayed(emotes);
 
-            BelotGameRunner.ContinueFromCard(room);
+            _ = BelotGameRunner.ContinueFromCard(room);
 
             _logger.LogInformation("[{EntryPoint}] exit", entryPoint);
         }
@@ -550,7 +550,7 @@ namespace BelotWebApp.BelotClasses
 
         #region Messaging
 
-        public async void HubAnnounce(string message) // called by client
+        public async Task HubAnnounce(string message) // called by client
         {
             string entryPoint = "HubAnnounce";
             var (room, user) = ValidateEntry(entryPoint);
@@ -655,7 +655,7 @@ namespace BelotWebApp.BelotClasses
         {
             var game = room.Game;
 
-            if (game.Players == null || user == null)
+            if (game?.Players == null || user == null)
             {
                 return;
             }
@@ -702,7 +702,7 @@ namespace BelotWebApp.BelotClasses
 
             double? elapsed;
 
-            if (game?.IsNewGame == false)
+            if (game.IsNewGame == false)
             {
                 elapsed = (room.Observer as LiveBelotObserver)?.TurnGate.ElapsedTime;
                 if (elapsed is double) // timer is in progress (whatever the action is)
@@ -719,7 +719,7 @@ namespace BelotWebApp.BelotClasses
                 await clients.Caller.SendAsync("SetTurnIndicator", game.Turn, game.GetCurrentTurnActionType()?.ToString().ToLower());
                 await clients.Caller.SendAsync("DisableRadios");
 
-                var ewFirst = game?.Players[0]?.PlayerId == user.UserId || game?.Players[2]?.PlayerId == user.UserId;
+                var ewFirst = game.Players[0]?.PlayerId == user.UserId || game.Players[2]?.PlayerId == user.UserId;
 
                 await clients.Caller.SendAsync("UpdateScoreTotals", game.EWTotal, game.NSTotal, ewFirst);
                 await clients.Caller.SendAsync("UpdateScoreHistoryTable", ewFirst);
