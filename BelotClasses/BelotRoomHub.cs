@@ -117,6 +117,12 @@ namespace BelotWebApp.BelotClasses
                 return Task.CompletedTask;
             }
 
+            if (!room.TryMarkEngine())
+            {
+                _logger.LogWarning("[{EntryPoint}] Engine was already marked", entryPoint);
+                return Task.CompletedTask;
+            }
+
             room.UpdateLastActivityTime();
 
             BelotGameRunner.Continue(room);
@@ -156,6 +162,12 @@ namespace BelotWebApp.BelotClasses
                     return;
                 }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
+            }
+
+            if (!room.TryMarkEngine())
+            {
+                _logger.LogWarning("[{EntryPoint}] Engine was already marked", entryPoint);
+                return;
             }
 
             room.UpdateLastActivityTime();
@@ -203,6 +215,12 @@ namespace BelotWebApp.BelotClasses
                     return;
                 }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
+            }
+
+            if (!room.TryMarkEngine())
+            {
+                _logger.LogWarning("[{EntryPoint}] Engine was already marked", entryPoint);
+                return;
             }
 
             room.UpdateLastActivityTime();
@@ -295,6 +313,12 @@ namespace BelotWebApp.BelotClasses
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
             }
 
+            if (!room.TryMarkEngine())
+            {
+                _logger.LogWarning("[{EntryPoint}] Engine was already marked", entryPoint);
+                return;
+            }
+
             room.UpdateLastActivityTime();
 
             var game = room.Game;
@@ -357,6 +381,12 @@ namespace BelotWebApp.BelotClasses
                     return;
                 }
                 await Clients.Group(room.RoomId).SendAsync("StopTurnTimer", room.Game.Turn);
+            }
+
+            if (!room.TryMarkEngine())
+            {
+                _logger.LogWarning("[{EntryPoint}] Engine was already marked", entryPoint);
+                return;
             }
 
             room.UpdateLastActivityTime();

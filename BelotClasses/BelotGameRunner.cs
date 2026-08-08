@@ -37,7 +37,17 @@ namespace BelotWebApp.BelotClasses
             await engine.CardPlayEnd();
             game.WaitCard = false;
 
-            _ = Task.Run(engine.GameController);
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await engine.GameController();
+                }
+                finally
+                {
+                    room.UnmarkEngine();
+                }
+            });
         }
 
         public static void Continue(BelotRoom room)
@@ -49,7 +59,17 @@ namespace BelotWebApp.BelotClasses
 
             BelotGameEngine engine = new(room.Game, room.Observer);
 
-            _ = Task.Run(engine.GameController);
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await engine.GameController();
+                }
+                finally
+                {
+                    room.UnmarkEngine();
+                }
+            });
         }
     }
 }

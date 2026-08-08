@@ -86,6 +86,12 @@ namespace BelotWebApp.BelotClasses.Observers
                             {
                                 return;
                             }
+
+                            if (!room.TryMarkEngine())
+                            {
+                                return;
+                            }
+
                             var currentUser = room.GetUserBySeat(game.Turn); // user object is new after full reconnect
                             var currentPlayer = game.Players[game.Turn];
                             if (currentUser != null && currentPlayer != null && !currentPlayer.IsDisconnected)
@@ -140,6 +146,11 @@ namespace BelotWebApp.BelotClasses.Observers
                     var room = _room;
                     var game = _game;
                     if (room == null || game == null || !game.IsRunning)
+                    {
+                        return;
+                    }
+
+                    if (!room.TryMarkEngine())
                     {
                         return;
                     }
@@ -200,6 +211,11 @@ namespace BelotWebApp.BelotClasses.Observers
                     var room = _room;
                     var game = _game;
                     if (room == null || game == null || !game.IsRunning)
+                    {
+                        return;
+                    }
+
+                    if (!room.TryMarkEngine())
                     {
                         return;
                     }
@@ -383,7 +399,7 @@ namespace BelotWebApp.BelotClasses.Observers
                     foreach (var player in players) // can vote to continue
                     {
                         var ewFirst = _game.Players[0]?.PlayerId == player.UserId || _game.Players[2]?.PlayerId == player.UserId;
-                        await _group.SendAsync("UpdateScoreTotals", _game?.EWTotal, _game?.NSTotal, ewFirst).ConfigureAwait(false);
+                        await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal, ewFirst).ConfigureAwait(false);
                         await _clients.Client(player.ConnectionId).SendAsync("ShowRoundSummary", new RoundSummaryInfo()
                         {
                             TrickPoints = _game.TrickPoints,

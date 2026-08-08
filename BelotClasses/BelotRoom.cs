@@ -9,6 +9,7 @@ namespace BelotWebApp.BelotClasses
     {
         private readonly GameResultRecorder _gameResultRecorder;
         private readonly List<ConnectedUser> _connectedUsers = [];
+        private int _engineIsMarked; // 0 = not marked, 1 = marked
 
         public BelotRoom(string roomId, BelotGame game, IBelotObserver? observer, BelotRoomCreationOptions options, GameResultRecorder gameResultRecorder)
         {
@@ -119,6 +120,16 @@ namespace BelotWebApp.BelotClasses
         }
 
         #endregion
+
+        public bool TryMarkEngine() // check out the engine and prevent any other code path from concurrently starting another engine
+        {
+             return Interlocked.Exchange(ref _engineIsMarked, 1) == 0;
+        }
+
+        public void UnmarkEngine()
+        {
+            Interlocked.Exchange(ref _engineIsMarked, 0);
+        }
 
         public async Task RecordGameResult(List<(string PlayerId, bool Won)> result)
         {
