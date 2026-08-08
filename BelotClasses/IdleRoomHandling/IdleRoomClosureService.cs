@@ -66,6 +66,11 @@ namespace BelotWebApp.BelotClasses.IdleRoomHandling
 
             await room.CloseIdleRoomAsync();
 
+            if (!room.Game.IsNewGame)
+            {
+                room.Game.IsRunning = false;
+                room.Game.FinaliseReplay();
+            }
             _registry.RemoveRoom(room.RoomId);
         }
     }
