@@ -36,6 +36,91 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+/* Welcome text info ticker */
+
+(function () {
+    const wrap = document.getElementById('ticker-wrap');
+    const track = document.getElementById('ticker-track');
+
+    // --- state ---
+    // "offset" stores where the track is scrolled to, autoplay and dragging modify it, painted with CSS transform
+    let offset = -50;
+
+    let isPaused = false;
+    let isDragging = false;
+
+    let dragStartX = 0;
+    let dragStartOffset = 0;
+    let movedDuringDrag = false; // distinguish "click" from "drag"
+
+    const DRAG_CLICK_THRESHOLD = 5; // movement in px before it counts as a drag, not a click
+    const SPEED = 0.25;              // px per animation frame for autoplay
+
+    // half the track's width, width of one copy of the content
+    function getHalfWidth() {
+        return track.scrollWidth / 2;
+    }
+
+    // keep offset inside [0, half) so the loop never runs out of track
+    function render() {
+        const half = getHalfWidth();
+        if (offset >= half) offset -= half;
+        if (offset < 0) offset += half;
+        track.style.transform = 'translateX(' + (-offset) + 'px)';
+    }
+
+    // autoplay loop
+    function tick() {
+        if (!isPaused && !isDragging) {
+            offset += SPEED;
+            render();
+        }
+        requestAnimationFrame(tick);
+    }
+
+    // click/tap to toggle pause
+    function setPaused(next) {
+        isPaused = next;
+        wrap.setAttribute('aria-pressed', String(!isPaused));
+    }
+
+    // drag to scroll
+    wrap.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        movedDuringDrag = false;
+        dragStartX = e.clientX;
+        dragStartOffset = offset;
+        wrap.classList.add('dragging');
+        wrap.setPointerCapture(e.pointerId);
+    });
+
+    wrap.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const delta = e.clientX - dragStartX;
+        if (Math.abs(delta) > DRAG_CLICK_THRESHOLD) {
+            movedDuringDrag = true;
+        }
+        offset = dragStartOffset - delta;
+        render();
+    });
+
+    function endDrag(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        wrap.classList.remove('dragging');
+        try { wrap.releasePointerCapture(e.pointerId); } catch (_) { }
+
+        // if barely any drag, treat it as a click
+        if (!movedDuringDrag) {
+            setPaused(!isPaused);
+        }
+    }
+    wrap.addEventListener('pointerup', endDrag);
+    wrap.addEventListener('pointercancel', endDrag);
+
+    requestAnimationFrame(tick);
+})();
+
 /* Casual Games Modal */
 
 let lobbyActive = false;

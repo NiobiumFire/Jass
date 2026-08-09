@@ -1,5 +1,11 @@
 ﻿main {
-    grid-template-rows: 5% 25% 2% 10% 58%;
+    grid-template-rows: 3% 25% 3% 12% 1% 56%;
+}
+
+@media (max-width: 576px) {
+    main {
+        grid-template-rows: 2.5% 20% 2.5% 12% 0% 63%;
+    }
 }
 
 .title-banner {
@@ -9,14 +15,15 @@
     margin: 0;
 }
 
-.title-banner-text {
+.title-banner-text h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
     overflow: hidden;
     font-family: "Rye";
     font-weight: 500;
-    font-size: 7em;
+    font-size: 9em;
     --hi: #f2ecd9; /* brightest highlight band */
     --lo: #9b9280; /* upper mid tone */
     --mid: #746c5c; /* mid tone */
@@ -34,25 +41,45 @@
     filter: drop-shadow(0 0.01em 0 var(--shadow-tone)) drop-shadow(0 0.02em 0 var(--shadow-tone)) drop-shadow(0 0.03em 0 var(--shadow-tone)) drop-shadow(0 0.04em 0.02em rgba(0,0,0,0.4)) drop-shadow(0.01em 0.06em 0.04em rgba(0,0,0,0.3));
 }
 
-::deep .title-banner-text img {
-    max-width: 70%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
+h3 {
+    position: absolute;
+    gap: 15px;
+    bottom: 5%;
+    width: 100%;
+    margin: 0;
+    color: #746c5c;
+    text-align: center;
+    font-size: 26px;
+}
+
+@media (max-width: 1920px) {
+    .title-banner-text h1 {
+        font-size: 7em;
+    }
+
+    h3 {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 800px) {
+    .title-banner-text h1 {
+        font-size: 4.8em;
+    }
+
+    h3 {
+        font-size: 15px;
+    }
 }
 
 @media (max-width: 576px) {
-    main {
-        grid-template-rows: 5% 20% 2% 10% 63%;
-    }
-
-    .title-banner-text {
+    .title-banner-text h1 {
         font-size: 2.8em;
     }
 
-    ::deep .title-banner-text img {
-        max-width: 90%;
-        width: 90%;
+    h3 {
+        font-size: 14px;
+        bottom: 10%;
     }
 }
 
@@ -61,6 +88,8 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    line-height: 1;
+    background: rgba(0,0,0,.2);
 }
 
 @media (min-width: 600px) {
@@ -68,6 +97,70 @@
         font-size: 1.3rem;
     }
 }
+
+/* ---- Ticker component ---- */
+
+.ticker-wrap {
+    overflow-x: auto; /* lets native touch-scroll / trackpad work for free */
+    overflow-y: visible;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    max-width: 90vw;
+    width: 100%;
+    line-height: 1.2;
+    padding: 0;
+    margin: 5px 0;
+}
+
+    .ticker-wrap::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ticker-wrap.dragging {
+        cursor: grabbing;
+    }
+
+    /* dim slightly when paused, so pressing it gives visible feedback */
+    .ticker-wrap[aria-pressed="false"] {
+        opacity: .6;
+    }
+
+.ticker-mask {
+    --margin: 32px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, black var(--margin), black calc(100% - var(--margin)), transparent);
+    mask-image: linear-gradient(to right, transparent, black var(--margin), black calc(100% - var(--margin)), transparent);
+}
+
+@media (max-width: 600px) {
+    .ticker-wrap {
+        max-width: 100vw;
+    }
+    .ticker-mask {
+        --margin: 25px;
+    }
+}
+
+.ticker-track {
+    display: flex;
+    width: max-content;
+}
+
+.ticker-item {
+    padding: 0 1rem;
+    white-space: nowrap;
+    color: white;
+}
+
+    .ticker-item + .ticker-item {
+        border-left: 1px solid rgba(255,255,255,.2);
+    }
+
+/* ---- Lower section ---- */
 
 .lower-section {
     display: grid;

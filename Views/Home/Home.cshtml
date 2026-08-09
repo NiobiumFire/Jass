@@ -28,14 +28,17 @@
     <div></div>
 
     <div class="d-flex justify-content-center align-items-center">
-        <div class="d-grid parchment title-banner rounded" style="grid-template-columns: 4% 10% 72% 10% 4%;">
+        <div class="d-grid parchment title-banner rounded position-relative" style="grid-template-columns: 4% 10% 72% 10% 4%;">
             <div></div>
             <div class="crystal-container crystal-container-left">
                 @await Html.PartialAsync("_Crystal")
             </div>
             <div class="title-banner-text">
-                Nio Jass
+                <h1>
+                    Nio Jass
+                </h1>
             </div>
+            <h3>A 4-player trick-taking card game</h3>
             <div class="crystal-container crystal-container-right">
                 @await Html.PartialAsync("_Crystal")
             </div>
@@ -54,6 +57,22 @@
 
     <div class="welcome-text-container">
         <p>Welcome, @User.Identity?.Name</p>
+        <div class="ticker-wrap" id="ticker-wrap" aria-pressed="true" aria-label="Scrolling information ticker. Press to pause or resume.">
+            <div class="ticker-mask">
+                <div class="ticker-track" id="ticker-track">
+                    <!-- Real content, repeated so there's always more track to scroll onto. -->
+                    <p class="ticker-item">Jass, also known as Belot or Klaverjassen, is a popular strategic card game.</p>
+                    <p class="ticker-item">4 players, 2 teams of 2, trump suits, and a race to a target score.</p>
+                    <p class="ticker-item">Play free online. No download or account needed. Play with friends, bots, or in public games.</p>
+                    <p class="ticker-item">Matchmaking, ranking and leaderboards coming soon.</p>
+
+                    <p class="ticker-item">Jass, also known as Belot or Klaverjassen, is a popular strategic card game.</p>
+                    <p class="ticker-item">4 players, 2 teams of 2, trump suits, and a race to a target score.</p>
+                    <p class="ticker-item">Play free online. No download or account needed. Play with friends, bots, or in public games.</p>
+                    <p class="ticker-item">Matchmaking, ranking and leaderboards coming soon.</p>
+                </div>
+            </div>
+        </div>
         @if (!isSignedIn)
         {
             <p><a class="link" asp-page="/Account/Login">Log in</a> or <a class="link" asp-page="/Account/Register">register</a> for all features</p>
@@ -63,6 +82,8 @@
             <p><a class="link" asp-page="/Account/Email">Confirm your email</a> for all features</p>
         }
     </div>
+
+    <div></div>
 
     <div class="lower-section">
 
@@ -101,7 +122,7 @@
 
                 <p class="my-1 my-sm-0" style="text-align:center; white-space:nowrap">◆ General ◆</p>
 
-                <p class="mb-2 mb-sm-4"><button type="button" class="btn2" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">Rules</button></p>
+                <p class="mb-2 mb-sm-4"><button type="button" class="btn2" data-bs-toggle="modal" style="width: 100%" data-bs-target="#rulesModal">How to Play</button></p>
 
                 @if (!isSignedIn || !emailConfirmed)
                 {
@@ -141,9 +162,9 @@
 <!-- Create Game Modal -->
 @{
     var options = new BelotRoomCreationOptions
-            {
-                RoomName = $"{userManager.GetUserName(User)}'s room"
-            };
+    {
+        RoomName = $"{userManager.GetUserName(User)}'s room"
+    };
 }
 <partial name="_CreateGameModal" model="options" />
 
