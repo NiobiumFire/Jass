@@ -32,15 +32,6 @@
     <Content Update="wwwroot\images\Nine.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\images\NiobiumCrystal.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\icons\JackIcon192.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\icons\JackIcon512.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
     <Content Update="wwwroot\manifest.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
