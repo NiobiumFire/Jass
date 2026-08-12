@@ -328,27 +328,29 @@
     }
 
 .throw0 {
-    transform-origin: center bottom;
-    transform: translate(-50%, -100%) rotate(90deg);
     top: 50% !important;
     left: 0%;
+    transform-origin: center bottom;
+    transform: translate(-50%, -100%) rotate(90deg);
 }
 
 .throw1 {
     top: 0;
+    left: 50%;
     transform: translate(-50%, 0) rotate(0deg);
 }
 
 .throw2 {
-    transform-origin: center bottom;
-    transform: translate(50%, -100%) rotate(270deg);
     top: 50% !important;
     right: 0;
+    transform-origin: center bottom;
+    transform: translate(50%, -100%) rotate(270deg);
 }
 
 .throw3 {
-    transform: translate(-50%,0);
     bottom: 0 !important;
+    left: 50%;
+    transform: translate(-50%,0);
 }
 
 ::deep .mini-belot-card {

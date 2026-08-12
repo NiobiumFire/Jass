@@ -857,6 +857,15 @@ function seatMyselfAsSouth(selectedSeat) {
         slot.classList.remove(...seatClasses);
         slot.classList.add(seatClasses[newSeatNumber]);
     });
+
+    // throw modal
+    for (let i = 0; i < 4; i++) {
+        const throwPos = (selectedSeat + 1 + i) % 4;
+        const board = document.getElementById(`throwBoard${throwPos}`);
+
+        board.classList.remove("throw0", "throw1", "throw2", "throw3");
+        board.classList.add(`throw${i}`);
+    }
 }
 
 function getCardSize() {
