@@ -111,9 +111,9 @@ h3 {
     -ms-overflow-style: none;
     max-width: 90vw;
     width: 100%;
-    line-height: 1.2;
+    line-height: 1.4;
     padding: 0;
-    margin: 5px 0;
+    margin: 3px 0;
 }
 
     .ticker-wrap::-webkit-scrollbar {
