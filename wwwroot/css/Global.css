@@ -11,8 +11,15 @@
     --cream-text: #fffbe6;
     /*--cream-text: #bdb9a9;*/
 
-    --card-height: 180px;
-    --card-width: 126px;
+    --card-height: 210px;
+    --card-width: 147px;
+}
+
+@media only screen and (max-width: 1920px) {
+    :root {
+        --card-height: 180px;
+        --card-width: 126px;
+    }
 }
 
 @media only screen and (max-width: 1500px) {
