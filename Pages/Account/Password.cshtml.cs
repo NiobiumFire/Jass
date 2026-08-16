@@ -16,10 +16,7 @@ namespace BelotWebApp.Pages.Account.Manage
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<ChangePasswordModel> _logger;
 
-        public ChangePasswordModel(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            ILogger<ChangePasswordModel> logger)
+        public ChangePasswordModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ILogger<ChangePasswordModel> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -52,7 +49,7 @@ namespace BelotWebApp.Pages.Account.Manage
 
             [DataType(DataType.Password)]
             [Display(Name = "Confirm new password")]
-            [Compare("Password", ErrorMessage = "The passwords do not match.")]
+            [Compare("NewPassword", ErrorMessage = "The passwords do not match.")]
             public string ConfirmPassword { get; set; }
         }
 

@@ -93,7 +93,7 @@ namespace BelotWebApp.Pages.Account
 
             var input = Input.Login.Trim();
 
-            ApplicationUser? user = await _userManager.FindByNameAsync(input) ?? await _userManager.FindByEmailAsync(input);
+            ApplicationUser user = await _userManager.FindByNameAsync(input) ?? await _userManager.FindByEmailAsync(input);
 
             if (user == null)
             {

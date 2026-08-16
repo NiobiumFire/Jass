@@ -43,7 +43,7 @@ namespace BelotWebApp.Pages.Account
 
         }
 
-        public IActionResult OnGet(string code = null)
+        public IActionResult OnGet(string? code = null)
         {
             if (code == null)
             {
@@ -66,6 +66,7 @@ namespace BelotWebApp.Pages.Account
             }
         }
 
+        // We only get here from a forgot password link - changing password when signed in happens separately in Password.cshtml
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -83,6 +84,17 @@ namespace BelotWebApp.Pages.Account
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
+                // Successfully completing an email-based password reset is sufficient evidence that the user controls the email address, mark it confirmed
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    user.EmailConfirmed = true;
+                    var updateResult = await _userManager.UpdateAsync(user);
+
+                    if (updateResult.Succeeded)
+                    {
+                        await _userManager.AddToRoleAsync(user, "Player");
+                    }
+                }
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 
