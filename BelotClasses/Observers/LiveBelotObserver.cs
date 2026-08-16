@@ -4,7 +4,6 @@ using BelotWebApp.BelotClasses.Declarations;
 using BelotWebApp.BelotClasses.RoundSummary;
 using BelotWebApp.BelotClasses.Turn;
 using BelotWebApp.BelotClasses.Users;
-using BelotWebApp.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BelotWebApp.BelotClasses.Observers
@@ -399,7 +398,7 @@ namespace BelotWebApp.BelotClasses.Observers
                     foreach (var player in players) // can vote to continue
                     {
                         var ewFirst = _game.Players[0]?.PlayerId == player.UserId || _game.Players[2]?.PlayerId == player.UserId;
-                        await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal, ewFirst).ConfigureAwait(false);
+                        await _clients.Client(player.ConnectionId).SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal, ewFirst).ConfigureAwait(false);
                         await _clients.Client(player.ConnectionId).SendAsync("ShowRoundSummary", new RoundSummaryInfo()
                         {
                             TrickPoints = _game.TrickPoints,
@@ -416,7 +415,7 @@ namespace BelotWebApp.BelotClasses.Observers
                     }
                     foreach (var spectator in spectators) // cannot vote to continue
                     {
-                        await _group.SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal, false).ConfigureAwait(false);
+                        await _clients.Client(spectator.ConnectionId).SendAsync("UpdateScoreTotals", _game.EWTotal, _game.NSTotal, false).ConfigureAwait(false);
                         await _clients.Client(spectator.ConnectionId).SendAsync("ShowRoundSummary", new RoundSummaryInfo()
                         {
                             TrickPoints = _game.TrickPoints,
