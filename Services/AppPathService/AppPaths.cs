@@ -11,6 +11,7 @@
             _workingData = config["JassWorkingData"] ?? throw new InvalidOperationException("Configuration value 'JassWorkingData' is missing.");
 
             Directory.CreateDirectory(DataFolder);
+            Directory.CreateDirectory(DataProtectionFolder);
             Directory.CreateDirectory(HubLogFolder); // creates LogFolder
             Directory.CreateDirectory(IncompleteGameFolder); // creates ReplayFolder
         }
@@ -18,6 +19,8 @@
         public string DataFolder => Path.Combine(_workingData, "data");
 
         public string DatabaseFile => Path.Combine(DataFolder, "app.db");
+
+        public string DataProtectionFolder => Path.Combine(_workingData, "data-protection");
 
         public string LogFolder => Path.Combine(_workingData, "logs");
 

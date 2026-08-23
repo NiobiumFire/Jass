@@ -10,6 +10,7 @@ using BelotWebApp.Services.AppPathService;
 using BelotWebApp.Services.EmailService;
 using BelotWebApp.Services.UserStatsService;
 using BelotWebApp.Services.ZipService;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,8 @@ internal class Program
             })
             .AddEntityFrameworkStores<AuthDbContext>()
             .AddDefaultTokenProviders();
+
+        builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(appPaths.DataProtectionFolder));
 
         builder.Services.ConfigureApplicationCookie(options =>
         {
