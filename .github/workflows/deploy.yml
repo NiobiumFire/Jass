@@ -1,0 +1,41 @@
+name: Deploy Jass
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish
+        run: dotnet publish BelotWebApp.csproj -c Release -r linux-arm64 --self-contained false -o ./publish
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/jass_deploy
+          chmod 600 ~/.ssh/jass_deploy
+          ssh-keyscan -H 141.147.88.83 >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/jass_deploy" \
+            ./publish/ deploy@141.147.88.83:/opt/jass/
+
+      - name: Restart Jass
+        run: |
+          ssh -i ~/.ssh/jass_deploy \
+            deploy@141.147.88.83 \
+            "sudo /usr/bin/systemctl restart jass.service"
