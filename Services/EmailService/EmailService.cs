@@ -1,8 +1,6 @@
 ﻿using BelotWebApp.EmailTemplates;
 using System.Net;
 using System.Net.Mail;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace BelotWebApp.Services.EmailService
 {
@@ -51,21 +49,23 @@ namespace BelotWebApp.Services.EmailService
                 IsBodyHtml = true
             };
             mailMessage.To.Add(toAddress);
+            mailMessage.ReplyToList.Add(_config["SMTPConfiguration:ReplyTo"]!);
 
             try
             {
                 using (SmtpClient client = new(_config["SMTPConfiguration:Host"], int.Parse(_config["SMTPConfiguration:Port"]!))
                 {
-                    Credentials = new NetworkCredential(_config["SMTPConfiguration:SenderAddress"], _config["SMTPConfiguration:EmailAppPassword"]),
-                    EnableSsl = true
+                    Credentials = new NetworkCredential(_config["SMTPConfiguration:Username"], _config["SMTPConfiguration:EmailAppPassword"]),
+                    EnableSsl = true,
                 })
                 {
-                    await client.SendMailAsync(mailMessage);
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    await client.SendMailAsync(mailMessage).WaitAsync(cts.Token);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception("Email send failure", ex);
+                //throw new Exception("Email send failure", ex);
             }
         }
     }
