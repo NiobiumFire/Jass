@@ -28,13 +28,24 @@ function fitCrystal() {
 
             }
             else { // cell is not yet wide enough for full height, .crystal width is clamped, actual crystal can continue to widen (hence lengthen), taking into account width when rotated 45deg.
-                var test = 70.6 / (widthIfFullHeight / parentWidth); // widen crystal until .crystal width / .scene width = 1/rt(2), and we pass the 'if' block
-                document.documentElement.style.setProperty("--crystal-max-width", `${test}%`);
+                var width = 70.6 / (widthIfFullHeight / parentWidth); // widen crystal until .crystal width / .scene width = 1/rt(2), and we pass the 'if' block
+                document.documentElement.style.setProperty("--crystal-max-width", `${width}%`);
             }
         }
     });
 }
 
 // run on load + resize
-window.addEventListener('resize', fitCrystal);
+let resizeTimer;
+
+window.addEventListener('resize', () => {
+    // The double call, animation frame and timeout seem necessary to correctly resize when changing portait to landscape
+    clearTimeout(resizeTimer);
+    requestAnimationFrame(() => {
+        fitCrystal();
+    });
+    resizeTimer = setTimeout(() => {
+        fitCrystal();
+    }, 250);
+});
 window.addEventListener('load', fitCrystal);

@@ -57,24 +57,22 @@ html {
     overflow: visible !important;
 }
 
-@media only screen and (max-width: 767px) {
+@media (max-width: 767px) and (min-height: 500px) {
     .character-left,
     .character-right {
         width: 220%;
-        height: 80%;
+        object-fit: cover;
         max-width: none;
         --fade: 45%;
     }
 
     .character-left {
-        object-fit: cover;
         transform: translateX(-18%);
         mask-image: linear-gradient(to left, transparent 0%, black var(--fade));
         -webkit-mask-image: linear-gradient(to left, transparent 0%, black var(--fade));
     }
 
     .character-right {
-        object-fit: cover;
         transform: translateX(14%);
         mask-image: linear-gradient(to right, transparent 0%, black var(--fade));
         -webkit-mask-image: linear-gradient(to right, transparent 0%, black var(--fade));

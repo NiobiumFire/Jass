@@ -9,7 +9,7 @@ nav {
     background: var(--dark-grey);
 }
 
-.nav-link, a{
+.nav-link, a {
     padding: 0 !important;
     color: white !important;
 }
@@ -27,6 +27,13 @@ footer {
         color: white;
     }
 
+@media (max-height: 800px) {
+    nav, footer {
+        height: 40px;
+        line-height: 40px;
+    }
+}
+
 .nebula {
     position: fixed;
     display: block;
@@ -37,7 +44,7 @@ footer {
     z-index: -1000;
 }
 
-.notification{
+.notification {
     display: flex;
     justify-content: center;
     align-items: center;
