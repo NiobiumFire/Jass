@@ -325,7 +325,6 @@ room.on("closeModalsAndButtons", function () {
 });
 
 function resetTable() {
-    //let path = document.URL.substring(0, document.URL.indexOf("Room")).concat("Images/Cards/c0-00.png");
     let path = "/images/Cards/c0-00.png";
     for (let i = 0; i < 4; i++) {
         document.getElementById(`tablecard${i}`).src = path;
@@ -820,22 +819,13 @@ const BOARD_ROTATION = {
     [SEAT.WEST]: -90,
 };
 
-const nudgeDirectionAndAxis = {
-    [SEAT.EAST]: { [SEAT.WEST]: { axis: 'h', sign: +1 }, [SEAT.NORTH]: { axis: 'w', sign: +1 }, [SEAT.EAST]: { axis: 'h', sign: -1 }, [SEAT.SOUTH]: { axis: 'w', sign: -1 } },
-    [SEAT.WEST]: { [SEAT.WEST]: { axis: 'h', sign: -1 }, [SEAT.NORTH]: { axis: 'w', sign: -1 }, [SEAT.EAST]: { axis: 'h', sign: +1 }, [SEAT.SOUTH]: { axis: 'w', sign: +1 } },
-    [SEAT.NORTH]: { [SEAT.WEST]: { axis: 'w', sign: 0 }, [SEAT.NORTH]: { axis: 'h', sign: 0 }, [SEAT.EAST]: { axis: 'w', sign: 0 }, [SEAT.SOUTH]: { axis: 'h', sign: 0 } },
-    [SEAT.SOUTH]: { [SEAT.WEST]: { axis: 'w', sign: 0 }, [SEAT.NORTH]: { axis: 'h', sign: 0 }, [SEAT.EAST]: { axis: 'w', sign: 0 }, [SEAT.SOUTH]: { axis: 'h', sign: 0 } },
-};
-
 function seatMyselfAsSouth(selectedSeat) {
     const board = document.getElementById('board-container');
     const slots = document.querySelectorAll('.table-card-slot');
 
     const currentAngle = parseFloat(getComputedStyle(board).getPropertyValue('--board-rotate')) || 0;
-    let newAngle = getNewAngle(selectedSeat, currentAngle);
+    const newAngle = getNewAngle(selectedSeat, currentAngle);
 
-    const { width, height } = getCardSize();
-    const nudgeDistance = width - height / 2;
     const seatClasses = ["inWest", "inNorth", "inEast", "inSouth"]; // for styling/position all children elements
 
     const rotationDistance = Math.abs(currentAngle - currentAngle);
@@ -844,15 +834,10 @@ function seatMyselfAsSouth(selectedSeat) {
     board.style.setProperty('--phase-length', `${duration}`);
     board.style.setProperty('--board-rotate', `${newAngle}`);
 
+    const logicalRotation = ((BOARD_ROTATION[selectedSeat] / 90) + 4) % 4;
+
     slots.forEach(slot => {
         const currentSeat = Number(slot.dataset.seat);
-        const nudge = nudgeDirectionAndAxis[selectedSeat][currentSeat];
-        const offset = `${nudge.sign * nudgeDistance}px`;
-
-        slot.style.setProperty('--slot-tx', nudge.axis === 'w' ? offset : '0px');
-        slot.style.setProperty('--slot-ty', nudge.axis === 'h' ? offset : '0px');
-
-        const logicalRotation = ((BOARD_ROTATION[selectedSeat] / 90) + 4) % 4;
         const newSeatNumber = (currentSeat + logicalRotation) % 4;
         slot.classList.remove(...seatClasses);
         slot.classList.add(seatClasses[newSeatNumber]);
@@ -866,14 +851,6 @@ function seatMyselfAsSouth(selectedSeat) {
         board.classList.remove("throw0", "throw1", "throw2", "throw3");
         board.classList.add(`throw${i}`);
     }
-}
-
-function getCardSize() {
-    const styles = getComputedStyle(document.documentElement);
-    return {
-        width: parseFloat(styles.getPropertyValue('--card-width')),
-        height: parseFloat(styles.getPropertyValue('--card-height')),
-    };
 }
 
 function getNewAngle(mySeat, currentAngle) {

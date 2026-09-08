@@ -1,4 +1,5 @@
 ﻿.card-table {
+    container-type: size;
     position: relative;
     height: 100%;
     width: 100%;
@@ -36,6 +37,7 @@
     background: var(--cream-text);
     border: 1px solid var(--col-2);
     cursor: pointer;
+    font-size: calc(0.12 * var(--card-width));
 }
 
     .turn-indicator i {
@@ -60,7 +62,7 @@
     background-color: black;
     transform: rotate(180deg);
     color: var(--cream-text);
-    font-size: 14px;
+    font-size: calc(0.15 * var(--card-width));
     font-weight: 500;
     border-radius: 5px;
     white-space: nowrap;
@@ -68,12 +70,6 @@
     line-height: 1.1;
     border: 1px solid var(--dark-grey);
     user-select: none;
-}
-
-@media(max-width: 600px) {
-    .player-name-marker {
-        font-size: 11px;
-    }
 }
 
 .player-other .player-name-marker {
@@ -89,9 +85,46 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    --nudge-distance: calc(var(--card-width) - var(--card-height) / 2);
     --slot-tx: 0px;
     --slot-ty: 0px;
     transform: rotate(calc(-1deg * var(--board-rotate))) translate(var(--slot-tx, 0px), var(--slot-ty, 0px));
+}
+
+/* tableCardSlot0 - WEST */
+#tableCardSlot0.inNorth {
+    --slot-ty: var(--nudge-distance);
+}
+
+#tableCardSlot0.inSouth {
+    --slot-ty: calc(-1 * var(--nudge-distance));
+}
+
+/* tableCardSlot1 - NORTH */
+#tableCardSlot1.inEast {
+    --slot-tx: var(--nudge-distance);
+}
+
+#tableCardSlot1.inWest {
+    --slot-tx: calc(-1 * var(--nudge-distance));
+}
+
+/* tableCardSlot2 - EAST */
+#tableCardSlot2.inNorth {
+    --slot-ty: var(--nudge-distance);
+}
+
+#tableCardSlot2.inSouth {
+    --slot-ty: calc(-1 * var(--nudge-distance));
+}
+
+/* tableCardSlot3 - SOUTH */
+#tableCardSlot3.inWest {
+    --slot-tx: calc(-1 * var(--nudge-distance));
+}
+
+#tableCardSlot3.inEast {
+    --slot-tx: var(--nudge-distance);
 }
 
 /* Player marker - container including name plate and bot icon */
@@ -347,7 +380,7 @@
 .fingerprint {
     position: absolute;
     top: 40%;
-    font-size: 3em;
+    font-size: calc(0.5 * var(--card-width));
     line-height: 1;
     background: linear-gradient(60deg, white 40%, transparent 50%, white 60%);
     background-size: 300% 100%;
@@ -416,8 +449,10 @@
 /* Score Summary */
 
 .score-summary-container {
+    container-type: size;
     position: absolute;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 0 0 !important;
@@ -436,11 +471,12 @@
     max-width: 100px;
     min-width: 65px;
     width: 50%;
-    height: 40%;
+    height: 60%;
     border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
     cursor: pointer;
+    font-size: 10px !important;
 }
 
 @media(max-width: 600px) {
@@ -449,10 +485,12 @@
     }
 }
 
+.card-table .score-summary-container .score-summary *, .card-table .score-summary-container .call-summary * {
+    font-size: 12cqh !important;
+}
+
 .room-options {
-    position: absolute;
-    top: -19px;
-    margin: 0;
+    margin: 0px 0px 2px 0px;
     font-size: 1em;
     color: var(--cream-text);
     line-height: 1;
@@ -506,6 +544,7 @@
 .call-summary-container {
     position: absolute;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 0;

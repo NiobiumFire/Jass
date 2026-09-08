@@ -10,30 +10,12 @@
     --col-red: #b5273a;
     --cream-text: #fffbe6;
     /*--cream-text: #bdb9a9;*/
-
-    --card-height: 210px;
-    --card-width: 147px;
-}
-
-@media only screen and (max-width: 1920px) {
-    :root {
-        --card-height: 180px;
-        --card-width: 126px;
-    }
-}
-
-@media only screen and (max-width: 1500px) {
-    :root {
-        --card-height: 150px;
-        --card-width: 105px;
-    }
-}
-
-@media only screen and (max-width: 767px) {
-    :root {
-        --card-height: 120px;
-        --card-width: 84px;
-    }
+    /* h = (150 / 105) * w */
+    /* h <= 40cqh */
+    /* w <= 25cqw */
+    /* main-board is the definition of the container size */
+    --card-width: min(25cqw, calc(40 * (105 / 150) * 1cqh));
+    --card-height: calc(var(--card-width) * 150 / 105);
 }
 
 html {

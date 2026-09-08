@@ -11,11 +11,11 @@
 <div class="card-table" id="card-table">
     <!-- Score Totals -->
     <div class="score-summary-container">
+        @if (!isReplayRoom)
+        {
+            <small class="room-options"><i class="bi bi-caret-right-fill"></i>@Model.ScoreTarget<i class="bi bi-caret-left-fill"></i></small>
+        }
         <div class="score-summary">
-            @if (!isReplayRoom)
-            {
-                <small class="room-options"><i class="bi bi-caret-right-fill"></i>@Model.ScoreTarget<i class="bi bi-caret-left-fill"></i></small>
-            }
             <table class="table" id="scoreTotals">
                 <thead>
                     <tr class="table-heading-border">
@@ -207,11 +207,11 @@
 
     <!-- Call Indicator -->
     <div class="call-summary-container">
+        @if (!isReplayRoom)
+        {
+            <small class="room-options"><i class="bi bi-alarm mx-1"></i>@GetTurnTime(Model.TurnTime)</small>
+        }
         <div class="call-summary">
-            @if (!isReplayRoom)
-            {
-                <small class="room-options"><i class="bi bi-alarm mx-1"></i>@GetTurnTime(Model.TurnTime)</small>
-            }
             <i class="bi bi-arrows-move seat-transition call-icon caller-indicator" id="wnescallindicator"></i>
             <i class="bi bi-ban call-icon" id="selectedsuit"></i>
             <i class="allNoTrumps cream-text" id="selectedmultiplier"></i>

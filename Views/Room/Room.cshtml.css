@@ -22,6 +22,7 @@
 /* Control Panel */
 
 .control-panel {
+    container-type: size;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -33,6 +34,12 @@
     position: relative;
     z-index: 2;
 }
+
+    .control-panel .btn2 {
+        line-height: 1;
+        padding: 10cqh 15cqh;
+        font-size: calc(min(35cqh, 26px));
+    }
 
 .chat-notification {
     position: absolute;
@@ -49,6 +56,7 @@
 /* User Cards */
 
 .cardboard {
+    container-type: size;
     position: relative;
     display: flex;
     align-items: center;
