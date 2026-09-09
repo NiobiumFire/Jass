@@ -781,18 +781,18 @@ room.on("disableNewGame", function () {
     document.getElementById("newGameBtn").disabled = true;
 });
 
-room.on("seatBooked", function (position, username, isSelf) {
+room.on("seatBooked", function (position, username, isSelf, animate) {
     setTableCardSlotUserNameAndLabelColour(position, username, true, isSelf);
     if (isSelf) {
-        seatMyselfAsSouth(position);
+        seatMyselfAsSouth(position, animate);
     }
 });
 
-room.on("seatUnbooked", function (position, resetSeatOrientations) {
+room.on("seatUnbooked", function (position, resetSeatOrientations, animate) {
     let defaultSeatName = getSeatNameByNumber(position);
     setTableCardSlotUserNameAndLabelColour(position, defaultSeatName, false);
     if (resetSeatOrientations) {
-        seatMyselfAsSouth(3);
+        seatMyselfAsSouth(3, animate);
     }
 });
 
@@ -819,7 +819,45 @@ const BOARD_ROTATION = {
     [SEAT.WEST]: -90,
 };
 
-function seatMyselfAsSouth(selectedSeat) {
+function seatMyselfAsSouth(selectedSeat, animate) {
+    const longDuration = 2000;
+    const shortDuration = 1500;
+
+    if (!animate) {
+        applySeatChange(selectedSeat, longDuration, shortDuration);
+        return;
+    }
+
+    const animObjects = document.querySelectorAll('.seat-transition');
+    const firstAnimObject = document.querySelector('.seat-transition');
+
+    let animationTimeout;
+
+    const cleanupTransitions = () => {
+        animObjects.forEach(x => x.classList.remove('animate'));
+        firstAnimObject.removeEventListener('transitionend', transitionHandler);
+        clearTimeout(animationTimeout);
+    };
+
+    const transitionHandler = e => {
+        if (e.propertyName !== 'transform') {
+            return;
+        }
+        cleanupTransitions();
+    };
+
+    animObjects.forEach(x => x.classList.add('animate'));
+
+    animationTimeout = setTimeout(cleanupTransitions, longDuration + 100);
+
+    firstAnimObject.addEventListener('transitionend', transitionHandler);
+
+    requestAnimationFrame(() => {
+        applySeatChange(selectedSeat, longDuration, shortDuration);
+    });
+}
+
+function applySeatChange(selectedSeat, longDuration, shortDuration) {
     const board = document.getElementById('board-container');
     const slots = document.querySelectorAll('.table-card-slot');
 
@@ -828,8 +866,8 @@ function seatMyselfAsSouth(selectedSeat) {
 
     const seatClasses = ["inWest", "inNorth", "inEast", "inSouth"]; // for styling/position all children elements
 
-    const rotationDistance = Math.abs(currentAngle - currentAngle);
-    const duration = rotationDistance === 180 ? 3000 : 1500;
+    const rotationDistance = Math.abs(newAngle - currentAngle);
+    const duration = rotationDistance === 180 ? longDuration : shortDuration;
 
     board.style.setProperty('--phase-length', `${duration}`);
     board.style.setProperty('--board-rotate', `${newAngle}`);
