@@ -11,10 +11,10 @@
     --cream-text: #fffbe6;
     /*--cream-text: #bdb9a9;*/
     /* h = (150 / 105) * w */
-    /* h <= 40cqh */
-    /* w <= 25cqw */
+    /* h <= x * 1cqh */
+    /* w <= y * 1cqw */
     /* main-board is the definition of the container size */
-    --card-width: min(25cqw, calc(40 * (105 / 150) * 1cqh));
+    --card-width: min(25cqw, calc(36 * (105 / 150) * 1cqh));
     --card-height: calc(var(--card-width) * 150 / 105);
 }
 

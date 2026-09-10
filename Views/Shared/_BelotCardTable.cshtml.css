@@ -32,7 +32,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 5px;
+    padding: calc(0.04 * var(--card-width));
     z-index: 4;
     background: var(--cream-text);
     border: 1px solid var(--col-2);
@@ -148,7 +148,7 @@
 .status-badge {
     padding: 0;
     position: absolute;
-    font-size: 18px;
+    font-size: calc(0.2 * var(--card-width));
     color: var(--col-4);
     transform: translate(0,-65%);
 }
@@ -449,7 +449,6 @@
 /* Score Summary */
 
 .score-summary-container {
-    container-type: size;
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -463,30 +462,43 @@
 }
 
 .score-summary, .call-summary {
+    container-type: size;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 5px;
-    max-width: 100px;
-    min-width: 65px;
-    width: 50%;
-    height: 60%;
+    width: calc(min(1.8 * var(--card-width), 26cqw));
+    height: 50%;
     border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
     cursor: pointer;
-    font-size: 10px !important;
 }
 
-@media(max-width: 600px) {
-    .score-summary, .call-summary {
-        width: 80%;
+    .call-summary .call-icon{
+        padding: 0px calc(0.1 * var(--card-width));
     }
+
+.card-table .score-summary-container .score-summary * {
+    font-size: calc(min(12cqw, 60cqh)) !important;
 }
 
-.card-table .score-summary-container .score-summary *, .card-table .score-summary-container .call-summary * {
-    font-size: 12cqh !important;
+.call-summary .call-icon, .selected-multiplier {
+    font-size: calc(min(18cqw, 80cqh));
+}
+
+.selected-multiplier {
+    color: var(--cream-text);
+}
+
+    .selected-multiplier:empty {
+        display: none;
+    }
+
+.call-summary *{
+    text-align: center;
+    flex: 1;
 }
 
 .room-options {
@@ -564,7 +576,6 @@
     justify-content: center;
     line-height: 1;
     align-items: center;
-    font-size: 25px;
     width: 50%;
     text-align: center;
     transform-origin: center center;
@@ -572,19 +583,8 @@
 }
 
     .call-icon.allNoTrumps {
-        font-size: 26px;
         text-shadow: 0px 0px 1px var(--cream-text), 0px 0px 6px var(--cream-text), 0px 0px 10px var(--cream-text), 0px 0px 16px var(--cream-text);
     }
-
-@media(max-width: 600px) {
-    .call-icon {
-        font-size: 20px;
-    }
-
-        .call-icon.allNoTrumps {
-            font-size: 22px;
-        }
-}
 
 .tooltiptext {
     visibility: hidden;
@@ -619,11 +619,6 @@
 
 .call-summary:hover .tooltiptext, .turn-indicator:hover .tooltiptext {
     visibility: visible;
-}
-
-#selectedmultiplier {
-    color: var(--cream-text);
-    font-size: 15px !important;
 }
 
 /* Throw Button */
