@@ -307,16 +307,19 @@
 /* throw cards modal */
 
 .throw-modal-body {
+    container-type: size;
     display: flex;
     justify-content: center;
+    width: 100%;
+    height: 55vh;
     padding: 0;
     background-color: var(--col-1);
     aspect-ratio: 1;
 }
 
 .throw {
-    --mini-card-width: calc(0.54*var(--card-width));
-    --mini-card-height: calc(0.54*var(--card-height));
+    --mini-card-width: calc(0.48*var(--card-width));
+    --mini-card-height: calc(0.48*var(--card-height));
     /*overflow: hidden;*/
     display: flex;
     justify-content: center;
@@ -332,7 +335,7 @@
 }
 
     ::deep .throw .mini-belot-card:not([hidden]) ~ .mini-belot-card:not([hidden]) { /*all visible cards that have earlier sibling visible cards i.e. just not the first, which must have 0 margin*/
-        margin-left: -20px;
+        margin-left: calc(-0.3 * var(--mini-card-width));
     }
 
 .throw0 {

@@ -158,8 +158,8 @@
 }
 
 ::deep .dealer-marker {
-    height: 2em;
-    width: 2em;
+    height: calc(0.3 * var(--card-width));
+    aspect-ratio: 1/1;
     z-index: 3;
     position: absolute;
 }
@@ -469,7 +469,7 @@
     align-items: center;
     padding: 5px;
     width: calc(min(1.8 * var(--card-width), 26cqw));
-    height: 50%;
+    height: 44%;
     border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
@@ -503,7 +503,7 @@
 
 .room-options {
     margin: 0px 0px 2px 0px;
-    font-size: 1em;
+    font-size: calc(0.15 * var(--card-width));
     color: var(--cream-text);
     line-height: 1;
     display: flex;
@@ -516,13 +516,6 @@
         justify-content: center;
         align-content: center;
     }
-
-@media(max-width: 1500px) {
-    .room-options {
-        top: -17px;
-        font-size: 0.75em;
-    }
-}
 
 .score-summary table {
     table-layout: fixed;
@@ -656,10 +649,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 55px;
-    height: 55px;
+    width: calc(0.55 * var(--card-width));
+    aspect-ratio: 1/1;
     border-radius: 50%;
-    font-size: 1em;
+    font-size: calc(0.15 * var(--card-width));
     font-weight: 600;
     line-height: 1;
     text-align: center;
