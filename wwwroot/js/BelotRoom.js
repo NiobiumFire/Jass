@@ -148,7 +148,9 @@ function rotateCards() {
     const offset = (max - visible) / 2;
 
     visibleCards.forEach((card, i) => {
-        card.style.setProperty("--slot", i + offset);
+        requestAnimationFrame(() => {
+            card.style.setProperty("--slot", i + offset);
+        });
     });
 }
 
