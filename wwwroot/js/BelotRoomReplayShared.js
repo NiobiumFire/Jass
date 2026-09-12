@@ -150,8 +150,6 @@ function setCallTooltip() {
 }
 
 function GetResourceFromCard(card, roundCall) {
-    //let path = document.URL.substring(0, document.URL.indexOf("Room"));
-
     if (card == null || card.suit == null || card.rank == null) {
         return "/images/Cards/c0-00.png";
     }

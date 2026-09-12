@@ -214,9 +214,10 @@
     align-items: center;
     position: absolute;
     border-radius: .4em;
-    width: 70%;
-    min-height: 45px;
-    padding: 4px 10px;
+    width: calc(0.7 * var(--card-width));
+    height: calc(0.3 * var(--card-height));
+    padding: 0;
+    font-size: calc(min(4cqw, 4cqh));
     font-weight: 800;
     color: var(--cream-text);
     z-index: 4;
@@ -296,6 +297,7 @@
         position: absolute;
         right: 1px;
         top: 50%;
+        border: 7px solid transparent;
         border: 7px solid transparent;
         border-left: 10px solid var(--emote-col);
         margin-top: -7px;
