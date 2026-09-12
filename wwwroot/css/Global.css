@@ -109,6 +109,7 @@ main {
 
 .tab-card .card-body {
     padding: 10px 20px;
+    overflow: auto;
 }
 
 .card {
@@ -414,15 +415,24 @@ th, td {
     width: var(--card-width);
 }
 
-.belot-card2 {
+.belot-card2 { /* hand cards */
     position: absolute;
-    width: var(--card-width);
-    height: var(--card-height);
-    border-radius: 11px; /* weird corner glow */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    height: 95cqh;
+    width: calc(105 / 150 * 90cqh);
+    border-radius: calc(0.3 * var(--card-width)); /* weird corner glow */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    --radius: calc(min(max(250, 100 * 1cqw / 1cqh), 600) * 1px);
+    --spread: calc(min(max(30, 250 * 1cqh / 1cqw), 68) * 1deg);
     transform-origin: center var(--radius);
     transition: transform 0.4s ease;
     transform: rotate( calc((-0.5 * var(--spread)) + (var(--slot) * (var(--spread) / (var(--max) - 1))) )) !important;
+}
+
+@media(min-height: 1080px) and (min-width: 1920px){
+    .belot-card2 {  hand cards 
+        --radius: calc(min(max(250, 100 * 1cqw / 1cqh), 600) * 1px);
+        --spread: calc(min(max(50, 250 * 1cqh / 1cqw), 68) * 1deg);
+    }
 }
 
 .belot-card2-invalid {

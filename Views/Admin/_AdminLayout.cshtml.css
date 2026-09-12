@@ -9,5 +9,5 @@
     flex-direction: column;
     flex: 1; /* Fill remaining card space */
     min-height: 0; /* Allow flex containers to shrink below content size */
-    overflow: hidden;
+    overflow: auto;
 }

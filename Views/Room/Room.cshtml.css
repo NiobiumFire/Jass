@@ -4,19 +4,19 @@
     align-items: center;
 }
 
+.Jass footer {
+    height: 0px;
+    line-height: 0px;
+    display: none !important;
+}
+
 .board-container {
     display: grid;
     grid-template-rows: 10% 65% 25%;
-    height: 95%;
-    width: 85%;
+    height: calc(100% - 5vh);
+    width: calc(100% - 5vh);
     --board-rotate: 0;
     --phase-length: 1500;
-}
-
-@media(max-width:500px) {
-    .board-container {
-        width: 95%;
-    }
 }
 
 /* Control Panel */
@@ -62,12 +62,9 @@
     align-items: center;
     justify-content: center;
     border-radius: 0 0 10px 10px;
-    overflow-x: hidden;
-    overflow-y: auto;
     overflow: hidden;
     box-shadow: 2px 3px 20px black, 0 0 30px rgba(255,255,255,0.5) inset; /* edges */
-    /*--spread: 90deg;*/ /* total fan angle - set in js */
-    /*--radius: 200px;*/ /* distance to rotation center - set in js */
+    /* --radius & --spread defined on belot-card2 in terms of this container's size */
     --max: 8; /* maximum slot count */
 }
 

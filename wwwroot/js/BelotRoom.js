@@ -133,6 +133,8 @@ room.on("rotateCards", function () {
 
 window.addEventListener('resize', rotateCards);
 
+const Clamp = (min, val, max) => Math.min(Math.max(val, min), max);
+
 function rotateCards() {
     const container = document.getElementById("cardboard");
     const allCards = container.querySelectorAll(".belot-card2");
@@ -141,20 +143,6 @@ function rotateCards() {
     const max = 8;
 
     if (visible === 0) return;
-
-    const cardWidth = visibleCards[0].offsetWidth;
-    const width = Math.min(container.clientWidth, 600);
-    //console.log("container: " + container.clientWidth);
-    let radius = 400;
-
-    // compute the full spread for 8 cards to fill the container width
-    let maxArcLength = width - cardWidth;
-    //console.log(maxArcLength);
-    const spread = (maxArcLength / radius) * (180 / Math.PI);
-    //console.log("spread: " + spread);
-    container.style.setProperty("--spread", `${spread}deg`);
-    container.style.setProperty("--radius", `${radius}px`);
-    container.style.setProperty("--max", max);
 
     // center the visible cards within the 8 slots
     const offset = (max - visible) / 2;
@@ -206,7 +194,6 @@ room.on("disableCards", function () {
 function disableCards() {
     for (let i = 0; i < 8; i++) {
         document.getElementById("card" + i).onclick = "";
-        //document.getElementById("card" + i).classList.remove("belot-card2-valid");
         document.getElementById("card" + i).classList.remove("belot-card2-invalid");
     }
     document.getElementById("cardboard").classList.remove("cardboard-pulse");
