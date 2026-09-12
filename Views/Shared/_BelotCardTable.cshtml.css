@@ -692,11 +692,9 @@
 }
 
 .rope-base {
-    --border: 6;
-    --radius: 6;
-    --inset: 4;
+    --border: calc(0.05 * var(--card-width));
     fill: none;
-    stroke: #8b5a2b;
+    stroke: yellow;
     stroke-width: var(--border);
     visibility: hidden;
 }
@@ -707,12 +705,12 @@
 
 @keyframes glow {
     50% {
-        stroke: #ff9400;
+        stroke: red;
         filter: brightness(1.5);
     }
 
     100% {
-        stroke: #8B5A2B;
+        stroke: yellow;
         filter: brightness(1);
     }
 }

@@ -887,12 +887,9 @@ function getNewAngle(mySeat, currentAngle) {
 
 // -------------------- Turn Timer --------------------
 
-const timers = [...document.querySelectorAll(".turn-timer")]
-    .sort((a, b) => a.dataset.seat - b.dataset.seat);
+const timers = [...document.querySelectorAll(".turn-timer")].sort((a, b) => a.dataset.seat - b.dataset.seat);
 
 function setTimerPath(pos) {
-
-
     const w = timers[pos].clientWidth;
     const h = timers[pos].clientHeight;
 
@@ -901,21 +898,65 @@ function setTimerPath(pos) {
     timers[pos].setAttribute("viewBox", `0 0 ${w} ${h}`);
 
     const base = timers[pos].querySelector(".rope-base");
+    const anim = base.timerAnimation;
+    const isRunning = anim && getComputedStyle(base).visibility !== "hidden" && (anim.playState == "running" || anim.playState == "paused");
 
-    const inset = parseFloat(getComputedStyle(base).getPropertyValue("--inset"));
-    const r = parseFloat(getComputedStyle(base).getPropertyValue("--radius"));
+    // 1. Capture progress before updating geometry
+    let savedTime = null;
+    let totalDuration = 0;
+    let isPaused = false;
+
+    if (isRunning) {
+        totalDuration = anim.effect.getTiming().duration;
+        savedTime = anim.currentTime || 0;
+        isPaused = anim.playState === "paused";
+    }
+
+    // 2. Recalculate path geometry
+    const inset = 0.02 * timers[pos].clientHeight;
+    const r = 0.065 * timers[pos].clientHeight;
 
     const d = `M ${w / 2} ${inset} H ${inset + r} A ${r} ${r} 0 0 0 ${inset} ${inset + r} V ${h - inset - r} A ${r} ${r} 0 0 0 ${inset + r} ${h - inset} H ${w - inset - r} A ${r} ${r} 0 0 0 ${w - inset} ${h - inset - r} V ${inset + r} A ${r} ${r} 0 0 0 ${w - inset - r} ${inset} H ${w / 2} Z`;
 
     base.setAttribute("d", d);
+
+    const newLength = base.getTotalLength();
+    base.style.strokeDasharray = newLength;
+
+    // 3. If running, rebuild keyframes matching new total length
+    if (isRunning && savedTime !== null) {
+        anim.onfinish = null;
+        anim.cancel();
+
+        const newAnim = base.animate(
+            [
+                { strokeDashoffset: 0 },
+                { strokeDashoffset: newLength }
+            ],
+            {
+                duration: totalDuration,
+                easing: "linear",
+                fill: "forwards"
+            }
+        );
+
+        // Restore playback position
+        newAnim.currentTime = savedTime;
+
+        if (isPaused) {
+            newAnim.pause();
+        } else {
+            newAnim.play();
+        }
+
+        base.timerAnimation = newAnim;
+        base.timerAnimation.onfinish = () => stopTurnTimer(pos);
+    }
 }
 
 timers.forEach((timer, pos) => {
-
     new ResizeObserver(() => setTimerPath(pos)).observe(timer);
-
     setTimerPath(pos);
-
 });
 
 function startTurnTimer(pos, duration, elapsed) {
@@ -939,6 +980,8 @@ function startTurnTimer(pos, duration, elapsed) {
             fill: "forwards"
         }
     );
+
+    base.timerAnimation.onfinish = () => stopTurnTimer(pos);
 
     base.timerAnimation.pause();
     base.timerAnimation.currentTime = elapsed * 1000;

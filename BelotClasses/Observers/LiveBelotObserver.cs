@@ -98,6 +98,7 @@ namespace BelotWebApp.BelotClasses.Observers
                                 await clients.Client(currentUser.ConnectionId).SendAsync("PrepareDeal");
                             }
 
+                            await _group.SendAsync("StopTurnTimer", _game.Turn);
                             BelotGameRunner.ContinueFromDeal(room);
                         });
                         await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
@@ -163,6 +164,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
                     var call = AgentBasic.CallSuit(game.Hand[game.Turn], validCalls);
 
+                    await _group.SendAsync("StopTurnTimer", _game.Turn);
                     _ = BelotGameRunner.ContinueFromCall(room, call);
                 });
                 await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
@@ -269,6 +271,7 @@ namespace BelotWebApp.BelotClasses.Observers
 
                     game.RecordCardPlayed(emotes);
 
+                    await _group.SendAsync("StopTurnTimer", _game.Turn);
                     _ = BelotGameRunner.ContinueFromCard(room);
                 });
                 await _group.SendAsync("StartTurnTimer", _game.Turn, _room.Options.TurnTime, 0);
