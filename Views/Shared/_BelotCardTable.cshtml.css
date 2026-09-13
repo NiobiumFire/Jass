@@ -469,25 +469,32 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 5px;
-    width: calc(min(1.8 * var(--card-width), 26cqw));
-    height: 44%;
+    padding: calc(1cqh);
+    --box-width: calc(min(1.5 * var(--card-width), 26cqw));
+    width: var(--box-width);
+    height: calc(0.5 * var(--box-width));
     border: 1px solid color-mix(in srgb, var(--col-4), transparent 50%);
     border-radius: 6px;
     background-color: color-mix(in srgb, var(--dark-grey), transparent 50%);
     cursor: pointer;
 }
 
-    .call-summary .call-icon{
-        padding: 0px calc(0.1 * var(--card-width));
+@media (max-width: 400px), (max-height: 400px) {
+    .score-summary, .call-summary {
+        --box-width: calc(min(1.8 * var(--card-width), 26cqw));
     }
+}
+
+.call-summary .call-icon {
+    padding: 0px calc(0.1 * var(--card-width));
+}
 
 .card-table .score-summary-container .score-summary * {
-    font-size: calc(min(12cqw, 60cqh)) !important;
+    font-size: 12cqw !important;
 }
 
 .call-summary .call-icon, .selected-multiplier {
-    font-size: calc(min(18cqw, 80cqh));
+    font-size: 20cqw;
 }
 
 .selected-multiplier {
@@ -498,26 +505,38 @@
         display: none;
     }
 
-.call-summary *{
+.call-summary * {
     text-align: center;
     flex: 1;
 }
 
 .room-options {
-    margin: 0px 0px 2px 0px;
-    font-size: calc(0.15 * var(--card-width));
+    margin: 0 0px 1px 0px;
+    font-size: calc(min(3cqw, 4cqh));
     color: var(--cream-text);
     line-height: 1;
     display: flex;
     justify-content: center;
-    align-content: center;
+    align-content: end;
 }
 
-    .room-options i {
-        display: flex;
-        justify-content: center;
-        align-content: center;
+@media (max-height: 400px) {
+    .room-options {
+        margin: 2cqh 0px 1px 0px;
     }
+}
+
+@media (max-width: 400px) {
+    .room-options {
+        margin: -2cqw 0px 1px 0px;
+    }
+}
+
+.room-options i {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+}
 
 .score-summary table {
     table-layout: fixed;
