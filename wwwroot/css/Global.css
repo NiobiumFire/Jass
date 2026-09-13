@@ -39,6 +39,12 @@ html {
     overflow: visible !important;
 }
 
+@media (max-width: 400px) {
+    .maximise-image {
+        height: 90%;
+    }
+}
+
 @media (max-width: 767px) and (min-height: 500px) {
     .character-left,
     .character-right {
@@ -428,8 +434,8 @@ th, td {
     transform: rotate( calc((-0.5 * var(--spread)) + (var(--slot) * (var(--spread) / (var(--max) - 1))) )) !important;
 }
 
-@media(min-height: 1080px) and (min-width: 1920px){
-    .belot-card2 {  hand cards 
+@media(min-height: 1080px) and (min-width: 1920px) {
+    .belot-card2 {
         --radius: calc(min(max(250, 100 * 1cqw / 1cqh), 600) * 1px);
         --spread: calc(min(max(50, 250 * 1cqh / 1cqw), 68) * 1deg);
     }
