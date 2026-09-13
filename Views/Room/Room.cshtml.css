@@ -37,8 +37,8 @@
 
     .control-panel .btn2 {
         line-height: 1;
-        padding: 10cqh 15cqh;
-        font-size: calc(min(35cqh, 26px));
+        padding: 14cqh 17cqh;
+        font-size: calc(min(30cqh, 26px));
     }
 
 .chat-notification {
