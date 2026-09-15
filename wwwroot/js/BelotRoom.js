@@ -28,22 +28,26 @@ $('.modal').on('hide.bs.modal', function () { // remove focus from modals before
 // -------------------- Room Connection --------------------
 
 var room = new signalR.HubConnectionBuilder() // automatic reconnect does not work well with proceeding to .onclose on mobile, so leave it out entirely
-    .withUrl("/belotroom/" + document.getElementById("roomId").innerHTML)
+    .withUrl("/belotroom/" + document.getElementById("roomId").textContent)
     .configureLogging(signalR.LogLevel.Warning)
     .build();
 
 room.serverTimeoutInMilliseconds = 10000;
 
-room.onclose(() => {
+room.onclose(error => {
     setTimeout(() => { // delay as fallback for pagehide not executing/executing after socket is closed (e.g. transport is SSE). js context will be removed and alert will not show if user refreshed/intentionally browsed away
         if (!preventConnectionStoppedAlert) {
-            alert("Disconnected. Try refresh the page to reconnect.");
+            document.getElementById("disconnected-message").textContent = "Try resync to reconnect.";
+            document.getElementById("resync-btn").disabled = false;
+            document.getElementById("offcanvas-resync-btn").disabled = false;
+            $('#disconnected-modal').modal('show');
         }
     }, 300);
 });
 
 room.start().catch(() => {
-    alert("Unable to connect.");
+    alert("Unable to connect. Please try again later.");
+    window.location.href = "/";
 });
 
 room.on("connectionSuperseded", async function () {
@@ -63,6 +67,106 @@ room.on("idleRoomClosing", async function () {
     alert("Room has closed due to inactivity.");
     window.location.replace("/");
 });
+
+async function resync() {
+    const disconnectedMessage = document.getElementById("disconnected-message");
+    const resyncBtn = document.getElementById("resync-btn");
+    const offcanvasResyncBtn = document.getElementById("offcanvas-resync-btn");
+
+    resyncBtn.disabled = true;
+    offcanvasResyncBtn.disabled = true;
+
+    if (room.state === signalR.HubConnectionState.Connected) {
+        disconnectedMessage.textContent = "Reconnected successfully.";
+        $('#disconnected-modal').modal('show');
+        return;
+    }
+
+    disconnectedMessage.textContent = "reconnecting...";
+    $('#disconnected-modal').modal('show');
+
+    const roomId = document.getElementById("roomId").textContent;
+
+    const controller = new AbortController();
+    const timeoutMs = 5000;
+    const fetchTimeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const response = await fetch(`/room/ValidateJoin/${roomId}`, {
+            signal: controller.signal
+        });
+
+        clearTimeout(fetchTimeout);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            disconnectedMessage.textContent = errorData.error || `Server responded with status ${response.status}`;
+            $('#disconnected-modal').modal('show');
+            return;
+        }
+    }
+    catch (error) {
+        clearTimeout(fetchTimeout);
+        if (error.name === 'AbortError') {
+            disconnectedMessage.textContent = `Connection timed out after ${timeoutMs} ms.`;
+        } else {
+            disconnectedMessage.textContent = "Unable to connect. Please try again later.";
+        }
+        resyncBtn.disabled = false;
+        offcanvasResyncBtn.disabled = false;
+        $('#disconnected-modal').modal('show');
+        return;
+    }
+    
+    let reconnectTimeout;
+
+    // timeout promise that rejects after timeoutMs
+    const timeoutPromise = new Promise((_, reject) => {
+        reconnectTimeout = setTimeout(() => {
+            reject(new Error(`Connection timed out after ${timeoutMs} ms.`));
+        }, timeoutMs);
+    });
+
+    try {
+        // race the start handshake against a timeout
+        await Promise.race([
+            room.start(),
+            timeoutPromise
+        ]);
+
+        clearTimeout(reconnectTimeout);
+    }
+    catch (error) {
+        clearTimeout(reconnectTimeout);
+
+        // cancel connection on timeout
+        if (room.state === signalR.HubConnectionState.Connecting) {
+            try {
+                await room.stop();
+            } catch (stopError) {
+                console.error("Failed to stop connection attempt:", stopError);
+            }
+        }
+
+        if (error.message && (error.message.includes("TypeError") || error.message.includes("negotiation"))) {
+            disconnectedMessage.textContent = "Unable to reach the server. Please check your internet connection.";
+        } else {
+            disconnectedMessage.textContent = error.message || "A connection error occurred. Please try again.";
+        }
+
+        resyncBtn.disabled = false;
+        offcanvasResyncBtn.disabled = false;
+        $('#disconnected-modal').modal('show');
+        return;
+    }
+
+    if (room.state === signalR.HubConnectionState.Connected) {
+        disconnectedMessage.textContent = "Reconnected successfully.";
+        resyncBtn.disabled = true;
+        offcanvasResyncBtn.disabled = true;
+        $('#disconnected-modal').modal('show');
+    }
+}
 
 // -------------------- Play Card --------------------
 

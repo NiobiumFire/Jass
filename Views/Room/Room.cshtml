@@ -14,6 +14,7 @@
             //$('#suit-modal').modal('show');
             //$('#extras-modal').modal('show');
             //$('#summary-modal').modal('show');
+            //$('#disconnected-modal').modal('show');
             //document.getElementById("throw-cards-btn").hidden = false;
             //document.getElementById("make-call-btn").hidden = false;
             //bottom = document.getElementById("card-table").getBoundingClientRect().bottom - 10;
@@ -274,7 +275,10 @@
 <div class="offcanvas offcanvas-end parchment2" tabindex="-1" id="lobby">
     <div class="offcanvas-header">
         <!-- Game Invite -->
-        <input class="btn2 m-1" style="min-width:50%" type="button" value="Copy Room Invite" onclick="copyGameInvite()" id="copyGameIdBtn" />
+        <div>
+            <input class="btn2 m-1" type="button" value="Copy Room Invite" onclick="copyGameInvite()" id="copyGameIdBtn" />
+            <button type="button" class="btn2 m-1 mb-2" onclick="resync()" id="offcanvas-resync-btn" disabled>Resync</button>
+        </div>
         <i class="bi bi-x-lg form-btn" data-bs-dismiss="offcanvas"></i>
     </div>
     <div class="offcanvas-body pt-0">
@@ -323,7 +327,6 @@
             }
 
             <!-- Game Log -->
-
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gameLogAccordian" id="gameLogBtn">
@@ -339,7 +342,6 @@
             </div>
 
             <!-- Score History -->
-
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#scoreHistoryAccordian">
@@ -357,6 +359,25 @@
             </div>
 
         </div>
+    </div>
+</div>
 
+<!-- Disconnected Modal -->
+<div class="modal" id="disconnected-modal" tabindex="-1" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm modal-dialog-centered" id="disconnected-modal-dialog">
+        <div class="modal-content parchment2">
+            <div class="modal-header d-flex justify-content-center py-1">
+                <h5 class="modal-title text-center">Disconnected</h5>
+            </div>
+            <div class="modal-body py-1">
+                <div class="d-flex flex-column m-0 p-0 justify-content-around align-items-center" id="disconnected-message" style="min-width:0">
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn2" onclick="resync()" id="resync-btn">Resync</button>
+                <a type="button" class="btn2" href="/">Main Menu</a>
+                <button type="button" class="btn2" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
